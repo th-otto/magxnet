@@ -26,3 +26,9 @@ void bzero(void *p, size_t size)
 {
 	_real_bzero(p, size);
 }
+
+
+void bcopy(const void *src, void *dst, size_t n)
+{
+	memcpy(dst, src, n);
+}

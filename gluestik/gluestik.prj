@@ -24,9 +24,16 @@ pcstdli2.lib
 gemdos.s
 
 socket.c [-P]
-gethost.c
+gethost.c [-P]
+sockname.c [-P]
+inetaddr.c [-P]
+resolv.c [-P]
 hostname.c
+
+socket2.c
 bzero.c
+ctype.c
+string.c
 
 gemdos2.s
 pcextlib.lib
