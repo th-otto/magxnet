@@ -1,0 +1,32 @@
+gluestik.prg
+.C[-A-]
+.C[-P-]
+.C[-M-]
+.C[-K]
+.C[-G-]
+.C[-2-]
+.C[-8-]
+.C[-C-]		; no nested comments please
+
+.L[-S=16384]
+
+=
+pcstart.s
+gs_conf.c
+gs_func.c
+gs_mem.c
+gs_stik.c
+main.c
+
+mt_aes.s
+
+pcstdli2.lib
+gemdos.s
+
+socket.c [-P]
+gethost.c
+hostname.c
+bzero.c
+
+gemdos2.s
+pcextlib.lib
