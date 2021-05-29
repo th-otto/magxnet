@@ -699,8 +699,8 @@ static long noop(void)
 static TPL trampoline =
 {
 	TRANSPORT_DRIVER,
-	"Scott Bigham, Frank Naumann (GlueSTiK\277 v" str (VER_MAJOR) "." str (VER_MINOR) ")",
-	"01.13",
+	"S. Bigham, F.N. V.P. (GlueSTiK\277 v" str (VER_MAJOR) "." str (VER_MINOR) ")",
+	"01.14",
 	do_KRmalloc,
 	do_KRfree,
 	do_KRgetfree,

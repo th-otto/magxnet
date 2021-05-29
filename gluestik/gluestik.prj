@@ -45,6 +45,7 @@ send.c [-P]
 sendmsg.c [-P]
 sendto.c [-P]
 socket.c [-P]
+ctype.c
 hostname.c [-P]
 recvfrom.c [-P]
 poll.c [-P]
@@ -54,6 +55,5 @@ usleep.c [-P]
 string.c [-P]
 bzero.c
 bcopy.s
-ctype.c
 
 gemdos2.s

@@ -1,8 +1,11 @@
 #include "stsocket.h"
 
+#undef RES_DEFAULT
+#define RES_DEFAULT	(RES_RECURSE|RES_DEFNAMES|RES_DNSRCH)
+
 struct state _res = {
 	RES_TIMEOUT,               	/* retransmition time interval */
-	4,                         	/* number of times to retransmit */
+	2,                         	/* number of times to retransmit */
 	RES_DEFAULT,			/* options flags */
 	1,                         	/* number of name servers */
 };

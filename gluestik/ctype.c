@@ -44,10 +44,9 @@
 
 static unsigned char const _myctype[UCHAR_MAX + 1] =
 	{
-	0,						/* EOF */
 	_CTc, _CTc, _CTc, _CTc,				/* 0x00..0x03 */
 	_CTc, _CTc, _CTc, _CTc,				/* 0x04..0x07 */
-	_CTc, _CTc|_CTs|_CTb, _CTc|_CTs, _CTc|_CTs,	/* 0x08..0x0B */
+	_CTc, _CTc|_CTs, _CTc|_CTs, _CTc|_CTs,	/* 0x08..0x0B */
 	_CTc|_CTs, _CTc|_CTs, _CTc, _CTc,		/* 0x0C..0x0F */
 
 	_CTc, _CTc, _CTc, _CTc,				/* 0x10..0x13 */
@@ -55,7 +54,7 @@ static unsigned char const _myctype[UCHAR_MAX + 1] =
 	_CTc, _CTc, _CTc, _CTc,				/* 0x18..0x1B */
 	_CTc, _CTc, _CTc, _CTc,				/* 0x1C..0x1F */
 
-	_CTs|_CTb|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP,			/* 0x20..0x23 */
+	_CTs|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP,			/* 0x20..0x23 */
 	_CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP,				/* 0x24..0x27 */
 	_CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP,				/* 0x28..0x2B */
 	_CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP, _CTp|_CTg|_CTP,				/* 0x2C..0x2F */
@@ -105,22 +104,22 @@ static unsigned char const _myctype[UCHAR_MAX + 1] =
 	_CTp|_CTg|_CTP, _CTp|_CTg|_CTP,
 	_CTp|_CTg|_CTP, _CTc,				/* 0x7C..0x7F */
 
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0x87 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0x8F */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0x97 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0x9F */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xA7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xAF */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xB7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xBF */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xC7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xCF */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xD7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xDF */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xE7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xEF */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* 0x80..0xF7 */
-	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* _CTc, */ /* 0x80..0xFF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0x87 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0x8F */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0x97 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0x9F */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xA7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xAF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xB7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xBF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xC7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xCF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xD7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xDF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xE7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xEF */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xF7 */
+	0, 0, 0, 0, 0, 0, 0, 0, /* 0x80..0xFF */
 	};
 
 const unsigned char *_ctype = _myctype;

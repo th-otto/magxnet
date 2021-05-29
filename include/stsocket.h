@@ -110,11 +110,11 @@
 #define NS_PACKETSZ    512     /* maximum packet size */
 
 #undef _PATH_HOSTS
-#define _PATH_HOSTS     "U:\\etc\\hosts"
+#define _PATH_HOSTS     "u:\\etc\\hosts" /* BUG: u not uppercase */
 #undef _PATH_HOSTCONF
-#define _PATH_HOSTCONF  "U:\\etc\\host.conf"
+#define _PATH_HOSTCONF  "u:\\etc\\host.conf" /* BUG: u not uppercase */
 #undef _PATH_RESCONF
-#define _PATH_RESCONF   "U:\\etc\\resolv.conf"
+#define _PATH_RESCONF   "u:\\etc\\resolv.conf"
 
 
 #define	MAXALIASES	35
@@ -164,18 +164,6 @@
 #define strcasecmp(a,b)		stricmp(a,b)
 #define strncasecmp(a,b,c)	strnicmp(a,b,c)
 #endif
-
-typedef union
-{
-	HEADER hdr;
-	uint8_t buf[MAXPACKET];
-} querybuf;
-
-typedef union
-{
-	long al;
-	char ac;
-} align;
 
 struct state {
 	int	retrans;	 	/* retransmition time interval */
