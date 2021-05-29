@@ -42,7 +42,7 @@
 #define _CTg _ISgraph
 #define _CTP _ISprint
 
-static unsigned int const _myctype[UCHAR_MAX + 1] =
+static unsigned char const _myctype[UCHAR_MAX + 1] =
 	{
 	0,						/* EOF */
 	_CTc, _CTc, _CTc, _CTc,				/* 0x00..0x03 */
@@ -123,4 +123,4 @@ static unsigned int const _myctype[UCHAR_MAX + 1] =
 	_CTc, _CTc, _CTc, _CTc, _CTc, _CTc, _CTc, /* _CTc, */ /* 0x80..0xFF */
 	};
 
-const unsigned int *_ctype = _myctype;
+const unsigned char *_ctype = _myctype;

@@ -8,6 +8,8 @@ gluestik.prg
 .C[-8-]
 .C[-C-]		; no nested comments please
 
+.C[-I..\include]
+
 .L[-S=16384]
 
 =
@@ -27,10 +29,14 @@ socket.c [-P]
 gethost.c [-P]
 sockname.c [-P]
 inetaddr.c [-P]
-resolv.c [-P]
+makeaddr.c [-P]
+listen.c [-P]
+res_comp.c [-P]
+;recv.c [-P]
+res_init.c [-P]
 hostname.c
+socket2.c [-P]
 
-socket2.c
 bzero.c
 ctype.c
 string.c

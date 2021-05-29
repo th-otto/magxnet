@@ -199,7 +199,7 @@ struct state {
 };
 
 #if 1
-extern const unsigned char *_ctype; /* BUG: wrong type */
+extern const unsigned char *_ctype;
 #define	_IScntrl	0x01		/* control character */
 #define	_ISdigit	0x02		/* numeric digit */
 #define	_ISupper	0x04		/* upper case */

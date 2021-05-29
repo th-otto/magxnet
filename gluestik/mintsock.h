@@ -10,6 +10,8 @@
 
 #include <sys/types.h>
 
+#define MAGIC_ONLY 1
+
 
 #define SOCKDEV "u:\\dev\\socket"
 #define UN_OFFSET ((short)(int)((struct sockaddr_un *)0)->sun_path)

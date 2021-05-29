@@ -24,35 +24,9 @@
 #undef __set_errno
 #define __set_errno(e) (errno = (e))
 
-#if 1
-extern const unsigned int *_ctype;
-#define	_IScntrl	0x01		/* control character */
-#define	_ISdigit	0x02		/* numeric digit */
-#define	_ISupper	0x04		/* upper case */
-#define	_ISlower	0x08		/* lower case */
-#define	_ISspace	0x10		/* whitespace */
-#define	_ISpunct	0x20		/* punctuation */
-#define	_ISxdigit	0x40		/* hexadecimal */
-#define _ISblank	0x80		/* blank */
-#define _ISgraph	0x100		/* graph */
-#define _ISprint	0x200		/* print */
-#undef isdigit
-#define	isdigit(c)	(_ctype[(unsigned char)((c) + 1)]&_ISdigit)
-#undef isxdigit
-#define	isxdigit(c)	(_ctype[(unsigned char)((c) + 1)]&_ISxdigit)
-#undef islower
-#define	islower(c)	(_ctype[(unsigned char)((c) + 1)]&_ISlower)
-#undef isspace
-#define	isspace(c)	(_ctype[(unsigned char)((c) + 1)]&_ISspace)
-#undef isascii
-#define	isascii(c)	!((c)&~0x7F)
-#endif
-
 #ifndef howmany
 # define howmany(x, y)	(((x)+((y)-1))/(y))
 #endif
-
-#define MAGIC_ONLY 1
 
 
 
@@ -103,48 +77,6 @@ int socket(int domain, int type, int proto)
 		
 		return sockfd;
 	}
-}
-
-
-#ifdef __MINT__
-int listen(int fd, unsigned int backlog)
-#else
-int listen(int fd, int backlog)
-#endif
-{
-	int r;
-
-#if !MAGIC_ONLY
-	if (__libc_newsockets)
-	{
-		r = (int)Flisten(fd, backlog);
-		if (r != -ENOSYS)
-		{
-			if (r < 0)
-			{
-				__set_errno(-(int) r);
-				return -1;
-			}
-			return 0;
-		}
-		__libc_newsockets = 0;
-	}
-#endif
-	
-	{
-		struct listen_cmd cmd;
-		
-		cmd.cmd = LISTEN_CMD;
-		cmd.backlog = backlog;
-		
-		r = (int)Fcntl(fd, (long) &cmd, SOCKETCALL);
-		if (r < 0)
-		{
-			__set_errno(-(int)r);
-			return -1;
-		}
-	}
-	return 0;
 }
 
 
