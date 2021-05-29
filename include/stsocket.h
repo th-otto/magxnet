@@ -67,8 +67,10 @@
 
 #ifdef __atarist__
 
+/* WTF? */
 #undef stderr
-#define stderr (&_StdInF + 2)
+extern FILE _iob[];
+#define stderr (&_iob[2])
 
 #include <resolv.h>
 #include <mint/mintbind.h>

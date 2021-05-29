@@ -51,7 +51,7 @@ int res_init(void)
 				if ((*cp == '\0') || (*cp == '\n'))
 					continue;
 				strncpy(_res.defdname, cp, sizeof(_res.defdname) - 1);
-				if ((cp = strchr(_res.defdname, '\n')) != NULL)
+				if ((cp = index(_res.defdname, '\n')) != NULL)
 					*cp = '\0';
 				havesearch = 0;
 				continue;
@@ -67,7 +67,7 @@ int res_init(void)
 				if ((*cp == '\0') || (*cp == '\n'))
 					continue;
 				(void) strncpy(_res.defdname, cp, sizeof(_res.defdname) - 1);
-				if ((cp = strchr(_res.defdname, '\n')) != NULL)
+				if ((cp = index(_res.defdname, '\n')) != NULL)
 					*cp = '\0';
 				/*
 				 * Set search list to be blank-separated strings
@@ -136,7 +136,7 @@ int res_init(void)
 		cp = _res.defdname;
 		for (; n >= LOCALDOMAINPARTS && pp < _res.dnsrch + MAXDFLSRCH; n--)
 		{
-			cp = strchr(cp, '.');
+			cp = index(cp, '.');
 			*pp++ = ++cp;
 		}
 		*pp++ = 0;

@@ -14,6 +14,7 @@ gluestik.prg
 
 =
 pcstart.s
+
 gs_conf.c
 gs_func.c
 gs_mem.c
@@ -50,10 +51,12 @@ hostname.c [-P]
 recvfrom.c [-P]
 poll.c [-P]
 select.c [-P]
-usleep.c [-P]
 
+usleep.c [-P]
 string.c [-P]
 bzero.c
 bcopy.s
+
+iob.c
 
 gemdos2.s

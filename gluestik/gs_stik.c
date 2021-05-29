@@ -776,13 +776,17 @@ do_ETM_exec (const char *tpl_name)
 	return 0;
 }
 
+#if 0
 static STING_CONFIG sting_cfg;
+#else
+static STIK_CONFIG sting_cfg;
+#endif
 DRV_LIST stik_driver =
 {
 	STIK_DRVR_MAGIC,
 	do_get_dftab,
 	do_ETM_exec,
-	{ &sting_cfg },
+	{ (void *)&sting_cfg },
 	NULL
 };
 

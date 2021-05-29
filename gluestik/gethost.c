@@ -254,7 +254,7 @@ static void reorder_addrs(struct hostent *h)
 			numitab++;
 		}
 		/**** clean up ****/
-		Fclose(fd);
+		close(fd);
 		/**** if we still don't have a table, leave */
 		if (!numitab)
 			return;

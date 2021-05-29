@@ -162,12 +162,14 @@ typedef struct _stik_config
 	int16 	max_num_ports;	/* Maximum number of ports supported */
 	uint32	received_data;	/* Counter for data being received */
 	uint32	sent_data;	/* Counter for data being sent */
+#if 0
 	char	*username;			/*  Username */
 	char	*password;			/*  Password */
 	int16	identdcn;			/* connection for identd services	*/
 	uint32	localhost;			/* Local Host IP address */
 	int16	slice;				/* Number of time slices we run once in */
 	char 	*pap_id;			/* id for PAP */
+#endif
 } STIK_CONFIG;
 
 /*--------------------------------------------------------------------------*/

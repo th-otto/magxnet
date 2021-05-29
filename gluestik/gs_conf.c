@@ -228,7 +228,7 @@ find_config_file (void)
 		return 1;
 	}
 	
-	if ((unsigned int)n >= sizeof (cfg_filename))
+	if ((int)n >= (int)sizeof (cfg_filename))
 		n = (int)sizeof (cfg_filename) - 1;
 	
 	if ((s = strchr (cfg_filename, '\n')) == NULL)
