@@ -1,45 +1,42 @@
 #include "stsocket.h"
 #include "mintsock.h"
 
-#ifdef __MINT__
-int listen(int fd, unsigned int backlog)
-#else
-int listen(int fd, int backlog)
-#endif
+int recv(int fd, void *buf, size_t buflen, int flags)
 {
 	int r;
 
 #if !MAGIC_ONLY
 	if (__libc_newsockets)
 	{
-		r = (int)Flisten(fd, backlog);
+		r = (int)Frecvfrom(fd, buf, buflen, flags, NULL, NULL);
 		if (r != -ENOSYS)
 		{
 			if (r < 0)
 			{
-				__set_errno(-(int) r);
+				__set_errno(-(int)r);
 				return -1;
 			}
-			return 0;
+			return (int)r;
 		}
 		__libc_newsockets = 0;
 	}
 #endif
-	
+
 	{
-		struct listen_cmd cmd;
+		struct recv_cmd cmd;
 		
-		cmd.cmd = LISTEN_CMD;
-		cmd.backlog = backlog;
+		cmd.cmd = RECV_CMD;
+		cmd.buf = buf;
+		cmd.buflen = buflen;
+		cmd.flags = flags;
 		
 		r = (int)Fcntl(fd, (long) &cmd, SOCKETCALL);
+		
 		if (r < 0)
 		{
 			__set_errno(-(int)r);
 			return -1;
 		}
 	}
-	return 0;
+	return (int)r;
 }
-
-

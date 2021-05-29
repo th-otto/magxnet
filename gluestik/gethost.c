@@ -388,8 +388,8 @@ static void reorder_addrs(struct hostent *h)
 			{							/* compare */
 				/* We found a match.  Swap it into [0] */
 				bcopy(h->h_addr_list[0], &tmp, sizeof(tmp));
-				bcopy((*r), h->h_addr_list[0], sizeof(tmp));
-				bcopy(&tmp, (*r), sizeof(tmp));
+				bcopy(*r, h->h_addr_list[0], sizeof(tmp));
+				bcopy(&tmp, *r, sizeof(tmp));
 
 				return;					/* found one, don't need to continue */
 			}

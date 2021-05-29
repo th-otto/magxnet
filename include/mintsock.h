@@ -162,5 +162,9 @@ struct recvmsg_cmd {
 	short	flags;
 };
 
+#if !MAGIC_ONLY
+extern short __libc_newsockets;
+#endif
+
 
 #endif /* _MINTSOCK_H */

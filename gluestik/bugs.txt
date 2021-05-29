@@ -1,0 +1,37 @@
+- throughout the socket library:
+  apparently most of it was compiled with older versions of
+  header files, which did not consequently use the type socklen_t.
+  In mintlib, this is defined as unsigned int, which (when not compiled
+  with --mshort, which is not supported in all parts of mintlib), is a
+  32bit type. That matches what the MiNT kernel expects. But not so for
+  Pure-C, where unsigned int is 16 bit.
+  This mostly affects calls like recv(), where a pointer to such a type
+  is passed. But it looks like those functions where explicitly
+  declared to take a pointer to an unsigned long as argument, not socklen_t
+  like in Mintlib.
+  As a result, header files from mintlib cannot be used with the library.
+
+  OTOH, some struct members (like h_length in the struct hostent) are
+  only 16bit.
+
+- errno handling is totally buggy. gs_xlate_error() is supposed to translate
+  the errno value into a corresponding error code for STiK/StinG. Just like
+  mintlib, the library functions set errno to the positive value of the GEMDOS
+  calls. Howvever, gs_xlate_error() originally checks for the negative values.
+
+- The function to uninstall the cookie is buggy. However for MagiC, the program
+  is a TSR, and that function is never executed.
+
+- The socket library apparently uses its own versions of the ctype functions
+  (isspace() etc.), instead of Pure-Cs functions. The main program
+  however uses different functions.
+
+- callback functions that were introduced after the STinG 1.20 release are not
+  supported. That causes clients that try to use them (like PING.PRG) to crash.
+
+- Since MagiC does not support Fpoll(), using select() on a
+  file-descriptor >= 32 does not work.
+
+- res_send() (which is used by the resolver) was apparently compiled
+  with a wrong header file which causes read() to be called with a wrong prototype,
+  passing and returning only a short

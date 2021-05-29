@@ -302,3 +302,33 @@ uint16_t _getshort(const uint8_t *msgp)
 }
 
 
+#if 0 /* unused */
+uint32_t _getlong(uint8_t *msgp)
+{
+	uint8_t *p = msgp;
+	uint32_t u;
+
+	u = *p++; u <<= 8;
+	u |= *p++; u <<= 8;
+	u |= *p++; u <<= 8;
+	return u | *p;
+}
+#endif
+
+
+void __putshort(uint16_t s, uint8_t *msgp)
+{
+	msgp[1] = s;
+	msgp[0] = s >> 8;
+}
+
+
+void __putlong(uint32_t l, uint8_t *msgp)
+{
+	msgp[3] = l;
+	msgp[2] = (l >>= 8);
+	msgp[1] = (l >>= 8);
+	msgp[0] = l >> 8;
+}
+
+

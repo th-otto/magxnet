@@ -75,16 +75,22 @@
 # define MSG_BOOT	\
 	"\033p GlueSTiK\277 STiK emulator for MiNTnet version " \
 	MSG_VERSION " \033q\r\n"
-#else
-# define MSG_BOOT	\
-	"\033p GlueSTiK\277 STiK emulator for MagiCNet version 0.15 \033q\r\n"
-#endif
 
 # define MSG_GREET	\
 	"Redirect Daemon\r\n" \
 	"\275 1996-98 Scott Bigham.\r\n" \
 	"\275 2000 Frank Naumann.\r\n" \
 	"\275 Mar 22 2002 Vassilis Papathanassiou.\r\n"
+
+#else
+
+# define MSG_BOOT	\
+	"\033p GlueSTiK\277 STiK emulator for MagiCNet version 0.15 \033q\r\n"
+
+# define MSG_GREET	\
+	"S. Bigham, F.N, V.P. (GlueSTiK \275 v0.15) 01.14" \
+
+#endif
 
 # define MSG_ALPHA	\
 	"\033p WARNING: This is an unstable version - alpha! \033q\7\r\n"

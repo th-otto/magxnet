@@ -31,32 +31,45 @@
  * SUCH DAMAGE.
  */
 
-#include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
+#include <limits.h>
 #include <sys/time.h>
+#include <sys/poll.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+
 
 #if (defined(__MINT__) || defined(__PUREC__)) && !defined(__atarist__)
 #define __atarist__ 1
 #endif
 
 #ifdef __atarist__
-
 /* temporary hack to get binary identical results */
 #undef __socklen_t
 #define __socklen_t int
 #undef socklen_t
 #define socklen_t __socklen_t
+#define __mint_socklen_t uint32_t
+#endif
+
+#include <netdb.h>
+#include <time.h>
+#include <fcntl.h>
+#include <mint/mintbind.h>
+#undef ENOSYS
+#define ENOSYS 32
+
+#ifdef __atarist__
+
 #undef stderr
 #define stderr (&_StdInF + 2)
 
-#include <sys/socket.h>
-
-#include <netdb.h>
 #include <resolv.h>
 #include <mint/mintbind.h>
 #include <netinet/in.h>
@@ -164,8 +177,6 @@ typedef union
 	char ac;
 } align;
 
-extern int h_errno;
-
 struct state {
 	int	retrans;	 	/* retransmition time interval */
 	int	retry;			/* number of times to retransmit */
@@ -177,6 +188,17 @@ struct state {
 	char defdname[NS_MAXDNAME];	/* default domain */
 	char *dnsrch[MAXDNSRCH+1];	/* components of domain to search */
 };
+
+#undef __set_errno
+#define __set_errno(e) (errno = (e))
+
+#ifndef howmany
+# define howmany(x, y)	(((x)+((y)-1))/(y))
+#endif
+
+extern int h_errno;
+extern struct state _res;
+
 
 int __dn_skipname(const uint8_t *comp_dn, const uint8_t *eom);
 int dn_expand(const uint8_t *msg, const uint8_t *eomorig, const uint8_t *comp_dn, char *exp_dn, int length);

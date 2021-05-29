@@ -25,21 +25,35 @@ mt_aes.s
 pcstdli2.lib
 gemdos.s
 
-socket.c [-P]
+herror.c [-P]
+accept.c [-P]
+bind.c [-P]
+connect.c [-P]
+sockglob.c [-P]
 gethost.c [-P]
 sockname.c [-P]
 inetaddr.c [-P]
 makeaddr.c [-P]
 listen.c [-P]
 res_comp.c [-P]
-;recv.c [-P]
+recv.c [-P]
 res_init.c [-P]
-hostname.c
-socket2.c [-P]
+res_mkq.c [-P]
+res_quer.c [-P]
+res_send.c [-P]
+send.c [-P]
+sendmsg.c [-P]
+sendto.c [-P]
+socket.c [-P]
+hostname.c [-P]
+recvfrom.c [-P]
+poll.c [-P]
+select.c [-P]
+usleep.c [-P]
 
+string.c [-P]
 bzero.c
+bcopy.s
 ctype.c
-string.c
 
 gemdos2.s
-pcextlib.lib
