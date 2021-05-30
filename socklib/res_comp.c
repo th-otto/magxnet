@@ -6,8 +6,12 @@
 struct state _res = {
 	RES_TIMEOUT,               	/* retransmition time interval */
 	2,                         	/* number of times to retransmit */
-	RES_DEFAULT,			/* options flags */
+	RES_DEFAULT,				/* options flags */
 	1,                         	/* number of name servers */
+	{ { 0, 0, { 0 }, { 0 } } },
+	0,
+	"",
+	{ 0 }
 };
 
  
@@ -119,6 +123,11 @@ int dn_comp(const char *exp_dn, uint8_t *comp_dn, int length, uint8_t **dnptrs, 
 	uint8_t *eob;
 	uint8_t *msg;
 
+#ifdef __GNUC__
+	/* shut up compiler; both are only used when msg != NULL, and in this case are initialized */
+	lpp = 0;
+	cpp = 0;
+#endif
 	dn = exp_dn;
 	cp = comp_dn;
 	eob = cp + length;
@@ -326,7 +335,7 @@ void __putshort(uint16_t s, uint8_t *msgp)
 }
 
 
-void __putlong(uint32_t l, uint8_t *msgp)
+void __putlong(unsigned long l, uint8_t *msgp)
 {
 	msgp[3] = l;
 	msgp[2] = (l >>= 8);

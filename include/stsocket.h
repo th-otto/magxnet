@@ -41,7 +41,11 @@
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <stdlib.h>
+#ifdef __GNUC__
 #include <unistd.h>
+#else
+int gethostname (char *__name, size_t __len);
+#endif
 #include <sys/socket.h>
 
 
@@ -61,7 +65,15 @@
 #include <netdb.h>
 #include <time.h>
 #include <fcntl.h>
+#ifdef __PUREC__
+/* original header incorrectly declares Fcntl as returning int */
+#define Fcntl no_Fcntl
+#include <tos.h>
+#undef Fcntl
+long Fcntl(short f, long arg, short cmd);
+#else
 #include <mint/mintbind.h>
+#endif
 #undef ENOSYS
 #define ENOSYS 32
 
@@ -73,7 +85,6 @@ extern FILE _iob[];
 #define stderr (&_iob[2])
 
 #include <resolv.h>
-#include <mint/mintbind.h>
 #include <netinet/in.h>
 #include <net/if.h>						/* for struct ifconf */
 #include <arpa/inet.h>
@@ -167,10 +178,12 @@ extern FILE _iob[];
 #define strncasecmp(a,b,c)	strnicmp(a,b,c)
 #endif
 
+#ifndef __res_state_defined
+# define __res_state_defined
 struct state {
 	int	retrans;	 	/* retransmition time interval */
 	int	retry;			/* number of times to retransmit */
-	long options;		/* option flags - see below. */
+	unsigned long options;		/* option flags - see below. */
 	int	nscount;		/* number of name servers */
 	struct sockaddr_in nsaddr_list[MAXNS];	/* address of name server */
 #define	nsaddr nsaddr_list[0]		/* for backward compatibility */
@@ -178,6 +191,7 @@ struct state {
 	char defdname[NS_MAXDNAME];	/* default domain */
 	char *dnsrch[MAXDNSRCH+1];	/* components of domain to search */
 };
+#endif
 
 #undef __set_errno
 #define __set_errno(e) (errno = (e))
@@ -197,7 +211,7 @@ int dn_comp(const char *exp_dn, uint8_t *comp_dn, int length, uint8_t **dnptrs, 
 int res_search(const char *name, int class, int type, uint8_t *answer, int anslen);
 int res_query(const char *name, int class, int type, uint8_t *answer, int anslen);
 int res_mkquery(int op, const char *dname, int class, int type, char *data, int datalen, struct rrec *newrr, uint8_t *buf, int buflen);
-char *__hostalias(const char *name);
+const char *__hostalias(const char *name);
 int res_init(void);
 int res_send(const uint8_t *buf, int buflen, uint8_t *answer, int anslen);
 int res_querydomain(const char *name, const char *domain, int class, int type, uint8_t *answer, int anslen);

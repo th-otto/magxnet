@@ -1,5 +1,14 @@
+#ifdef __GNUC__
+#define _GNU_SOURCE /* for POLLRDNORM */
+#endif
 #include "stsocket.h"
 #include "mintsock.h"
+# ifdef __PUREC__
+# include <tos.h>
+long Fpoll(void *fds, long nfds, unsigned long timeout);
+#else
+# include <mint/mintbind.h>
+#endif
 
 
 int poll(struct pollfd *fds, unsigned long int nfds, int32_t __timeout)
@@ -60,15 +69,15 @@ int poll(struct pollfd *fds, unsigned long int nfds, int32_t __timeout)
 
 		if (__timeout < 0)
 		{
-			retval = Fselect(0L, &rfds, &wfds, &xfds);
+			retval = Fselect(0, &rfds, &wfds, &xfds);
 		} else if (timeout == 0)
 		{
-			retval = Fselect(1L, &rfds, &wfds, &xfds);
+			retval = Fselect(1, &rfds, &wfds, &xfds);
 		} else if (timeout < USHRT_MAX)
 		{
 			/* The manpage Fselect(2) says that timeout is
 			   signed.  But it is really unsigned.  */
-			retval = Fselect(timeout, &rfds, &wfds, &xfds);
+			retval = Fselect((unsigned short)timeout, &rfds, &wfds, &xfds);
 		} else
 		{
 			/* Thanks to the former kernel hackers we have

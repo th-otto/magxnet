@@ -1,7 +1,18 @@
 CROSS = m68k-atari-mint-
 CC = $(CROSS)gcc
 AS = $(CROSS)gcc
+AR = $(CROSS)ar
+RANLIB = $(CROSS)ranlib
 WARN = -Wall -W -Wshadow -Werror
 OPTS = -O2 -fomit-frame-pointer
 CFLAGS = $(OPTS) $(WARN) -I../include
 LDFLAGS = -s -Wl,--mprg-flags,0x17
+
+SOCKLIB_DEP = ../socklib/libsock.a
+SOCKLIB = -L../socklib -lsock
+
+all::
+
+$(SOCKLIB_DEP):
+	$(MAKE) -C ../socklib
+

@@ -8,6 +8,7 @@ gluestik.prg
 .C[-8-]
 .C[-C-]		; no nested comments please
 
+.C[-I..\include\purec]
 .C[-I..\include]
 
 .L[-S=16384]

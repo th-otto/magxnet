@@ -127,7 +127,7 @@ int res_send(const uint8_t *buf, int buflen, uint8_t *answer, int anslen)
 					msg.msg_control = 0;
 					msg.msg_controllen = 0;
 
-					if (sendmsg(s, (void *)&msg, 0) != sizeof(len) + buflen)
+					if ((size_t)sendmsg(s, (void *)&msg, 0) != sizeof(len) + buflen)
 					{
 						terrno = errno;
 						close(s);

@@ -9,14 +9,18 @@
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <limits.h>
 #include <netdb.h>
 #include <time.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#ifdef __PUREC__
+#include <tos.h>
+#else
+#include <ctype.h>
 #include <mint/mintbind.h>
+#endif
 #include <arpa/inet.h>
 #undef ENOSYS
 #define ENOSYS 32
@@ -24,7 +28,7 @@
 #undef __set_errno
 #define __set_errno(e) (errno = (e))
 
-#if 1
+#ifdef __PUREC__
 extern const unsigned char *_ctype;
 #define	_IScntrl	0x01		/* control character */
 #define	_ISdigit	0x02		/* numeric digit */

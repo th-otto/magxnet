@@ -2,11 +2,14 @@
 /* (written by Eric R. Smith, placed in the public domain) */
 
 #include <errno.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#ifdef __GNUC__
 #include <unistd.h>
+#endif
 #include <errno.h>
 
 #ifndef ENAMETOOLONG
@@ -17,8 +20,6 @@
    length.  */
 #include <sys/param.h>
 #include <sys/types.h>
-#include <mint/sysctl.h>
-#include <mint/mintbind.h>
 
 #undef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 127

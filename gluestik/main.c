@@ -24,17 +24,22 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+# include <stdio.h>
+# include <netdb.h>
+# include <string.h>
+
+# ifdef __PUREC__
+# include <tos.h>
+#define C_MagX 0x4D616758L     /* MagX */
+#define C_MiNT 0x4D694E54L     /* Mint/MultiTOS */
+#define C_STiK 0x5354694BL     /* ST Internet Kit */
+# else
 # include <mint/osbind.h>
 # include <mint/mintbind.h>
 # include <mint/basepage.h>
 # include <mint/ssystem.h>
 # include <mint/cookie.h>
-
-# include <stdio.h>
-# include <signal.h>
-# include <netdb.h>
-# include <stdbool.h>
-# include <string.h>
+#endif
 
 # include "gs.h"
 

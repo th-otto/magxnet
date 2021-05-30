@@ -19,10 +19,10 @@ ifneq ($(CROSS),)
 OBJS += mt_aes.o
 endif
 
-all: $(PROGRAMS)
+all:: $(PROGRAMS)
 
-gluestik.prg: $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lm
+gluestik.prg: $(OBJS) $(SOCKLIB_DEP)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(SOCKLIB)
 
 $(OBJS): gs.h gs_conf.h gs_func.h gs_mem.h gs_stik.h ../include/transprt.h
 gs_stik.o main.o: version.h

@@ -25,9 +25,12 @@
  */
 
 # include <string.h>
-# include <osbind.h>
-# include <mintbind.h>
 # include <netinet/in.h>
+# ifdef __PUREC__
+# include <tos.h>
+#else
+# include <mint/mintbind.h>
+#endif
 
 # include "gs_stik.h"
 

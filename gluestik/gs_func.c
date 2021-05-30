@@ -25,11 +25,23 @@
  */
 
 # include <string.h>
-# include <osbind.h>
-# include <mintbind.h>
+# include <stdio.h>
 # include <fcntl.h>
 # include <sys/socket.h>
 # include <sys/ioctl.h>
+# ifdef __PUREC__
+/* original header incorrectly declares Fcntl as returning int */
+#define Fcntl no_Fcntl
+# include <tos.h>
+#undef Fcntl
+long Fcntl(short f, long arg, short cmd);
+#else
+# include <mint/mintbind.h>
+#endif
+
+#ifdef __PUREC__
+extern void bzero (void *__s, size_t __n);
+#endif
 
 /* temporary hack to get binary identical results */
 #undef __socklen_t
@@ -208,7 +220,7 @@ gs_accept (int fd)
 	
 	/* switch to non-blocking mode */
 	fdflags |= O_NDELAY;
-	ret = Fcntl (gs->sock_fd, &fdflags, F_SETFL); /* attention: MagCNet */
+	ret = Fcntl (gs->sock_fd, (long)&fdflags, F_SETFL); /* attention: MagCNet */
 	ret = Fcntl (gs->sock_fd, 0L, F_GETFL);
 	if (ret < 0)
 	{
@@ -220,7 +232,7 @@ gs_accept (int fd)
 	
 	/* restore flags */
 	fdflags &= ~O_NDELAY;
-	ret = Fcntl (gs->sock_fd, &fdflags, F_SETFL); /* attention: MagCNet */
+	ret = Fcntl (gs->sock_fd, (long)&fdflags, F_SETFL); /* attention: MagCNet */
 	if (ret < 0)
 	{
 		DEBUG (("gs_accept: Fcntl(F_SETFL) returns %li", ret));

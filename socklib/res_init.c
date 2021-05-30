@@ -1,5 +1,11 @@
 #include "stsocket.h"
 
+#ifdef __PUREC__
+void bcopy (const void *__src, void *__dest, size_t __n);
+char *index (const char *__s, int __c);
+char *rindex (const char *__s, int __c);
+#endif
+
 /*
  * Set up default settings.  If the configuration file exist, the values
  * there will have precedence.  Otherwise, the server address is set to

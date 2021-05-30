@@ -9,14 +9,12 @@
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <limits.h>
 #include <netdb.h>
 #include <time.h>
 #include <fcntl.h>
 #include <sys/socket.h>
-#include <mint/mintbind.h>
 #include "stsocket.h"
 #include "mintsock.h"
 

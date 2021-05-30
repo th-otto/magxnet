@@ -1,5 +1,10 @@
 #include "stsocket.h"
 
+#ifdef __PUREC__
+void bcopy (const void *__src, void *__dest, size_t __n);
+void bzero (void *__s, size_t __n);
+#endif
+
 /*
  * Form all types of queries.
  * Returns the size of the result or -1.

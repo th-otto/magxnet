@@ -33,6 +33,12 @@
 
 #include "stsocket.h"
 
+#ifdef __PUREC__
+void bcopy (const void *__src, void *__dest, size_t __n);
+char *index (const char *__s, int __c);
+char *rindex (const char *__s, int __c);
+#endif
+
 static int service_order[SERVICE_MAX + 1];
 static int service_done = 0;
 
@@ -79,7 +85,7 @@ typedef union
 
 int h_errno;
 
-#if 1
+#ifdef __PUREC__
 extern const unsigned char *_ctype;
 #define	_IScntrl	0x01		/* control character */
 #define	_ISdigit	0x02		/* numeric digit */
@@ -103,7 +109,7 @@ int dn_comp(const char *exp_dn, uint8_t *comp_dn, int length, uint8_t **dnptrs, 
 int res_search(const char *name, int class, int type, uint8_t *answer, int anslen);
 int res_query(const char *name, int class, int type, uint8_t *answer, int anslen);
 int res_mkquery(int op, const char *dname, int class, int type, char *data, int datalen, struct rrec *newrr, uint8_t *buf, int buflen);
-char *__hostalias(const char *name);
+const char *__hostalias(const char *name);
 int res_init(void);
 int res_send(const uint8_t *buf, int buflen, uint8_t *answer, int anslen);
 int res_querydomain(const char *name, const char *domain, int class, int type, uint8_t *answer, int anslen);
@@ -212,7 +218,7 @@ static void reorder_addrs(struct hostent *h)
 		ifs.ifc_len = MAXINTERFACES * sizeof(struct ifreq);
 		ifs.ifc_buf = (void *)ifbuf;
 		/* get a list of interfaces */
-		err = (int)Fcntl(fd, &ifs, SIOCGIFCONF);
+		err = (int)Fcntl(fd, (long)&ifs, SIOCGIFCONF);
 		if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 			return;
 
@@ -223,7 +229,7 @@ static void reorder_addrs(struct hostent *h)
 		{
 			strcpy(itp->iname, p->ifr_name);	/* copy interface name */
 
-			err = (int)Fcntl(fd, p, SIOCGIFNETMASK);	/* get netmask */
+			err = (int)Fcntl(fd, (long)p, SIOCGIFNETMASK);	/* get netmask */
 			if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 				continue;				/* error? skip this interface */
 			q = (struct sockaddr_in *) &(p->ifr_addr);
@@ -232,7 +238,7 @@ static void reorder_addrs(struct hostent *h)
 			else
 				continue;				/* not internet protocol? skip this interface */
 
-			err = (int)Fcntl(fd, p, SIOCGIFADDR);	/* get address */
+			err = (int)Fcntl(fd, (long)p, SIOCGIFADDR);	/* get address */
 			if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 				continue;				/* error? skip this interface */
 			q = (struct sockaddr_in *) &(p->ifr_addr);

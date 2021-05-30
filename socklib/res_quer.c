@@ -1,6 +1,10 @@
 #include "stsocket.h"
 
-#if 1
+#ifdef __PUREC__
+void bcopy (const void *__src, void *__dest, size_t __n);
+#endif
+
+#ifdef __PUREC__
 extern const unsigned char *_ctype;
 #define	_ISspace	0x10		/* whitespace */
 #undef isspace
@@ -190,7 +194,7 @@ int res_querydomain(
 }
 
 
-char *__hostalias(const char *name)
+const char *__hostalias(const char *name)
 {
 	char *C1;
 	char *C2;
