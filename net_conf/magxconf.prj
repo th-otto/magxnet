@@ -1,0 +1,60 @@
+magxconf.prg
+.C[-A-]
+.C[-P-]
+.C[-M-]
+.C[-K]
+.C[-G-]
+.C[-2-]
+.C[-8-]
+.C[-C-]		; no nested comments please
+
+.C[-I..\include\purec]
+.C[-I..\include]
+
+.L[-S=8192]
+
+=
+pcstart.s
+
+magxconf.c
+
+;..\socklib\mt_aes.s
+
+;mt_aes.c
+
+..\socklib\herror.c [-P]
+..\socklib\accept.c [-P]
+..\socklib\bind.c [-P]
+..\socklib\connect.c [-P]
+..\socklib\sockglob.c [-P]
+..\socklib\gethost.c [-P]
+..\socklib\sockname.c [-P]
+..\socklib\inetaddr.c [-P]
+..\socklib\inetlnao.c [-P]
+..\socklib\makeaddr.c [-P]
+..\socklib\listen.c [-P]
+..\socklib\res_comp.c [-P]
+..\socklib\recv.c [-P]
+..\socklib\res_init.c [-P]
+..\socklib\res_mkq.c [-P]
+..\socklib\res_quer.c [-P]
+..\socklib\res_send.c [-P]
+..\socklib\send.c [-P]
+..\socklib\sendmsg.c [-P]
+..\socklib\sendto.c [-P]
+..\socklib\socket.c [-P]
+..\socklib\ctype.c
+..\socklib\hostname.c [-P]
+..\socklib\recvfrom.c [-P]
+..\socklib\sockpair.c [-P]
+..\socklib\poll.c [-P]
+..\socklib\select.c [-P]
+
+..\socklib\string.c [-P]
+..\socklib\bzero.c
+..\socklib\bcopy.s
+
+iob.c
+
+pcstdli2.lib
+gemdos.s

@@ -1,0 +1,40 @@
+Liesmich.txt
+============
+Aktuelle Beta-Version von MagiCNet
+
+Dieser Orner enth„lt die aktuellsten mir vorliegenden Versionen von 
+MagiCNet und den zugeh”rigen Hilfsprogrammen.
+
+Bitte nicht ohne Genehmigung durch Vassilis weiterverbreiten!
+
+
+Im Ordner \etc\ppp liegen einige Einwahlscripte. Ich selbst verwende 
+nur t-online und habe damit keine Probleme. internet-by-call mit Arcor 
+und Claranet habe ich lange nicht mehr zum laufen gekriegt. Wer das 
+schafft, oder andere funktionierende Einwahlscripte hat, bitte Meldung!
+
+Installationshinweise:
+
+- Der Ordner etc mu auf einer Partition mit langen Dateinamen liegen.
+- U:\tmp mu existieren, PPPD_GEM schreibt dort sein Logfile rein. Ein 
+  Eintrag "#_ENV TMP=u:\tmp\" in der MAGX.INF schadet bestimmt nicht.
+  Am besten legt man die links auf U:\ mit dem tool link2u von Daniel 
+  Augsburger an. Alle bis auf etc, heit das, denn um den kmmert sich 
+  schon magxconf. Aus Platzgrnden darf man auf U: keine langen 
+  Dateinamen aktivieren!
+- In \etc\ppp\pap-secrets mssen die Usernamen und Paw”rter 
+  eingetragen werden. In die Datei chap-secrets kommen dieselben 
+  Eintragungen, oder man l”scht die Datei und legt unter demselben 
+  Namen einen link auf pap-secrets an.
+- magxconf.prg und magx-rc.net geh”ren in den APPS-Ordner.
+- SLIP.MIF, SOCKETS.DEV und MAGX_SLD.OVL mssen nach 
+  GEMSYS\MAGIC\XTENSION. Gegebenenfalls auch weitere *.MIF, um
+  Netzwerkkarten zu betreiben.
+- Man sollte nicht neue und alte Versionen von MagiCNet mischen, 
+  da es teilweise inkompatible nderungen gab.
+- in etc\resolv.conf mssen passende Eintr„ge fr den verwendeten 
+  Provider sein.
+
+
+Ahornberg, im Januar 2006
+Ekkehard Flessa

@@ -1,0 +1,163 @@
+
+These are the tools for configuring - checking MagiCNet. Most of them
+are now included in a NETCONG.APP GEM utility but until it's ready 
+you'll have to use them in their TTP form (sorry).
+
+ARP
+---
+ Examine or set Address Resolution Protocol to remotes (ethernet only)
+ For MiNTNet/MagiCNet ARP by default is dynamic and lasts for 20 min.
+ Normaly this tool is not used unless one wants to set a permanent
+ ARP entry.
+ 
+ usage:
+ 	arp
+ 	arp del <ip_address>
+ 	arp add <ip_address> <hw address> [perm][publ[norarp]
+ 	
+ <wh_address> is the MAC address of your ethernet adapter
+ [perm] makes the entry permanent
+ 
+IFLINK
+------
+ Used to link an interface to a device. For the moment it is used 
+ only for the serial ports.
+ 
+ usage:
+ 	iflink -i <interface> [-d <device>]
+ 	
+ Example:
+ 	iflink -i sl -d u:\dev\modem2
+ 	
+ 	This line will open modem2 and link it to interface sl. For the
+ 	first port the return will be sl0, for the second sl1 etc.
+ 	Thus, it is important to note the return value of iflink in case
+ 	one uses more than one serial ports.
+ 	
+IFCONFIG
+--------
+ Examine of configure an interface. This can be any kind of interface
+ supported by the TCP/IP stack, ie serial, parallel, ethernet etc
+ 
+ usage:
+ 	ifconfig
+ 		Lists all available interfaces
+ 	ifconfig -v
+ 		Displays the following options:
+ 	
+ 	ifconfig [-a|-v] [<interface name>]
+	[addr <local address>] [netmask aa.bb.cc.dd]
+	[dstaddr <point to point destination address>]
+	[broadaddr aa.bb.cc.dd]
+	[up|down|[-]arp|[-]trailers|[-]debug]
+	[mtu NN] [metric NN]
+	[linkNN] [-linkNN]
+	[-f <option file>]
+	
+ Examples:
+ 	For an ethernet interface:
+ 		
+ 		ifconfig en addr 10.0.0.1 up
+ 		
+ 		This line sets interface en0 to local IP address 10.0.0.1
+ 		and configures it running (with up). <up> is optional
+ 		but I'd suggest to use it. With <down> the interface can
+ 		be stoped. No destination address is needed.
+ 		
+ 		You can also set the netmask at any time with:
+ 		
+ 		ifconfig en0 netmask 255.255.255.0
+ 	
+ 	For a serial interface:
+ 	
+ 		ifconfig sl0 addr 10.0.0.2 dstaddr 10.0.0.15 up
+ 		
+ 		This line sets sl0 to the local IP address 10.0.0.2 and
+ 		the destination IP address to 10.0.0.15. One can also
+ 		set the iface link level flags (ie slip, cslip ) with
+ 		linkNN where NN is a bit mask. Bits 3 and 4 are supported
+ 		for the moment, bit 3 sets auto compression and bit 4
+ 		enables VJ header compression.
+ 		
+ 		For MTU use mtu NN, for example mtu 1500.
+ 		
+ 		ifconfig sl0 netmask 255.255.255.0 mtu 1500 link04
+ 		
+ 		will set serial line 0 to mtu of 1500 bytes and VJ on.
+ 		
+ There is more info in MiNTNet documentation (MAN\CAT8\IFCONFIG.8)
+ 
+ROUTE
+-----
+ Reads or sets the routes to the remote networks. This is important
+ for the network's correct operation (and sometimes the source of
+ problems).
+ 
+ usage:
+ 	route
+ 		Lists all routes.
+ 	route del <target>
+ 		Removes the route to the address <target>. This will happen
+ 		automaticaly if one uses "ifconfig <interface> down".
+ 	route add <target> <interface> [gw <gateway>] [metric NN]
+ 		Adds a route to the destination address <target>.
+ 		Depending on the netmask one can use the exact address or
+ 		the address range that results from the mask, eg for
+ 		netmask 255.255.255.0 and local address 192.168.1.2 the
+ 		value for <target> can be 192.168.1.18 (to a specific
+ 		remote) or 192.168.1.0 (to access all addresses from
+ 		192.168.1.0 to 192.168.1.255).
+ 		
+ 		For ethernet interfaces the gateway address can be provided
+ 		and also the 'metric' which means the cost to the remote
+ 		(I'm not sure if it is even used in MiNTNet/MagiCNet).
+ 		
+ Examples:
+ 	route add 192.168.1.0 en0
+ 	route add 192.168.1.14 en0 gw 192.168.1.1
+ 	
+ 		For the default route one can use either
+ 	route add default en0 gw <192.168.1.1>
+ 		to route all unknown addresses to interface en0 through
+ 		gateway 192.168.1.1 which could be a router such as WinRoute
+ 		or a similar Masquerade, NAT, proxy etc remote computer.
+
+ 	
+NETSTAT
+-------
+ Shows connections, both active and listening. Useful to examine for
+ the state of any connection to a remote.
+ 
+ usage:
+ 	netstat
+ 		Lists active connections
+ 	netstat -a
+ 		Lists both active and listening connections
+ 	
+ 	Here is a sample:
+ 	
+ 	Active TCP connections                                                          
+	Proto  Recv-Q Send-Q Local-Address        Foreign-Address      State      
+	TCP         0      0 *:ftp                *:*                  LISTEN     
+	TCP         0      0 44.154.0.26:1024     44.154.0.28:bnet_ssn ESTABLISHED     
+	TCP         0      0 *:bnet_ssn           *:*                  LISTEN     
+	Active UDP connections                                                    
+	Proto  Recv-Q Send-Q Local-Address        Foreign-Address      State      
+	UDP         0      0 44.154.0.26:1025     44.154.0.28:bnet_msg ESTABLISHED
+	UDP         0      0 *:bnet_msg           *:*                  CLOSED     
+                                                                                
+	With "*" are marked the unitialized (listening) connections.
+	If a port belongs to "well known ports" it is readen from the
+	file u:\etc\services.
+	
+Ping utility
+------------
+
+ping -c 10 MYSTE4 (from /etc/hosts) or
+ping -c 5 192.168.1.5
+
+where -c #num is the number of packets you wish to transmit and
+get back. Using ping <hostname or IP address> with no other
+parameters 4 packets will be transmited.
+
+Use ^C to abort ping.

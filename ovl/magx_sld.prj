@@ -1,0 +1,26 @@
+magx_sld.ovl
+.C[-A-]
+.C[-P-]
+.C[-M-]
+.C[-K]
+.C[-G-]
+.C[-2-]
+.C[-8-]
+.C[-C-]		; no nested comments please
+
+.C[-I..\include\purec]
+.C[-I..\include]
+
+.L[-S=8192]
+
+=
+pcstart.s
+
+main.c
+
+..\socklib\mt_aes.s
+
+mt_aes.c
+
+pcstdli2.lib
+gemdos.s

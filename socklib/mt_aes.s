@@ -4,7 +4,7 @@
 /* AK 16.3.96 */
 /* sb 11.9.96 */
 
-                  .globl   _mt_aes
+                  .globl   _aes_trap
                   .globl   _crystal
                   .globl   _appl_yield
                   .globl   __appl_yield
@@ -43,17 +43,17 @@ sizeof_GEMPARBLK:                                           /* } GEMPARBLK; */
                   .text
 
 /*
- * void _mt_aes( PARMDATA *d, WORD *ctrldata,   WORD *global );
+ * void _aes_trap( MX_PARMDATA *d, WORD *ctrldata,   WORD *global );
  * Vorgaben:
  * Register d0-d2/a0-a1 koennen veraendert werden
  * Eingaben:
- * a0.l PARMDATA *d
+ * a0.l MX_PARMDATA *d
  * a1.l WORD *ctrldata
  * 4(sp).l WORD *global
  * Ausgaben:
  * -
  */
-_mt_aes:          move.l   a2,-(sp)
+_aes_trap:        move.l   a2,-(sp)
                   lea      -sizeof_AESPB(sp),sp             /* Platz fuer AESPB */
                   movea.l  sp,a2
                   move.l   a0,(a2)+                         /* contrl */

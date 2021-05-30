@@ -1,0 +1,80 @@
+Some notes for MagiCNet                                     05 Nov 2001
+
+Installation:
+-------------
+Copy the contents of XTENSION folder to X:\GEMSYS\MAGIC\XTENSION
+(where X: is your boot drive).
+To prevent confusion MagicNet drivers have the extention MIF not XIF.
+
+Copy the contents of /etc/ folder to a partition supporting long file
+names. This is most important for compatibility with programs checking
+for /etc/host.conf and other names that don't fit in TOS 8.3 filenames.
+Edit some of the files to adapt them for your system. Please use qed
+for this or any other editor that preserves line-endings (ie that
+keeps the unix line terminators).
+
+Files that you might update are:
+
+domainname: enter your ISP's domain name (eg. my_isp.com)
+hostname: give a name for your computer eg. MY_TT1
+hosts: a lookup table where IP addresses are assigned to names
+       eg 192.168.1.2 TT_Ether
+networks: The network class (optional)
+
+Modify the MAGX_RC.NET file to suit your needs (IP addresses of local
+network etc). Using MiNTNet's rc.net by adding the "etc_path" line on
+top should be OK but note that not all commands are supported (eg
+slattach).
+MAGXCONF.PRG and MAGX_RC.NET can be copied to the default START
+(\GEMSYS\MAGIC\START) folder but in case serial ports are used and
+SERIAL.CPX is used to set the speed, the speed will be wrong since
+the files in the START folder are executed before the CPXs.
+
+Possible solutions: (until the GEM version of NET_CONF is ready)
+
+1. Set the desktop to auto-execute MAGXCONF
+2. Use a utility to set the serial speed earlier (from the AUTO folder)
+eg Olivier Booklage's serial utility.
+3. Execute it from the desktop.
+4. Use only ethernet :-)
+
+Please note that pppd_GEM will set whatever speed it reads from the
+/etc/ppp/options file, so if the only serial port one is using is 
+for pppd, the above restrictions do NOT apply.
+
+The TOOL folder contains the MiNTNet compatible tools for configuring/
+examining sockets. The tools from MiNTNet can NOT be used with MagiCNet
+since the ioctl system call in all versions of MiNTLIB I know of, is
+incompatible. Please read TOOLS.TXT for more info.
+
+MISC folder:
+------------
+The program AFTPATCH.TTP will patch aFTP v 1.55b to work with MagiCNet
+ignoring the test for the MiNT cookie. The patched version still works
+fine with MiNT/MiNTNet. Please use the patch on the same path as aFTP
+and make sure you're not trying to patch the STiK version.
+
+Note that both aFTP and aMail must be started from the U:\<their_path\
+drive otherwise they can't find /etc/services and other /etc/ files
+(NET.LIB searches for /etc/file not for u:/etc.. which is fine for 
+MiNT but not for MagiC).
+
+CAB.OVL is my port of Howard Chu's v 1.804 with pipes etc ;-) but without
+SSL. I have to find the sources one of these days. Since I'm using it
+with proxy I have found out that it needs the complete protocol name
+in front of the host (eg http://proxy.domain.name:8080 instead of just
+proxy.domain.name).
+
+Both ethernet pocket drivers have been moved to the ETHER_PK folder
+inside the MISC folder and should be copied to ..\XTENSION folder
+only if such an adapter is used.
+
+-------------->
+Finally note that this is a beta (although I'm using it for months on
+my TT, Falcon, ST, MagiC PC even on a Milan 040) and therefore I'll
+take no responsibility for damages caused by the use of MagiCNet etc, etc.
+
+Please send bug reports/suggestions/ideas etc to "papval@otenet.gr".
+
+Have fun with MagiCNet
+Vassilis

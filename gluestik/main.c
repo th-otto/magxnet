@@ -188,7 +188,7 @@ static long get_jar(void)
 }
 
 
-static long *get_cookie (long id, long *value)
+static long *get_cookie(long id, long *value)
 {
 	long *jar;
 	
