@@ -1,0 +1,7 @@
+CROSS = m68k-atari-mint-
+CC = $(CROSS)gcc
+AS = $(CROSS)gcc
+WARN = -Wall -W -Wshadow -Werror
+OPTS = -O2 -fomit-frame-pointer
+CFLAGS = $(OPTS) $(WARN) -I../include
+LDFLAGS = -s -Wl,--mprg-flags,0x17

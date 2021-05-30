@@ -25,7 +25,6 @@
  */
 
 # include <string.h>
-# include <unistd.h>
 # include <osbind.h>
 # include <mintbind.h>
 # include <fcntl.h>
