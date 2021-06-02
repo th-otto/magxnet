@@ -110,7 +110,13 @@ int res_search(const char *name,		/* domain name */
 	 *    and RES_DNSRCH is set.
 	 */
 	if ((n == 0 && (_res.options & RES_DEFNAMES)) ||
-		(n < 2 && *--cp != '.' && (_res.options & RES_DNSRCH))) /* BUG? < 2 ? */
+		(
+#ifdef IN_GLUESTIK
+			n < 2 /* BUG? < 2 ? */
+#else
+			n != 0
+#endif
+			&& *--cp != '.' && (_res.options & RES_DNSRCH)))
 	{
 		for (domain = _res.dnsrch; *domain; domain++)
 		{

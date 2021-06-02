@@ -9,6 +9,16 @@
 				rts
 				ENDMOD
 
+				GLOBL	Dgetdrv
+				MODULE	Dgetdrv
+				pea		(a2)
+				move.w	#$19,-(a7)
+				trap #1
+				addq.w	#2,a7
+				move.l	(a7)+,a2
+				rts
+				ENDMOD
+
 				.globl Fcntl
 				MODULE	Fcntl
 				pea		(a2)

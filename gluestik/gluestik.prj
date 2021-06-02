@@ -37,11 +37,11 @@ pcstdli2.lib
 ..\socklib\inetaddr.c [-P]
 ..\socklib\makeaddr.c [-P]
 ..\socklib\listen.c [-P]
-..\socklib\res_comp.c [-P]
+..\socklib\res_comp.c [-P -DIN_GLUESTIK]
 ..\socklib\recv.c [-P]
 ..\socklib\res_init.c [-P]
 ..\socklib\res_mkq.c [-P]
-..\socklib\res_quer.c [-P]
+..\socklib\res_quer.c [-P -DIN_GLUESTIK]
 ..\socklib\res_send.c [-P]
 ..\socklib\send.c [-P]
 ..\socklib\sendmsg.c [-P]
@@ -58,6 +58,6 @@ pcstdli2.lib
 ..\socklib\bzero.c
 ..\socklib\bcopy.s
 
-iob.c
+..\socklib\iob.c
 
 ..\socklib\gemdos2.s

@@ -6,7 +6,7 @@ RANLIB = $(CROSS)ranlib
 WARN = -Wall -W -Wshadow -Werror
 OPTS = -O2 -fomit-frame-pointer
 CFLAGS = $(OPTS) $(WARN) -I../include
-LDFLAGS = -s -Wl,--mprg-flags,0x17
+LDFLAGS = -s -Wl,--mprg-flags,0x7
 
 SOCKLIB_DEP = ../socklib/libsock.a
 SOCKLIB = -L../socklib -lsock

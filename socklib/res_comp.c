@@ -5,7 +5,11 @@
 
 struct state _res = {
 	RES_TIMEOUT,               	/* retransmition time interval */
+#ifdef IN_GLUESTIK
 	2,                         	/* number of times to retransmit */
+#else
+	4,                         	/* number of times to retransmit */
+#endif
 	RES_DEFAULT,				/* options flags */
 	1,                         	/* number of name servers */
 	{ { 0, 0, { 0 }, { 0 } } },

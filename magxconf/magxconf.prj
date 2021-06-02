@@ -12,15 +12,18 @@ magxconf.prg
 .C[-I..\include]
 
 .L[-S=8192]
+.L[-R -M]
 
 =
 pcstart.s
 
 magxconf.c
+ifconfig.c
 
-;..\socklib\mt_aes.s
+pcstdli2.lib
 
-;mt_aes.c
+gemdos.s
+aes.s
 
 ..\socklib\herror.c [-P]
 ..\socklib\accept.c [-P]
@@ -54,7 +57,5 @@ magxconf.c
 ..\socklib\bzero.c
 ..\socklib\bcopy.s
 
-iob.c
+..\socklib\iob.c
 
-pcstdli2.lib
-gemdos.s
