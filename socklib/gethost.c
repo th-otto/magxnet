@@ -39,6 +39,43 @@ char *index (const char *__s, int __c);
 char *rindex (const char *__s, int __c);
 #endif
 
+#define	MAXALIASES	35
+#define	MAXADDRS	35
+#define MAXTRIMDOMAINS  4
+#define HOSTDB		_PATH_HOSTS
+
+#define SERVICE_NONE	0
+#define SERVICE_BIND	1
+#define SERVICE_HOSTS	2
+#define SERVICE_NIS		3
+#define SERVICE_MAX		3
+
+#define CMD_ORDER	"order"
+#define CMD_TRIMDOMAIN	"trim"
+#define CMD_HMA		"multi"
+#define CMD_SPOOF	"nospoof"
+#define CMD_SPOOFALERT	"alert"
+#define CMD_REORDER	"reorder"
+#define CMD_ON		"on"
+#define CMD_OFF		"off"
+#define CMD_WARN	"warn"
+#define CMD_NOWARN	"warn off"
+
+#define ORD_BIND	"bind"
+#define ORD_HOSTS	"hosts"
+#define ORD_NIS		"nis"
+
+#define ENV_HOSTCONF	"RESOLV_HOST_CONF"
+#define ENV_SERVORDER	"RESOLV_SERV_ORDER"
+#define ENV_SPOOF	"RESOLV_SPOOF_CHECK"
+#define ENV_TRIM_OVERR	"RESOLV_OVERRIDE_TRIM_DOMAINS"
+#define ENV_TRIM_ADD	"RESOLV_ADD_TRIM_DOMAINS"
+#define ENV_HMA		"RESOLV_MULTI"
+#define ENV_REORDER	"RESOLV_REORDER"
+
+#define TOKEN_SEPARATORS " ,;:"
+
+
 static int service_order[SERVICE_MAX + 1];
 static int service_done = 0;
 

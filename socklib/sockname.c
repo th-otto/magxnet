@@ -1,20 +1,3 @@
-#ifdef __GNUC__
-# define _GNU_SOURCE
-#endif
-#include <stdio.h>
-#include <stddef.h>
-#include <errno.h>
-#include <stdint.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/poll.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <netdb.h>
-#include <time.h>
-#include <fcntl.h>
-#include <sys/socket.h>
 #include "stsocket.h"
 #include "mintsock.h"
 

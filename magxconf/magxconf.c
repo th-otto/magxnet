@@ -50,7 +50,10 @@ static void setobaud(const char *device, long baud)
 	}
 }
 
-
+/*
+ * XXX uses different address registers than original,
+ * but has been manually compared to do the same thing
+ */
 static int parse_config(char *lineptr)
 {
 			struct in_addr addr;
@@ -59,12 +62,14 @@ static int parse_config(char *lineptr)
 	char *line = lineptr;
 	char *cmd;
 	char *argv[10] = { 0 };
-	char *device = NULL;
-	const char *ifname = NULL;
+	char *device;
+	const char *ifname;
 	int argc;
 	int argn;
 	int flags;
 	
+	device = NULL;
+	ifname = NULL;
 	line = strtok(line, " \t");
 	if (line == NULL)
 		return 0;

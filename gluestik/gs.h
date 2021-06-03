@@ -31,7 +31,7 @@
 # include <stdio.h>
 # include <sys/types.h>
 
-#if !defined(__PUREC__) && !(defined(__GNUC__) && defined(__MSHORT__))
+#if !defined(__PUREC__)
 # define TPL_STRUCT_ARGS 1
 #endif
 # include "transprt.h"
@@ -57,7 +57,6 @@ typedef unsigned char	uchar;
 # define str(x)		_stringify (x)
 # define _stringify(x)	#x
 
-# define SOCKDEV	"u:\\dev\\socket"
 # define FREECOOKIE	0x46524545L	/* FREE */
 # define JAR		0x5A0
 

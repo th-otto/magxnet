@@ -1,11 +1,7 @@
 #include "stsocket.h"
 #include "mintsock.h"
 
-#ifdef __MINT__
 int listen(int fd, unsigned int backlog)
-#else
-int listen(int fd, int backlog)
-#endif
 {
 	int r;
 

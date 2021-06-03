@@ -177,7 +177,7 @@ __BEGIN_DECLS
 /*
  * Pure-C does not allow to use anything else but
  * int to be used as bitfield. But for other compilers,
- * int might be too large for correct alignemtn of follwing members
+ * int might be too large for correct alignment of following members
  */
 #ifndef __bitfield_type
 #ifdef __PUREC__

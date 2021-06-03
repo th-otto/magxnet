@@ -5,10 +5,8 @@
  *	09/24/93, kay roemer.
  */
 
-#ifndef _MINTSOCK_H
-#define _MINTSOCK_H
-
-#include <sys/types.h>
+#ifndef _sockets_mintsock_h
+#define _sockets_mintsock_h
 
 #define MAGIC_ONLY 1
 
@@ -99,15 +97,15 @@ struct getpeername_cmd {
 
 struct send_cmd {
 	short	cmd;
-	const void* buf;
-	ssize_t	buflen;
+	const void *buf;
+	long	buflen;
 	short	flags;
 };
 
 struct sendto_cmd {
 	short	cmd;
 	const void *buf;
-	ssize_t	buflen;
+	long	buflen;
 	short	flags;
 	const void *addr;
 	short	addrlen;
@@ -116,14 +114,14 @@ struct sendto_cmd {
 struct recv_cmd {
 	short	cmd;
 	void	*buf;
-	ssize_t	buflen;	
+	long	buflen;	
 	short	flags;
 };
 
 struct recvfrom_cmd {
 	short	cmd;
 	void	*buf;
-	ssize_t	buflen;
+	long	buflen;
 	short	flags;
 	void	*addr;
 	short	*addrlen;
@@ -162,9 +160,6 @@ struct recvmsg_cmd {
 	short	flags;
 };
 
-#if !MAGIC_ONLY
-extern short __libc_newsockets;
-#endif
 
+#endif /* _sockets_mintsock_h */
 
-#endif /* _MINTSOCK_H */
