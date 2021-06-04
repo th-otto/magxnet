@@ -31,9 +31,6 @@
 # include <stdio.h>
 # include <sys/types.h>
 
-#if !defined(__PUREC__)
-# define TPL_STRUCT_ARGS 1
-#endif
 # include "transprt.h"
 
 

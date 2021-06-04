@@ -32,7 +32,7 @@
 
 extern DRV_LIST stik_driver;
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 const char *__CDECL do_get_err_text	(struct get_err_text_param p);
 #else
 const char *__CDECL do_get_err_text	(int16 code);

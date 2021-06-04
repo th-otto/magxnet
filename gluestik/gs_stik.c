@@ -94,7 +94,7 @@ static int flags [64] =
 };
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 #define P(x) p.x
 #else
 #define P(x) x
@@ -103,7 +103,7 @@ static int flags [64] =
 #define UNUSED(x) ((void)(x))
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void * __CDECL do_KRmalloc (struct KRmalloc_param p)
 #else
 static void * __CDECL do_KRmalloc (int32 size)
@@ -112,7 +112,7 @@ static void * __CDECL do_KRmalloc (int32 size)
 	return gs_mem_alloc (P(size));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void __CDECL do_KRfree (struct KRfree_param p)
 #else
 static void __CDECL do_KRfree (void *mem)
@@ -121,7 +121,7 @@ static void __CDECL do_KRfree (void *mem)
 	gs_mem_free (P(mem));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int32 __CDECL do_KRgetfree (struct KRgetfree_param p)
 #else
 static int32 __CDECL do_KRgetfree (int16 flag)
@@ -130,7 +130,7 @@ static int32 __CDECL do_KRgetfree (int16 flag)
 	return gs_mem_getfree (P(flag));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void *__CDECL do_KRrealloc (struct KRrealloc_param p)
 #else
 static void *__CDECL do_KRrealloc (void *mem, int32 newsize)
@@ -140,13 +140,13 @@ static void *__CDECL do_KRrealloc (void *mem, int32 newsize)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 const char *__CDECL do_get_err_text (struct get_err_text_param p)
 #else
 const char *__CDECL do_get_err_text (int16 code)
 #endif
 {
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 	int16 code = P(code);
 #endif
 
@@ -168,7 +168,7 @@ const char *__CDECL do_get_err_text (int16 code)
 	return err_list [code];
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static const char *__CDECL do_getvstr (struct getvstr_param p)
 #else
 static const char *__CDECL do_getvstr (const char *var)
@@ -188,7 +188,7 @@ do_carrier_detect (void)
 	return 0;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_open (struct TCP_open_param p)
 #else
 static int16 __CDECL do_TCP_open (uint32 rhost, uint16 rport, uint16 tos, uint16 obsize)
@@ -251,7 +251,7 @@ static int16 __CDECL do_TCP_open (uint32 rhost, uint16 rport, uint16 tos, uint16
 	return fd;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_close (struct TCP_close_param p)
 #else
 static int16 __CDECL do_TCP_close (int16 fd, int16 timeout, int16 *result)
@@ -263,7 +263,7 @@ static int16 __CDECL do_TCP_close (int16 fd, int16 timeout, int16 *result)
 	return E_NORMAL;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_send (struct TCP_send_param p)
 #else
 static int16 __CDECL do_TCP_send (int16 fd, const void *buf, int16 len)
@@ -272,7 +272,7 @@ static int16 __CDECL do_TCP_send (int16 fd, const void *buf, int16 len)
 	return gs_write (P(fd), P(buf), P(len));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_wait_state (struct TCP_wait_state_param p)
 #else
 static int16 __CDECL do_TCP_wait_state (int16 fd, int16 state, int16 timeout)
@@ -285,7 +285,7 @@ static int16 __CDECL do_TCP_wait_state (int16 fd, int16 state, int16 timeout)
 /* Incompatibility:  Does nothing.
  * MiNTnet handles this internally.
  */
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_ack_wait (struct TCP_ack_wait_param p)
 #else
 static int16 __CDECL do_TCP_ack_wait (int16 fd, int16 timeout)
@@ -296,7 +296,7 @@ static int16 __CDECL do_TCP_ack_wait (int16 fd, int16 timeout)
 	return E_NORMAL;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_UDP_open (struct UDP_open_param p)
 #else
 static int16 __CDECL do_UDP_open (uint32 rhost, uint16 rport)
@@ -322,7 +322,7 @@ static int16 __CDECL do_UDP_open (uint32 rhost, uint16 rport)
 	return fd;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_UDP_close (struct UDP_close_param p)
 #else
 static int16 __CDECL do_UDP_close (int16 fd)
@@ -332,7 +332,7 @@ static int16 __CDECL do_UDP_close (int16 fd)
 	return 0;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_UDP_send (struct UDP_send_param p)
 #else
 static int16 __CDECL do_UDP_send (int16 fd, const void *buf, int16 len)
@@ -344,7 +344,7 @@ static int16 __CDECL do_UDP_send (int16 fd, const void *buf, int16 len)
 /* Incompatibility:  Does nothing.
  * MiNTnet handles its own "kicking"
  */
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CNkick (struct CNkick_param p)
 #else
 static int16 __CDECL do_CNkick (int16 fd)
@@ -354,7 +354,7 @@ static int16 __CDECL do_CNkick (int16 fd)
 	return E_NORMAL;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CNbyte_count (struct CNbyte_count_param p)
 #else
 static int16 __CDECL do_CNbyte_count (int16 fd)
@@ -374,7 +374,7 @@ static int16 __CDECL do_CNbyte_count (int16 fd)
 #endif
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CNget_char (struct CNget_char_param p)
 #else
 static int16 __CDECL do_CNget_char (int16 fd)
@@ -393,7 +393,7 @@ static int16 __CDECL do_CNget_char (int16 fd)
 	return (unsigned char)c;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static NDB * __CDECL do_CNget_NDB (struct CNget_NDB_param p)
 #else
 static NDB * __CDECL do_CNget_NDB (int16 fd)
@@ -402,7 +402,7 @@ static NDB * __CDECL do_CNget_NDB (int16 fd)
 	return gs_readndb (P(fd));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CNget_block (struct CNget_block_param p)
 #else
 static int16 __CDECL do_CNget_block (int16 fd, void *buf, int16 len)
@@ -416,7 +416,7 @@ static void __CDECL do_housekeep (void)
 	/* does nothing */
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_resolve (struct resolve_param p)
 #else
 static int16 __CDECL do_resolve (const char *dn, char **rdn, uint32 *alist, int16 lsize)
@@ -435,7 +435,7 @@ static void __CDECL do_ser_enable (void)
 	/* does nothing */
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_set_flag (struct set_flag_param p)
 #else
 static int16 __CDECL do_set_flag (int16 flag)
@@ -458,7 +458,7 @@ static int16 __CDECL do_set_flag (int16 flag)
 	return flg_val;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void __CDECL do_clear_flag (struct clear_flag_param p)
 #else
 static void __CDECL do_clear_flag (int16 flag)
@@ -476,7 +476,7 @@ static void __CDECL do_clear_flag (int16 flag)
 	Psemaphore (3, FLG_SEM, 0);
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static CIB * __CDECL do_CNgetinfo (struct CNgetinfo_param p)
 #else
 static CIB * __CDECL do_CNgetinfo (int16 fd)
@@ -493,7 +493,7 @@ static CIB * __CDECL do_CNgetinfo (int16 fd)
 /* Incompatibility: None of the *_port() commands do anything.
  * Don't use a STiK dialer with GlueSTiK, gods know what will happen!
  */
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_on_port (struct on_port_param p)
 #else
 static int16 __CDECL do_on_port (const char *port)
@@ -503,7 +503,7 @@ static int16 __CDECL do_on_port (const char *port)
 	return E_NOROUTINE;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void __CDECL do_off_port (struct off_port_param p)
 #else
 static void __CDECL do_off_port (const char *port)
@@ -512,7 +512,7 @@ static void __CDECL do_off_port (const char *port)
 	UNUSED(P(port));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_setvstr (struct setvstr_param p)
 #else
 static int16 __CDECL do_setvstr (const char *vs, const char *value)
@@ -521,7 +521,7 @@ static int16 __CDECL do_setvstr (const char *vs, const char *value)
 	return gs_setvstr (P(vs), P(value));
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_query_port (struct query_port_param p)
 #else
 static int16 __CDECL do_query_port (const char *port)
@@ -531,7 +531,7 @@ static int16 __CDECL do_query_port (const char *port)
 	return E_NOROUTINE;
 }
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CNgets (struct CNgets_param p)
 #else
 static int16 __CDECL do_CNgets (int16 fd, char *buf, int16 len, char delim)
@@ -542,7 +542,7 @@ static int16 __CDECL do_CNgets (int16 fd, char *buf, int16 len, char delim)
 
 
 #if 0
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_ICMP_send(struct ICMP_send_param p)
 #else
 static int16 __CDECL do_ICMP_send(uint32 dest_host, uint8 type, uint8 code, const void *data, uint16 length)
@@ -557,7 +557,7 @@ static int16 __CDECL do_ICMP_send(uint32 dest_host, uint8 type, uint8 code, cons
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_ICMP_handler(struct ICMP_handler_param p)
 #else
 static int16 __CDECL do_ICMP_handler(int16 cdecl (*handler) (IP_DGRAM *), int16 install_code)
@@ -569,7 +569,7 @@ static int16 __CDECL do_ICMP_handler(int16 cdecl (*handler) (IP_DGRAM *), int16 
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void __CDECL do_ICMP_discard(struct ICMP_discard_param p)
 #else
 static void __CDECL do_ICMP_discard(IP_DGRAM *datagram)
@@ -579,7 +579,7 @@ static void __CDECL do_ICMP_discard(IP_DGRAM *datagram)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_TCP_info(struct TCP_info_param p)
 #else
 static int16 __CDECL do_TCP_info(int16 handle, TCPIB *buffer)
@@ -591,7 +591,7 @@ static int16 __CDECL do_TCP_info(int16 handle, TCPIB *buffer)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_cntrl_port(struct cntrl_port_param p)
 #else
 static int16 __CDECL do_cntrl_port(const char *name, uint32 arg, int16 code)
@@ -604,7 +604,7 @@ static int16 __CDECL do_cntrl_port(const char *name, uint32 arg, int16 code)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_UDP_info(struct UDP_info_param p)
 #else
 static int16 __CDECL do_UDP_info(int16 handle, UDPIB *buffer)
@@ -616,7 +616,7 @@ static int16 __CDECL do_UDP_info(int16 handle, UDPIB *buffer)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_RAW_open(struct RAW_open_param p)
 #else
 static int16 __CDECL do_RAW_open(uint32 rhost)
@@ -627,7 +627,7 @@ static int16 __CDECL do_RAW_open(uint32 rhost)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_RAW_close(struct RAW_close_param p)
 #else
 static int16 __CDECL do_RAW_close(int16 handle)
@@ -638,7 +638,7 @@ static int16 __CDECL do_RAW_close(int16 handle)
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_RAW_out(struct RAW_out_param p)
 #else
 static int16 __CDECL do_RAW_out(int16 handle, const void *data, int16 dlen, uint32 dest_ip)
@@ -652,7 +652,7 @@ static int16 __CDECL do_RAW_out(int16 handle, const void *data, int16 dlen, uint
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CN_setopt(struct CN_setopt_param p)
 #else
 static int16 __CDECL do_CN_setopt(int16 handle, int16 opt_id, const void *optval, int16 optlen)
@@ -666,7 +666,7 @@ static int16 __CDECL do_CN_setopt(int16 handle, int16 opt_id, const void *optval
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static int16 __CDECL do_CN_getopt(struct CN_getopt_param p)
 #else
 static int16 __CDECL do_CN_getopt(int16 handle, int16 opt_id, void *optval, int16 *optlen)
@@ -680,7 +680,7 @@ static int16 __CDECL do_CN_getopt(int16 handle, int16 opt_id, void *optval, int1
 }
 
 
-#ifdef TPL_STRUCT_ARGS
+#if TPL_STRUCT_ARGS
 static void __CDECL do_CNfree_NDB(struct CNfree_NDB_param p)
 #else
 static void __CDECL do_CNfree_NDB(int16 handle, NDB *block)
