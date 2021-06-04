@@ -1,5 +1,7 @@
 /*
- *	socketpair() emulation for MiNT-Net, (w) '93, kay roemer.
+ * socketpair() emulation for MiNT-Net, (w) '93, kay roemer.
+ *
+ * Modified to support Pure-C, Thorsten Otto.
  */
 
 #include "stsocket.h"
@@ -7,7 +9,7 @@
 
 int socketpair(int domain, int type, int proto, int fds[2])
 {
-#if !MAGIC_ONLY
+#if !defined(MAGIC_ONLY)
 	if (__libc_newsockets)
 	{
 		short _fds[2];

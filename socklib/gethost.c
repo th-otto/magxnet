@@ -42,7 +42,6 @@ char *rindex (const char *__s, int __c);
 #define	MAXALIASES	35
 #define	MAXADDRS	35
 #define MAXTRIMDOMAINS  4
-#define HOSTDB		_PATH_HOSTS
 
 #define SERVICE_NONE	0
 #define SERVICE_BIND	1

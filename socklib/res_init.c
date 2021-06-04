@@ -1,3 +1,42 @@
+/*
+ * Adopted to Mint-Net 1994, Kay Roemer
+ *
+ * Modified to support Pure-C, Thorsten Otto.
+ */
+
+/*-
+ * Copyright (c) 1985, 1989 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
 #include "stsocket.h"
 
 #ifdef __PUREC__
@@ -6,6 +45,29 @@ char *index (const char *__s, int __c);
 char *rindex (const char *__s, int __c);
 #endif
 
+/*
+ * Resolver state default settings
+ */
+
+#undef RES_DEFAULT
+#define RES_DEFAULT	(RES_RECURSE|RES_DEFNAMES|RES_DNSRCH)
+
+struct state _res = {
+	RES_TIMEOUT,               	/* retransmition time interval */
+#ifdef IN_GLUESTIK
+	2,                         	/* number of times to retransmit */
+#else
+	4,                         	/* number of times to retransmit */
+#endif
+	RES_DEFAULT,				/* options flags */
+	1,                         	/* number of name servers */
+	{ { 0, 0, { 0 }, { 0 } } },
+	0,
+	"",
+	{ 0 }
+};
+
+ 
 /*
  * Set up default settings.  If the configuration file exist, the values
  * there will have precedence.  Otherwise, the server address is set to
@@ -30,7 +92,7 @@ int res_init(void)
 	int havesearch = 0;
 
 	_res.nsaddr.sin_addr = inet_makeaddr(IN_LOOPBACKNET, 1);
-	_res.nsaddr.sin_family = htons(AF_INET);
+	_res.nsaddr.sin_family = AF_INET;
 	_res.nsaddr.sin_port = htons(NAMESERVER_PORT);
 	_res.nscount = 1;
 

@@ -1,3 +1,9 @@
+/*
+ * socket() emulation for MiNT-Net, (w) '93, kay roemer.
+ *
+ * Modified to support Pure-C, Thorsten Otto.
+ */
+
 #include "stsocket.h"
 #include "mintsock.h"
 
@@ -5,7 +11,7 @@ int socket(int domain, int type, int proto)
 {
 	int r;
 
-#if !MAGIC_ONLY
+#if !defined(MAGIC_ONLY)
 	if (__libc_newsockets)
 	{
 		r = (int)Fsocket(domain, type, proto);

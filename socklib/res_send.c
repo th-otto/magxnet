@@ -1,4 +1,47 @@
 /*
+ * Adopted to Mint-Net 1994, Kay Roemer
+ *
+ * Modified to support Pure-C, Thorsten Otto.
+ */
+
+/*
+ * Copyright (c) 1985, 1989 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the University of
+ *	California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/*
+ * Send query to name server and wait for reply.
+ */
+
+/*
  * BUG: read() in this module apparently had a wrong prototype
  */
 #define read real_read
@@ -29,31 +72,6 @@ static struct sockaddr no_addr;
 
 int res_send(const uint8_t *buf, int buflen, uint8_t *answer, int anslen)
 {
-	/* try: d3 */
-	/* n: d4 */
-	/* ns: d5 */
-	/* resplen: d6 */
-	/* buflen: d7 */
-	/* hp: a6 */
-	/* cp: a4 */
-
-	/* msg: 570 */
-	/* truncate: 568 */
-	/* buf: 564 */
-	/* answer: 560 */
-	/* anslen: 558 */
-	/* v_circuit: 556 */
-	/* gotsomewhere: 554 */
-	/* connected: 552 */
-	/* connreset: 550 */
-	/* id: 548 */
-	/* len: 546 */
-	/* dsmask: 542 */
-	/* timeout: 534 */
-	/* anhp: 530 */
-	/* iovec: 514 */
-	/* terrno: 512 */
-	
 	int n;					/* Shut up compiler warning.  */
 	int try, v_circuit, resplen, ns;
 	int gotsomewhere = 0;

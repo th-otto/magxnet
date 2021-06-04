@@ -1,3 +1,9 @@
+/*
+ * sendto() emulation for MiNT-Net, (w) '93, kay roemer
+ *
+ * Modified to support Pure-C, Thorsten Otto.
+ */
+
 #include "stsocket.h"
 #include "mintsock.h"
 
@@ -5,7 +11,7 @@ int sendto(int fd, const void *buf, size_t buflen, int flags, const struct socka
 {
 	int r;
 
-#if !MAGIC_ONLY
+#if !defined(MAGIC_ONLY)
 	if (__libc_newsockets)
 	{
 		r = (int)Fsendto(fd, buf, buflen, flags, addr, addrlen);

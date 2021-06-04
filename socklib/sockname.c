@@ -1,13 +1,18 @@
+/*
+ * getsockname() emulation for MiNT-Net, (w) '93, kay roemer
+ *
+ * Modified to support Pure-C, Thorsten Otto.
+ */
+
 #include "stsocket.h"
 #include "mintsock.h"
-
 
 
 int getsockname(int fd, struct sockaddr *addr, __mint_socklen_t *addrlen)
 {
 	int r;
 
-#if !MAGIC_ONLY
+#if !defined(MAGIC_ONLY)
 	if (__libc_newsockets)
 	{
 		unsigned long addrlen32;

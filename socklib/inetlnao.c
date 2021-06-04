@@ -1,5 +1,7 @@
 /*
  * Adopted to Mint-Net 1994, Kay Roemer.
+ *
+ * Modified to support Pure-C, Thorsten Otto.
  */
 
 /*
