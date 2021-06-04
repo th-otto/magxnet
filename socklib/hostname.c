@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__MINT__)
 #include <unistd.h>
 #endif
 #include <errno.h>

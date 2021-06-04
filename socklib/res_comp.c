@@ -100,7 +100,7 @@ int dn_expand(const uint8_t *msg, const uint8_t *eomorig, const uint8_t *comp_dn
 		case INDIR_MASK:
 			if (len < 0)
 				len = (int)(cp - comp_dn + 1);
-			cp = (u_char *) msg + (((n & 0x3f) << 8) | (*cp & 0xff));
+			cp = (unsigned char *) msg + (((n & 0x3f) << 8) | (*cp & 0xff));
 			if (cp < msg || cp >= eomorig)	/* out of range */
 				return -1;
 			checked += 2;

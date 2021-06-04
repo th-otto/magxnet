@@ -102,7 +102,7 @@ static int numtrimdomains = 0;
 #define	MAXPACKET	1024
 #endif
 
-#ifdef __PUREC__
+#if defined(__PUREC__) && !defined(__MINT__)
 #define strcasecmp(a,b)		stricmp(a,b)
 #define strncasecmp(a,b,c)	strnicmp(a,b,c)
 #endif
@@ -343,7 +343,7 @@ static void init_services(void)
 		service_order[2] = SERVICE_NONE;
 	} else
 	{
-		while (fgets(buf, BUFSIZ, fd) != NULL)
+		while (fgets(buf, (int)BUFSIZ, fd) != NULL)
 		{
 			if ((cp = rindex(buf, '\n')) != NULL)
 				*cp = '\0';
@@ -937,7 +937,7 @@ struct hostent *gethostent(void)
 		return NULL;
 
 	again:
-		if ((p = fgets(hostbuf, BUFSIZ, hostf)) == NULL)
+		if ((p = fgets(hostbuf, (int)BUFSIZ, hostf)) == NULL)
 			return NULL;
 		if (*p == '#')
 			goto again;

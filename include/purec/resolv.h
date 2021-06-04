@@ -77,7 +77,7 @@ struct state {
 	int	nscount;		/* number of name servers */
 	struct	sockaddr_in nsaddr_list[MAXNS];	/* address of name server */
 #define	nsaddr	nsaddr_list[0]		/* for backward compatibility */
-	u_short	id;			/* current packet id */
+	unsigned short	id;			/* current packet id */
 	char	defdname[MAXDNAME];	/* default domain */
 	char	*dnsrch[MAXDNSRCH+1];	/* components of domain to search */
 };
@@ -151,24 +151,24 @@ extern int h_errno;
 #define p_time		__p_time
 #define p_type		__p_type
 
-int	dn_skipname	(const u_char *__comp_dn, const u_char *__eom);
-void	fp_nquery (const u_char *, int, FILE *) __THROW;
-void	fp_query (const u_char *, FILE *);
+int	dn_skipname	(const unsigned char *__comp_dn, const unsigned char *__eom);
+void	fp_nquery (const unsigned char *, int, FILE *) __THROW;
+void	fp_query (const unsigned char *, FILE *);
 const char	*hostalias	(const char *);
 const char	*p_class	(int);
-const char	*p_time	(u_long);
+const char	*p_time	(unsigned long);
 const char	*p_type	(int);
 void p_query(const unsigned char *msg);
 
-extern void	putshort	(u_short, u_char *);
-extern void	putlong	(u_long l, u_char *);
+extern void	putshort	(unsigned short, unsigned char *);
+extern void	putlong	(unsigned long l, unsigned char *);
 
-extern int	dn_comp		(const char *__exp_dn, u_char *__comp_dn,
-				int __length, u_char **__dnptrs,
-				u_char **__lastdnptr);
+extern int	dn_comp		(const char *__exp_dn, unsigned char *__comp_dn,
+				int __length, unsigned char **__dnptrs,
+				unsigned char **__lastdnptr);
 
-extern int	dn_expand	(const u_char *__msg, const u_char *__eomorig,
-				const u_char *__comp_dn, char *__exp_dn,
+extern int	dn_expand	(const unsigned char *__msg, const unsigned char *__eomorig,
+				const unsigned char *__comp_dn, char *__exp_dn,
 				int __length);
 				
 extern int	res_init 	(void);
@@ -182,13 +182,13 @@ extern int	res_send 	(const unsigned char *__msg, int __msglen,
 				unsigned char *__answer, int __anslen);
 
 extern int	res_query	(const char *__dname, int __class,
-				int __type, u_char *__answer, int __anslen);
+				int __type, unsigned char *__answer, int __anslen);
 				
 extern int	res_search	(const char *__dname, int __class,
-				int __type, u_char *__answer, int __anslen);
+				int __type, unsigned char *__answer, int __anslen);
 
 extern int	res_querydomain	(const char *__name, const char *__domain,
-				int __class, int __type, u_char *__answer,
+				int __class, int __type, unsigned char *__answer,
 				int __anslen);
 
 extern void	herror		(const char *__s);

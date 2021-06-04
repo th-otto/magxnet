@@ -65,6 +65,8 @@ struct msghdr
     unsigned long msg_controllen;	/* Length of access rights information.  */
   };
 
+/* WTF; ancient mintlibs define fd_set in <sys/time.h> */
+#include <sys/time.h>
 
 static int s = -1;	/* socket used for communications */
 static struct sockaddr no_addr;

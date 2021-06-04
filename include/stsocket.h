@@ -41,11 +41,10 @@
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <stdlib.h>
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__MINT__)
 #include <unistd.h>
-#else
-int gethostname (char *__name, size_t __len);
 #endif
+int gethostname (char *__name, size_t __len);
 #include <sys/socket.h>
 
 
@@ -67,7 +66,7 @@ int gethostname (char *__name, size_t __len);
 #include <netdb.h>
 #include <time.h>
 #include <fcntl.h>
-#ifdef __PUREC__
+#if defined(__PUREC__) && !defined(__MINT__)
 /* original header incorrectly declares Fcntl as returning int */
 #define Fcntl no_Fcntl
 #include <tos.h>
@@ -138,7 +137,7 @@ extern FILE _iob[];
 #define	MAXPACKET	1024
 #endif
 
-#ifdef __PUREC__
+#if defined(__PUREC__) && !defined(__MINT__)
 #define strcasecmp(a,b)		stricmp(a,b)
 #define strncasecmp(a,b,c)	strnicmp(a,b,c)
 #endif

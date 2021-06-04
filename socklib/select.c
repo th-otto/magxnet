@@ -46,12 +46,21 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 	wmask = 0;
 	xmask = 0;	
 	/* Three loops are more efficient than one here.  */
+#if FD_SETSIZE > 32
 	if (readfds != NULL)
 		rmask = readfds->__fds_bits[0];
 	if (writefds != NULL)
 		wmask = writefds->__fds_bits[0];
 	if (exceptfds != NULL)
 		xmask = exceptfds->__fds_bits[0];
+#else
+	if (readfds != NULL)
+		rmask = *readfds;
+	if (writefds != NULL)
+		wmask = *writefds;
+	if (exceptfds != NULL)
+		xmask = *exceptfds;
+#endif
 
 	if (timeout != NULL)
 	{
@@ -73,7 +82,11 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 			this_timeout = msec_timeout;
 		}
 		msec_timeout -= this_timeout;
+#if FD_SETSIZE > 32
 		retval = (int)Fselect(this_timeout, (void *)readfds->__fds_bits, (void *)writefds->__fds_bits, (void *)exceptfds->__fds_bits);
+#else
+		retval = (int)Fselect(this_timeout, (void *)readfds, (void *)writefds, (void *)exceptfds);
+#endif
 		if (retval < 0)
 		{
 			__set_errno(-retval);
@@ -83,12 +96,21 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 			break;
 		if (msec_timeout == 0)
 			break;
+#if FD_SETSIZE > 32
 		if (readfds != NULL)
 			readfds->__fds_bits[0] = rmask;
 		if (writefds != NULL)
 			writefds->__fds_bits[0] = wmask;
 		if (exceptfds != NULL)
 			exceptfds->__fds_bits[0] = xmask;
+#else
+		if (readfds != NULL)
+			*readfds = rmask;
+		if (writefds != NULL)
+			*writefds = wmask;
+		if (exceptfds != NULL)
+			*exceptfds = xmask;
+#endif
 	}
 
 	return retval;

@@ -15,7 +15,7 @@
 #endif
 #include "stsocket.h"
 #include "mintsock.h"
-# ifdef __PUREC__
+#if defined(__PUREC__) && !defined(__MINT__)
 # include <tos.h>
 long Fpoll(void *fds, long nfds, unsigned long timeout);
 #else

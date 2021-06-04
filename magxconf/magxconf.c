@@ -1,4 +1,4 @@
-#include "ifconfig.h"
+#include "ifconf.h"
 
 #ifdef __PUREC__
 # include <tos.h>

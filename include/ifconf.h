@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include "stsocket.h"
 
-#ifdef __PUREC__
+#if defined(__PUREC__) && !defined(__MINT__)
 # include <tos.h>
 #else
 # include <osbind.h>

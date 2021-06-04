@@ -1,4 +1,4 @@
-#include "ifconfig.h"
+#include "ifconf.h"
 
 #ifndef SIOCSLNKFLAGS
 #define SIOCSLNKFLAGS	(('S' << 8) | 25)	/* set link level flags */

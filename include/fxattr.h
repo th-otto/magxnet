@@ -5,19 +5,19 @@ typedef struct xattr		XATTR;
 
 struct xattr
 {
-	ushort	mode;
+	unsigned short	mode;
 	long	index;
-	ushort	dev;
-	ushort	rdev;		/* "real" device */
-	ushort	nlink;
-	ushort	uid;
-	ushort	gid;
+	unsigned short	dev;
+	unsigned short	rdev;		/* "real" device */
+	unsigned short	nlink;
+	unsigned short	uid;
+	unsigned short	gid;
 	long	st_size;
 	long	blksize;
 	long	nblocks;
-	ushort	mtime, mdate;
-	ushort	atime, adate;
-	ushort	ctime, cdate;
+	unsigned short	mtime, mdate;
+	unsigned short	atime, adate;
+	unsigned short	ctime, cdate;
 	short	attr;
 	short	reserved2;
 	long	reserved3[2];

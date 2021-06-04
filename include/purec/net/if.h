@@ -123,11 +123,11 @@ struct ifnet {
 
 
 struct	ifstat {
-	u_long	in_packets;	/* # input packets */
-	u_long	in_errors;	/* # input errors */
-	u_long	out_packets;	/* # output packets */
-	u_long	out_errors;	/* # output errors */
-	u_long	collisions;	/* # collisions */	
+	unsigned long	in_packets;	/* # input packets */
+	unsigned long	in_errors;	/* # input errors */
+	unsigned long	out_packets;	/* # output packets */
+	unsigned long	out_errors;	/* # output errors */
+	unsigned long	collisions;	/* # collisions */	
 };
 
 /*
@@ -149,7 +149,7 @@ struct	ifreq {
 		long	ifru_ivalue;
 		long	ifru_mtu;
 		struct	ifstat ifru_stats;
-		caddr_t	ifru_data;
+		void	*ifru_data;
 	} ifr_ifru;
 #define	ifr_addr	ifr_ifru.ifru_addr	/* address */
 #define	ifr_hwaddr	ifr_ifru.ifru_hwaddr	/* hardware address */
@@ -173,7 +173,7 @@ struct	ifreq {
 struct	ifconf {
 	short	ifc_len;		/* size of associated buffer */
 	union {
-		caddr_t	ifcu_buf;
+		void *ifcu_buf;
 		struct	ifreq *ifcu_req;
 	} ifc_ifcu;
 #define	ifc_buf	ifc_ifcu.ifcu_buf	/* buffer address */
