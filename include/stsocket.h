@@ -124,11 +124,17 @@ extern FILE _iob[];
 #define NS_PACKETSZ    512     /* maximum packet size */
 
 #undef _PATH_HOSTS
-#define _PATH_HOSTS     "u:\\etc\\hosts" /* BUG: u not uppercase */
 #undef _PATH_HOSTCONF
-#define _PATH_HOSTCONF  "u:\\etc\\host.conf" /* BUG: u not uppercase */
 #undef _PATH_RESCONF
+#ifdef __MINT__
+#define _PATH_HOSTS     "u:/etc/hosts" /* BUG: u not uppercase */
+#define _PATH_HOSTCONF  "u:/etc/host.conf" /* BUG: u not uppercase */
+#define _PATH_RESCONF   "u:/etc/resolv.conf"
+#else
+#define _PATH_HOSTS     "u:\\etc\\hosts" /* BUG: u not uppercase */
+#define _PATH_HOSTCONF  "u:\\etc\\host.conf" /* BUG: u not uppercase */
 #define _PATH_RESCONF   "u:\\etc\\resolv.conf"
+#endif
 
 
 #if NS_PACKETSZ > 1024
@@ -137,7 +143,7 @@ extern FILE _iob[];
 #define	MAXPACKET	1024
 #endif
 
-#if defined(__PUREC__) && !defined(__MINT__)
+#if defined(__PUREC__) /* && !defined(__MINT__) */
 #define strcasecmp(a,b)		stricmp(a,b)
 #define strncasecmp(a,b,c)	strnicmp(a,b,c)
 #endif

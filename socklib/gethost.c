@@ -137,6 +137,19 @@ extern const unsigned char *_ctype;
 #define	isdigit(c)	(_ctype[(unsigned char)((c))]&_ISdigit)
 #endif
 
+/*
+ * only temporary to get binary identical results;
+ * ioctl() should be avoided because it pulls in
+ * lots of unneeded stuff
+ */
+#ifdef __MINT__
+#include <sys/ioctl.h>
+#define READ_TEXT "rt"
+#else
+#define ioctl(fd, cmd, arg) Fcntl(fd, (long)(arg), cmd)
+#define READ_TEXT "r"
+#endif
+
  
 int __dn_skipname(const uint8_t *comp_dn, const uint8_t *eom);
 int dn_expand(const uint8_t *msg, const uint8_t *eomorig, const uint8_t *comp_dn, char *exp_dn, int length);
@@ -254,7 +267,7 @@ static void reorder_addrs(struct hostent *h)
 		ifs.ifc_len = MAXINTERFACES * sizeof(struct ifreq);
 		ifs.ifc_buf = (void *)ifbuf;
 		/* get a list of interfaces */
-		err = (int)Fcntl(fd, (long)&ifs, SIOCGIFCONF);
+		err = (int)ioctl(fd, SIOCGIFCONF, &ifs);
 		if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 			return;
 
@@ -265,7 +278,7 @@ static void reorder_addrs(struct hostent *h)
 		{
 			strcpy(itp->iname, p->ifr_name);	/* copy interface name */
 
-			err = (int)Fcntl(fd, (long)p, SIOCGIFNETMASK);	/* get netmask */
+			err = (int)ioctl(fd, SIOCGIFNETMASK, p);	/* get netmask */
 			if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 				continue;				/* error? skip this interface */
 			q = (struct sockaddr_in *) &(p->ifr_addr);
@@ -274,7 +287,7 @@ static void reorder_addrs(struct hostent *h)
 			else
 				continue;				/* not internet protocol? skip this interface */
 
-			err = (int)Fcntl(fd, (long)p, SIOCGIFADDR);	/* get address */
+			err = (int)ioctl(fd, SIOCGIFADDR, p);	/* get address */
 			if (err == -1) /* BUG: Fcntl returns GEMDOS error, not -1 */
 				continue;				/* error? skip this interface */
 			q = (struct sockaddr_in *) &(p->ifr_addr);
@@ -335,7 +348,7 @@ static void init_services(void)
 	{
 		hostconf = _PATH_HOSTCONF;
 	}
-	if ((fd = fopen(hostconf, "r")) == NULL)
+	if ((fd = fopen(hostconf, READ_TEXT)) == NULL)
 	{
 		/* make some assumptions */
 		service_order[0] = SERVICE_HOSTS;
@@ -910,7 +923,7 @@ struct hostent *gethostbyaddr(const void *__addr, socklen_t len, int type)
 static void _sethtent(int f)
 {
 	if (hostf == NULL)
-		hostf = fopen(_PATH_HOSTS, "r");
+		hostf = fopen(_PATH_HOSTS, READ_TEXT);
 	else
 		rewind(hostf);
 	stayopen |= f;
@@ -933,7 +946,7 @@ struct hostent *gethostent(void)
 	char *cp;
 	char **q;
 
-	if (hostf == NULL && (hostf = fopen(_PATH_HOSTS, "r")) == NULL)
+	if (hostf == NULL && (hostf = fopen(_PATH_HOSTS, READ_TEXT)) == NULL)
 		return NULL;
 
 	again:
@@ -1125,13 +1138,27 @@ static struct hostent *_gethtbyname(const char *name)
 		{
 			for (j = 0; ht_addr_ptrs[j]; j++)
 			{
-				/* FIXME: What is h good for?  */
+#ifdef __MINT__
+				in_addr_t t, l, h;
+
+#ifdef __PUREC__
+#pragma warn -def
+#endif
+#ifdef __GNUC__
+				h = 0;
+#endif
+				bcopy(loc_addr_ptrs[i], &t, ht.h_length);
+				l = ntohl(t);
+				bcopy(ht_addr_ptrs[j], &t, ht.h_length);
+				t = l ^ h;
+#else
 				in_addr_t t, l, h;
 
 				bcopy(loc_addr_ptrs[i], &t, ht.h_length);
 				l = ntohl(t);
 				bcopy(ht_addr_ptrs[j], &h, ht.h_length);
 				t = l ^ h;
+#endif
 
 				if (t < bestval)
 				{

@@ -47,26 +47,17 @@
 #include "stsocket.h"
 #include "mintsock.h"
 
-const char *h_errlist[] =
-{
-	"Error 0",
-	"Unknown host",				/* 1 HOST_NOT_FOUND */
-	"Host name lookup failure",		/* 2 TRY_AGAIN */
-	"Unknown server error",			/* 3 NO_RECOVERY */
-	"No address associated with name",	/* 4 NO_ADDRESS */
-};
-int h_nerr = (int)(sizeof h_errlist / sizeof h_errlist[0]);
+extern const char *h_errlist[];
+extern int h_nerr;
 
-
-/*
- * herror --
- *	print the error indicated by the h_errno value.
- */
-void herror(const char *s)
+const char *hstrerror(int err)
 {
-	fprintf(stderr, "%s: %s.\n",
-		(s && *s) ? s : "",
-		((unsigned int)h_errno < (unsigned int)h_nerr)
-			? h_errlist[h_errno]
-			: "Unknown error");
+	if (err < 0)
+		return "Resolver internal error";
+	else if (err < h_nerr)
+		return h_errlist[err];
+	
+	return "Unknown resolver error";
 }
+
+

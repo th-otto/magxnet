@@ -47,6 +47,9 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 	xmask = 0;	
 	/* Three loops are more efficient than one here.  */
 #if FD_SETSIZE > 32
+#ifdef __USE_XOPEN
+#define __fds_bits fds_bits
+#endif
 	if (readfds != NULL)
 		rmask = readfds->__fds_bits[0];
 	if (writefds != NULL)

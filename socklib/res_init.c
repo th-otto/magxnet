@@ -46,6 +46,20 @@ char *rindex (const char *__s, int __c);
 #endif
 
 /*
+ * only temporary to get binary identical results;
+ * ioctl() should be avoided because it pulls in
+ * lots of unneeded stuff
+ */
+#ifdef __MINT__
+#include <sys/ioctl.h>
+#define READ_TEXT "rt"
+#else
+#define ioctl(fd, cmd, arg) Fcntl(fd, (long)(arg), cmd)
+#define READ_TEXT "r"
+#endif
+
+ 
+/*
  * Resolver state default settings
  */
 
@@ -103,7 +117,7 @@ int res_init(void)
 		haveenv++;
 	}
 
-	if ((fp = fopen(_PATH_RESCONF, "r")) != NULL)
+	if ((fp = fopen(_PATH_RESCONF, READ_TEXT)) != NULL)
 	{
 		/* read the config file */
 		while (fgets(buf, (int)sizeof(buf), fp) != NULL)

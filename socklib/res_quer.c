@@ -50,6 +50,21 @@ extern const unsigned char *_ctype;
 #define	isspace(c)	(_ctype[(unsigned char)((c))]&_ISspace)
 #endif
 
+/*
+ * only temporary to get binary identical results;
+ * ioctl() should be avoided because it pulls in
+ * lots of unneeded stuff
+ */
+#ifdef __MINT__
+#include <sys/ioctl.h>
+#define READ_TEXT "rt"
+#else
+#define ioctl(fd, cmd, arg) Fcntl(fd, (long)(arg), cmd)
+#define READ_TEXT "r"
+#endif
+
+ 
+
 
 /*
  * Formulate a normal query, send, and await answer.
@@ -249,7 +264,7 @@ const char *__hostalias(const char *name)
 	static char abuf[NS_MAXDNAME];
 
 	file = getenv("HOSTALIASES");
-	if (file == NULL || (fp = fopen(file, "r")) == NULL)
+	if (file == NULL || (fp = fopen(file, READ_TEXT)) == NULL)
 		return NULL;
 	buf[sizeof(buf) - 1] = '\0';
 	while (fgets(buf, (int)sizeof(buf), fp))

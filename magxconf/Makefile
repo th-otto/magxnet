@@ -9,7 +9,7 @@ PROGRAMS = magxconf.prg
 
 OBJS = \
 	magxconf.o \
-	ifconfig.o \
+	ifconf.o \
 	$(empty)
 
 all:: $(PROGRAMS)
