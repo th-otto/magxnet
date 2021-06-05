@@ -1,0 +1,12 @@
+; project file for simple programs with the MiNT library
+
+*.ttp				; executable is topmost window
+.C [-Y]
+.L [-Y -G -S=0]		; stack is set by _stksize
+=
+crt0.o				; startup code
+*					; compile topmost window
+; pcgemlib.lib		; AES and VDI bindings (optional)
+mintflt.lib			; floating point support
+mintlib.lib			; MiNT library
+pcstdlib.lib		; some floating point routines in here... :-(

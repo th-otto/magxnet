@@ -1,0 +1,181 @@
+MiNT Library for Turbo C / Pure C
+ported by:   Ulf Moeller (Ulf_Moeller@hh2.maus.de)
+             Michael Hohmuth (hohmuth@freia.inf.tu-dresden.de)
+============================================================================
+
+hohmuth 7 Mar 1993
+
+This Michael Hohmuth's version of Ulf Moeller's port. The description of
+the installation follows after Ulf's opening words:
+
+----------------------------------------------------------------------------
+This is a port of Eric Smith's MiNT library for Turbo C and Pure C.
+The assembler files are partly based on Dave Gymer's Sozobon port. The
+MiNT library replaces the functions of PCSTDLIB. For floating point support,
+you must still use the Pure C libraries.
+
+I have not fully tested the library, and of course there is no warranty
+for whatsoever. Since there is a number of major differences between GNU C
+and Pure C, bugs are not really improbable. What is true for the Sozobon
+version, applies to this one even more: "is very experimental and quite
+probably needs more work; caveat emptor."
+----------------------------------------------------------------------------
+
+INSTALLATION.
+-------------
+
+The installation procedure is described in the file INSTALL.SRC (for the 
+MiNT library source distribution) resp. INSTALL.BIN (for the binary 
+distribution).
+
+
+USAGE.
+------
+
+If you want to use the MiNT library for your project, consider the 
+following:
+
+General Usage.
+
+o   Make sure that the include directory (Options/Compiler) is set to the 
+    directory where the include files of the MiNT library reside, and 
+    that the libraries directory is set to the directory you copied the 
+    objects to (step 10).
+    
+o   Use crt0.o as your startup code.
+
+o   List mintlib.lib in your project file. This replaces the library     
+    pctoslib.lib (resp. tctoslib.lib).  You can still use pcextlib.lib 
+    (tcextlib.lib) for backward compatibelity, but you probably don't 
+    want to.  The pcstdlib.lib library you only need if you want to use 
+    floating point arithmetics in your program (see below).  For GEM and 
+    BGI graphics, you can still use pcgemlib.lib and pcbgilib.lib.  
+    (Be careful with the GEM library; I haven't yet checked whether the 
+    header files of the MiNT library conform with the library.)
+
+o   Two simple project files are delivered with the library. You can 
+    use them as a reference when creating your own project files:
+
+    default.prj  - compiles the topmost window with float support
+    tc-deflt.prj - dito, for Turbo C
+    idefault.prj - compiles the topmost window without float support
+    tc-idflt.prj - dito, for Turbo C
+
+Float Support.
+
+o   The library file mintlib.lib does not contain float support for 
+    Pure/Turbo C.  If you want to use floating point numbers in your 
+    program, you'll have to link mintflt.lib and pcstdlib.lib (which 
+    also contains some float support).  List mintflt.lib BEFORE 
+    mintlib.lib and pcstdlib.lib AFTER mintlib.lib in your project file 
+    (tc* versions respectively).
+
+Turbo C Caveats.
+
+o   When used with Turbo C, you'll always have to link tcstdlib.lib.  It 
+    contains the long arithmetics support for the compiler.  List 
+    tcstdlib.lib AFTER mintlib.lib in your project file.
+
+FPU Support.
+
+o   Pure C: For real (i.e. Line-F) FPU support, replace mintflt.lib by 
+    mint881.lib and use the appropriate compiler flag (-8) to compile 
+    your project.
+    If you want to use the assembler version of alloca() in your program 
+    (see below), replace alloca.o by falloca.o in your project file.
+
+o   Turbo C: The Turbo C libraries don't support FPUs via Line-F.  You 
+    might want to try Peter Fiebelkorn's FPUPATCH:  Apply the patch to 
+    your original Turbo C libraries and use the resulting tcflt.lib 
+    instead of tcfltlib.lib in the library's mintflt.prj, and use 
+    tcstd.lib instead of tcstdlib.lib in your project file.
+
+The Stack.
+
+o   The Pure/Turbo Linker usually reserves stack space in the BSS.  If 
+    you set stack size 0 for the linker, the MiNT library will use the 
+    usual convention of setting the stack by _stksize (default: 8k); see 
+    crtinit.c for details.
+
+o   The stack checking option does not work with threads, or with malloc 
+    from heap.
+
+o   Implementation Note: crtinit.c and the parts of the MiNT library that 
+    are executed during abnormal program termination must not be compiled 
+    with stack checking set.  With the assembler option -D=STACKCH=0 or 1, 
+    you can control if alloca() checks whether there is enough stack space 
+    for it.
+
+Using alloca().
+
+o   The alloca() function is a certain problem for Turbo/Pure C. The 
+    library contains a slow-but-secure version of alloca().  You can 
+    also link the the (fast) assembler version of alloca() (by listing 
+    alloca.o [resp. falloca.o, see "FPU Support" above] BEFORE 
+    mintlib.lib in your project file).  This version only works if the 
+    caller was compiled with option -S (Options/Compiler/Standard Stack 
+    Frames).  Otherwise, it will destroy the stack and the program will 
+    crash.
+
+Use Prototypes!
+
+o   Giving prototypes is important for Pure C.  They are absolutely 
+    necessary for functions with a variable argument list (e.g. error() 
+    in the GNU file utilities).
+
+How To Include Files From Subdirectories?
+
+o   Turbo C and Pure C 1.0 do not understand e.g. #include <sys/dir.h>.  
+    They try to open a file 'sys/dir.h' in the current directory instead 
+    of the file 'dir.h' in the subdirectory 'sys'.  (This is fixed in 
+    Pure C 1.1.)
+    Therefore you either have to use #include <sys\dir.h>, or you use the 
+    program unixname.prg by Michael Schwingen that is shipped with this 
+    library:  Simply move it to your AUTO folder, or run it from the 
+    desktop before you start C.  When installed, it converts all slashes 
+    to backslashes automagically when accessing disk files.  When used 
+    with MiNT, unixname.prg can be run before or after starting MiNT.  
+    Note that it only works for TOS filesystems, and that it only 
+    converts file names that are passed as parameters to a standard 
+    GEMDOS call (see the documentation for more information); it does 
+    not convert file names passed to a MiNT system call.  (However, MiNT 
+    aware programs should be aware of slashes in any case.)  WARNING: 
+    This program modifies the file name in the caller's address space.  
+    With this program installed you cannot any longer use files that 
+    contain slashes in their base name.
+
+    To make the library you don't nessecarily have to install unixname.prg.
+
+Before...
+
+...you try the PS from the MiNT utilities, change this:
+178c178
+< 	printf("%03d  %03d %3d   %3d  %s  %8ld %02d:%02d.%02d  %s%s\n",
+---
+> 	printf("%03d  %03d %3d   %3d  %s  %8ld %02ld:%02ld.%02ld  %s%s\n",
+
+
+LEGAL NOTICE.
+-------------
+
+The library binaries mintflt.lib and mint881.lib, when built with the 
+setup as shipped, will contain Turbo/Pure C's library binaries.  Don't 
+make these binaries available to the public.
+
+However, you can build versions of the library which do not contain the 
+compiler's binaries.  The file INSTALL.SRC describes how to build these 
+versions, and the file INSTALL.BIN describes how to build the useable 
+MiNT lib binaries from these files.
+
+----------------------------------------------------------------------------
+
+If you want to contact me, here are my addresses:
+
+--
+Email:
+    Internet:   hohmuth@freia.inf.tu-dresden.de     [preferred]
+                mh1@irz.inf.tu-dresden.de           [if the other one
+                                                     doesn't work]
+IRC:
+    Nickname:   Spell
+    You can drop me a note at NoteServ.

@@ -1,0 +1,134 @@
+
+There is no global copyright on the MiNTlib.  Because the code was
+contributed independently by many people, or was borrowed from various
+sources, each source file in the library may have its own specific
+licence.  Read the source file if you are unsure of the legal status
+of a particular library component.  In addition, without any prejudice
+to the distribution terms of individual components of the library, you
+are reminded that, as a whole, this library, a compilation of free
+software, comes to you without any warranty of any sort, explicit or
+implied.  The library's maintainers and contributors, past and
+present, shall not be held responsible for any kind of damage, direct
+or indirect, physical or otherwise, that may have resulted from use or
+misuse of any part or combination of parts of this library in any
+context whatsoever.  Use of this library implies that you agree with
+the above terms and assume all the risks associated with its use.
+
+Most of this library is public domain and hence may be used without
+further restrictions. We only ask that you do not claim the work of
+others for yourself.  Please note the following exceptions and make
+every effort to adhere to the following licences if you use the
+library modules listed below (list may not be exhaustive):
+
+
+sysexits.h, doprnt.c and random.c are:
+
+/*
+ * Copyright (c) 1988 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+obstack.c and obstack.h are:
+
+/* obstack.h - object stack macros
+   Copyright (C) 1988 Free Software Foundation, Inc.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+
+libgcc2.c is:
+
+/* Copyright (C) 1989, 1992 Free Software Foundation, Inc.
+
+This file is part of GNU CC.
+
+GNU CC is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU CC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU CC; see the file COPYING.  If not, write to
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* As a special exception, if you link this library with files
+   compiled with GCC to produce an executable, this does not cause
+   the resulting executable to be covered by the GNU General Public License.
+   This exception does not however invalidate any other reasons why
+   the executable file might be covered by the GNU General Public License.  */
+
+
+stab.h and stab.def (in the include directory) are:
+
+/* Table of DBX symbol codes for the GNU system.
+   Copyright (C) 1988 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 1, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* This contains contribution from Cygnus Support.  */
+
+
+regexp.c regsub.c
+
+ *
+ *	Copyright (c) 1986 by University of Toronto.
+ *	Written by Henry Spencer.  Not derived from licensed software.
+ *
+ *	Permission is granted to anyone to use this software for any
+ *	purpose on any computer system, and to redistribute it freely,
+ *	subject to the following restrictions:
+ *
+ *	1. The author is not responsible for the consequences of use of
+ *		this software, no matter how awful, even if they arise
+ *		from defects in it.
+ *
+ *	2. The origin of this software must not be misrepresented, either
+ *		by explicit claim or by omission.
+ *
+ *	3. Altered versions must be plainly marked as such, and must not
+ *		be misrepresented as being the original software.
+ *
+ * Modified by Eric Smith for use with the MiNT library.
+ */
+

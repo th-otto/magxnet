@@ -1,0 +1,125 @@
+#
+# Makefile.adm
+#
+# Makefile for administrative functions.
+# You shouldn't need to use anything in here.
+#
+
+include Files
+include Version
+
+incdir=/usr/include
+srcdir=/src/mntlib
+dist=/src/mntlib/dist
+c=$(dist)/Changelog.$V.jrb
+m=$(dist)/Changelog.$V
+t=$(dist)/change.tmp
+h=$(dist)/diffh
+s=$(dist)/diffc
+b=$(dist)/diffc.jrb
+f=/tmp/Files.tmp
+r=/tmp/rcsFiles.tmp
+d=/tmp/diffFiles.tmp
+
+all: nothing
+
+FIXUPCMD=tr ' ' '\012' | sort -u | pr -5 -t -l1 | sed 's/$$/ \\/'
+
+#
+# Pretty print the Files list.
+#
+ppfiles:
+	chmod u+w Files
+	cp Files /tmp
+	echo ""					>  Files
+	echo "COMMON= \\"			>> Files
+	echo $(COMMON) | $(FIXUPCMD)		>> Files
+	echo ""					>> Files
+	echo "MINTLIB= \\"			>> Files
+	echo $(MINTLIB) | $(FIXUPCMD)		>> Files
+	echo ""					>> Files
+	echo "MINTLIB_NOCL= \\"			>> Files
+	echo $(MINTLIB_NOCL) | $(FIXUPCMD)	>> Files
+	echo ""					>> Files
+	echo "CRUFT= \\"			>> Files
+	echo $(CRUFT) | $(FIXUPCMD)		>> Files
+	echo ""					>> Files
+
+#
+# Compare the Files list to the actual files to catch discrepancies.
+#
+checkfiles:
+	echo $(COMMON) $(MINTLIB) $(MINTLIB_NOCL) $(CRUFT) | tr ' ' '\012' \
+		| sort -u > $f
+	rlog -R RCS/* | sed -e 's;^RCS/;;' -e 's;,v$$;;' > $r
+	-diff -u $f $r > $d
+	rm $f $r
+	less $d
+	rm $d
+
+changelogs:
+	rlog -r`expr $V - 1`.2:$V.1 $(COMMON) | MKLOG \
+		| sed 's;DIRECTORY_NAME/;;' > $c
+	rlog -r`expr $V - 1`.2:$V.1 $(incdir)/RCS/* | MKLOG \
+		| sed 's;DIRECTORY_NAME/;include/;' >> $c
+	cp $c $m
+	rlog -r`expr $V - 1`.2:$V.1 $(MINTLIB) | MKLOG \
+		| sed 's;DIRECTORY_NAME/;;' >> $m
+	for dir in crlf lattice purec purec/unixname sozobon ;\
+	do \
+		rlog -r`expr $V - 1`.2:$V.1 $$dir/RCS/* | MKLOG \
+			| sed "s;DIRECTORY_NAME/;$$dir/;" >> $m ; \
+	done
+	sed -e "s/author: root/author: entropy/" -e "s/locked by:.*$$//" \
+			< $c > $t
+	mv $t $c
+	sed -e "s/author: root/author: entropy/" -e "s/locked by:.*$$//" \
+			< $m > $t
+	mv $t $m
+
+distrib:
+	MKDIFFS `expr $V - 1` $(dist)/mntlib $(COMMON) > $b
+	cp $b $s
+	MKDIFFS `expr $V - 1` $(dist)/mntlib $(MINTLIB_NOCL) >> $s
+	MKDIFFS `expr $V - 1` $(dist)/mntlib $(MINTLIB) >> $s
+	for dir in crlf lattice purec purec/unixname sozobon ;\
+	do \
+          MKDIFFS `expr $V - 1` $(dist)/mntlib $$dir/RCS/* >> $s ; \
+	done
+	rm -f $h
+	cd $(incdir) ; for dir in . ;\
+	do \
+          $(srcdir)/MKDIFFS `expr $V - 1` $(dist)/mntinc $$dir/RCS/* >> $h ; \
+	done
+
+newversion:
+	for dir in $(srcdir) $(srcdir)/crlf $(srcdir)/lattice \
+		$(srcdir)/purec $(srcdir)/purec/unixname \
+		$(srcdir)/sozobon $(incdir) ;\
+	do \
+	  cd $$dir ;\
+	  ci -l$V.1 -f -m- RCS/* ;\
+	done
+	echo '/*' > PatchLev.h
+	echo ' *	This identifies the version of the MiNT library in this' >> PatchLev.h
+	echo ' *	directory.' >> PatchLev.h
+	echo ' */' >> PatchLev.h
+	echo '' >> PatchLev.h
+	cp PatchLev.h $(incdir)/PatchLev.h
+	echo '#define PatchLevel "'`expr $V + 1`'"' >> PatchLev.h
+	echo '#define _PatchLevel "'`expr $V + 1`'"' >> $(incdir)/PatchLev.h
+	echo 'V='`expr $V + 1` > Version
+	ci -f -l -m- Version
+	ci -f -l -m- PatchLev.h
+	cd $(incdir) ; ci -f -l -m- PatchLev.h
+
+checkrcs:
+	make -f Makefile distclean
+	for dir in $(srcdir) $(srcdir)/crlf $(srcdir)/lattice \
+		$(srcdir)/purec $(srcdir)/purec/unixname \
+		$(srcdir)/sozobon $(incdir) ;\
+	do \
+	  cd $$dir ;\
+	  echo $$dir ;\
+	  rcsdiff -u * ;\
+	done | less

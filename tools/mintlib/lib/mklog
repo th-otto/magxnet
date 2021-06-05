@@ -1,0 +1,34 @@
+#! /usr/local/gnubin/gawk.ttp -f
+
+BEGIN {
+	FS = ":"
+	wfile = ""
+	pmode = 0
+}	
+
+$1 == "Working file" {
+	wfile = $2
+	for (i = 1; substr(wfile, i, 1) == " "; i++) {
+	}
+	wfile = substr(wfile, i, length(wfile))
+}
+
+/^--*$/ {
+	if (pmode == 0) {
+		pmode = 1
+		print "***** DIRECTORY_NAME/" wfile
+	}
+}
+
+/^==*$/ {
+	if (pmode == 1) {
+		pmode = 0
+		print
+	}
+}
+
+{
+	if (pmode == 1) {
+		print
+	}
+}

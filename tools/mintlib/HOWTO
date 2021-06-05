@@ -1,0 +1,56 @@
+The binary distribution consists of either:
+
+mntinc49.tgz and mntbin49.tgz (for 68000 compatibility)
+or
+mntinc49.tgz and mnt02049.tgz (for CPU >= 68020)
+
+to install the binary distribution:
+
+1. cd /usr
+2. tar xvzf mntinc49.tgz
+3. tar xvzf mntbin49.tgz or mnt02049.tgz
+4. move or symlink the contents of /usr/lib/m680[02]0 to
+/usr/lib.
+
+Read README.FAQ and the other information files in the distribution.
+
+
+Source distribution:
+
+The source distribution consists of mntlib49.tgz and mntinc49.tgz.
+
+To compile your own binary of the MiNTlib, I recommend at least gcc
+2.7.x, gas 2.9, and Atari gcc binutils PL40.  Gas 2.51 has a bug; it
+doesn't like \r in its input files.  Gas 1.38 should work, but it does
+not optimize the object code and will not recognize opcodes for
+processors > 68030 (should you choose to build the lib for 68040 or
+greater).
+
+If you must, you can use gcc 2.5.8 or 2.6.x with minor changes to the
+optimization options in the Makefile.
+
+Basic steps:
+
+1. Create a working directory
+
+2. Create directory /usr/lib/m68000 or /usr/lib/m68020
+
+3. Copy mntlib49.tgz and mntinc49.tgz into your working dir.
+
+4. tar xvzf mntlib49.tgz ; tar xvzf mntinc49.tgz 
+
+5. ls  should yield:
+
+include/ lib/
+
+6. cd lib
+
+7. make top020 (for a >= 68020 build) or
+   make top    (for a 68000 build)
+
+8. Wait.  A long.  Time.
+
+9. binary archives and startup modules will be found in 
+/usr/lib/m68000 or /usr/lib/m68020
+
+10. Copy the contents of working_dir/include into /usr/include

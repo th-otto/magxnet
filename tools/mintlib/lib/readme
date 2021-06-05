@@ -1,0 +1,197 @@
+This is the README for the MiNT library.
+
+To use the library you will nead the header files in mntincNN.tgz
+(where NN is the same patchlevel as the version of the library you're
+using).
+
+As of patchlevel 26, Eric R. Smith has turned over maintenance of the
+library to entropy. After patchlevel 45 nox and knarf continued the
+job.  PL47 was put together by Yves Pelletier, after more than two
+years since PL46.  Someone had to do it, but perhaps more of the testing
+is going to have to fall upon the user community than before.   
+
+Like Eric, entropy, and nox before me, I only have gcc. 
+
+In the past, a few people volunteered as sub-maintainers for
+other compiler's portions of the library.  Their names are
+included here, but I don't know if they are still interested.
+
+Here are the maintainers' addresses:
+
+Up to PL46:
+GNU C and common files:  mintlib@nasim.cube.net [nox & knarf]
+      Code:          nox@jelal.nasim.cube.net (Juergen Lock)
+      Distribution:  knarf@nasim.cube.net (Frank Bartels)
+
+As of PL47:
+Code: Voluntary contributions from mintlib users.
+GNU C, common files and distribution: Yves Pelletier <ypell@cam.org>
+
+Other compilers (could be out of date):
+Sozobon C/HSC:  dsb@cs.duke.edu (D. Scott Bigham)
+Pure C:  hohmuth@freia.inf.tu-dresden.de (Michael Hohmuth)
+Lattice C:  pvt1-117@nada.kth.se 
+
+Be sure to read the "Changelog" file so that you know what's new in
+this release of the library.
+
+Also, please read the "Copyright" file for important copyright
+information concerning some modules in this library.  Some modules, as
+noted in "Copyright", are covered by the GNU General Public License,
+which you will find in the file "GNUGPL2".
+
+Our priorities for the library (in approximately this order) are:
+
+1.  Bug fixes, of course!
+2.  UNIX compatibility (BSD, POSIX, SysV)
+3.  Synchronization with J. Bammi's GCC library [???]
+4.  Support for compilers other than GCC
+5.  Frills (beautifying code, fixing ugly hacks, etc.)
+6.  Documentation
+
+If you notice a problem with the library but don't know how to fix it,
+please try to provide as much information as possible so that we can locate
+the problem (a short piece of code demonstrating the bug, for instance).
+
+All top-level sources and all mntinc include files are now in UNIX
+carriage control format (LF line termination).  If your compiler/editor
+really wants carriage returns, you can convert files back to MS-DOS
+format (CR-LF line termination) using the program `crlf' supplied in
+the crlf/ subdirectory (source included).  entropy made this change
+because many of the programs he (and others) use get really confused
+with MS-DOS (TOS) style files.  Also, J. Bammi's GCC libs are maintained
+in the UNIX style, so converting everything will make synchronizing the
+two libraries easier.
+
+If you're sending in patches for the library, please take into
+consideration the following words from Larry Wall, in the manual page
+for 'patch'.  It will make our lives so much easier.
+
+    NOTES FOR PATCH SENDERS
+        There are several things you should bear  in  mind  if  you  are
+        going to  be  sending out patches.  First, you can save people a
+        lot of grief by keeping a patchlevel.h file which is patched  to
+        increment  the  patch  level as the first diff in the patch file
+        you send out.  If you put a Prereq: line in with the  patch,  it
+        won't  let them apply patches out of order without some warning.
+        Second, make sure you've specified the filenames  right,  either
+        in a  context  diff  header, or with an Index: line.  If you are
+        patching something in a subdirectory, be sure to tell the  patch
+        user to specify a  -p switch as needed.  Third, you can create a
+        file by sending out a diff that compares a null file to the file
+        you want to create.  This will only work if the file you want to
+        create doesn't  exist  already in the target directory.  Fourth,
+        take care not to send  out  reversed  patches,  since  it  makes
+        people wonder  whether  they  already applied the patch.  Fifth,
+        while you may be able to get away with putting 582 diff listings
+        into one file, it is probably wiser  to  group  related  patches
+        into separate files in case something goes haywire.
+
+Of course the notes about keeping a patchlevel.h file don't apply in
+this case, because we maintain the patchlev.h file for the library.  But
+please take note of the rest of it, especially the last sentence!  And,
+please try to avoid diffs -w flag, it makes diff not only ignore ^Ms
+but also ignore (i.e. mess up) changes in indentation!  For the same
+reason we normally won't use `patch -l', so if your mailer etc. does
+funny things to tabs use uuencode, btoa, or `ship'.  (We also have gzip
+and tar of course.  Note those peecee-things like lharc, st-zip and
+friends still regularly cause problems from mangled filenames up to
+`mysterious' crashes and data loss... not only with MiNT btw.)
+
+As of Patchlevel 31, the MiNT library no longer supports any version of
+GCC before 2.0.
+
+The GCC version of the MiNT library cannot be built on a FAT filesystem,
+due to name conflicts between several modules (for example, _udivmod.o
+and _udivmoddi4.o).  It works on a cross-compiler or an Atari with a
+`real' filesystem such as minixfs. (and faster as well.  it still
+takes something like half a night for a full rebuild and nearly all
+memory on a 4MB ST running in single user mode...)
+
+Our configuration, used to build the library on an extended filename
+V2 minixfs with gcc 2.5.8 or 2.3.3:
+  mfsconf F: -s n -d n -x t -l n [knarf: What for??]
+  UNIXMODE=/brUs
+
+Special thanks go out to Jeff Weiner and the rest of the umich archive posse
+for letting me use terminator for the maintenance of the library. (i think
+knarf doesn't do that anymore?  and my cvs tree is here at home  -nox :)
+Anyway thanks to everyone involved...
+
+And may the source be with you.
+
+Bye,
+nox & knarf
+
+Eric's original readme file follows:
+----------------------------------------------------------------------------
+
+*NOTE*: to compile the library you will need the header files in mntinc25.zoo
+
+============================================================================
+
+Here is mintlib, a library for gcc, Sozobon, Pure C, and Lattice C which
+produces programs usable under either MiNT or TOS (of course, some features,
+e.g. pipe(), are only available under MiNT). This version has been reasonably
+well tested under both TOS and MiNT, and with 16 and 32 bit integers, but no
+doubt bugs remain. Please report any that you find.
+
+The main library has the GNU C version of the library, plus the common
+files. See the lattice, purec, and sozobon directories for compiler
+specific information.
+
+The Lattice C support is definitely a bit rough around the edges (I may
+very well have messed up some of the patches, and I don't have Lattice to
+test it). Similarly, I can't test the Sozobon and Pure C support myself.
+
+There are no docs ("Use the Source, Luke"), but most of the library should
+be pretty self-explanatory. If you know ANSI C and/or Posix, then most
+of the functions should be pretty clear to you.
+
+MiNT specific features are active when the external variable __mint is
+non-zero; this variable is set automatically by the startup code in main.c.
+
+Some things to watch out for:
+
+(1) MiNT has a blocking fork(), i.e. the parent waits for the child to
+    relinquish its address space rather than continuing in parallel.
+    (Do NOT rely on this, though, since it will be corrected in a future
+    version of MiNT!)
+(2) Using the spawn functions instead of fork/exec means that your programs
+    will work under TOS as well as under MiNT. vfork() also works under
+    TOS now, so vfork/exec is another viable alternative.
+(3) The longjmp() code has a call to Psigreturn() embedded in it; this means
+    that most signal handlers will work without changes, but in some very
+    bizarre circumstances this could cause a problem (if the sig handler
+    longjmps *within* itself, and then returns, for example).
+(4) Under TOS, all terminal reads are assumed to come from the console
+(5) You'll note that there is only minimal support for UNIXMODE;
+    this is because MiNT 0.9 supports symlinks in the kernel.
+(6) A function call, tfork(), is provided to start a new thread of
+    execution in the same address space. The declaration is
+	int tfork( int (*func)(), long arg ).
+    A new process is started, which executes concurrently with the parent
+    process and in the same address space (but a different stack).
+    The child begins at the address in func, with the stack set up as though
+    the call (*func)(arg) was made (in fact, this call *is* made!).
+    The child will exit when func returns, with the exit status being the
+    return code of func. The parent continues to execute concurrently;
+    in the parent, the value returned from tfork() is the process id of the
+    child.
+(7) The library is not set up to handle multiple threads of execution in the
+    same address space, so you'll have to provide semaphores for critical
+    library calls (e.g. malloc) yourself if you have multiple threads.
+
+The library is based on the gcc library that Jwahar Bammi and I put together.
+Lots of people have contributed to it, including (but not limited to):
+
+Adrian Ashley, Jwahar Bammi, Scott Bigham, Kai-Uwe Bloem, Howard Chu,
+John R. Dunning, Doug Gwyn, Dave Gymer, Michael Hohmuth, Alan Hourihane,
+Alex Kiernan, Ulf Moeller, Allan Pratt, Arnold D. Robbins, Edgar Roeder,
+Rich Salz, Dale Schumacher, Andreas Schwab, Eric Smith, Henry Spencer,
+and Stephen Usher.
+
+I've hacked on things quite a bit, so if they're broken don't blame the
+original authors, blame me.
+
+Eric R. Smith

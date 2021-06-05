@@ -1,0 +1,34 @@
+# Makefile for the GCC TOS library (32 bit int default with debugging)
+
+CC= 	d:\gnu\bin\gcc.ttp
+CPP= 	d:\gnu\bin\gcc-cpp.ttp
+AR= 	d:\gnu\bin\gcc-ar.ttp
+AS=	$(CC)
+LIB = d:\gnu\lib
+
+COPTS= -O -gg -D__NO_INLINE__ $(XFLAGS)
+
+# normal CFLAGS
+CFLAGS= $(COPTS)
+
+# CFLAGS sans -fomit-frame-pointer
+CFFLAGS = $(CFLAGS)
+
+# cflags for stuff that needs to be compiled with 32 bit ints
+CLFLAGS= $(CFLAGS)
+
+# flags to $(CC) when it runs the assembler only
+ASFLAGS= -c
+
+# pre-processor flags
+PPFLAGS= -P -D__NO_INLINE__
+
+
+# library targets
+CLIB= gnugdb.olb
+IIOLIB= iiogdb.olb
+
+# the stuff to make
+ALL= $(CLIB) crt0.o gcrt0.o
+
+include mincl

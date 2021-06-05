@@ -1,0 +1,11 @@
+; project file for simple programs with the MiNT library
+; integer-only version; use default.prj for float support
+
+*.ttp				; executable is topmost window
+.C [-Y]
+.L [-Y -G -S=0]		; stack is set by _stksize
+=
+crt0.o				; startup code
+*					; compile topmost window
+; pcgemlib.lib		; AES and VDI bindings (optional)
+mintlib.lib			; MiNT library

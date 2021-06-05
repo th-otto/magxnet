@@ -1,0 +1,29 @@
+#! /bin/sh
+if test $# -lt 2
+then
+  echo 'usage: MKDIFFS rel-version fulldistdir file [file2 ...]'
+  exit 2
+fi
+relver=$1
+fulldist=$2
+shift 2
+for name in $*
+do
+  fname=`echo $name | sed -e 's;RCS/;;' -e 's;,v$;;'`
+  if test -f $fulldist/$fname
+  then
+    echo "Full distribution of \"$fname\" expected, no patch produced." 1>&2
+  else
+    rcsdiff -r$relver.1 -c $fname
+    if test $? -eq 2
+    then
+      diff -c /dev/null $fname
+      if test $? -eq 2
+      then
+        echo "Could not produce a diff for \"$fname\"." 1>&2
+        echo "Hit [return] to continue." 1>&2
+        read junk
+      fi
+    fi
+  fi
+done

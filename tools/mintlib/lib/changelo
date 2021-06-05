@@ -1,0 +1,1996 @@
+NOTE:  entropy@terminator.rs.itd.umich.edu is the maintainer of the
+libraries as of PL26.
+
+Changes are listed in *reverse* order, most recent changes being
+first.
+
+PATCHLEVEL45::
+
+***** buffindf.c
+----------------------------
+revision 44.3	
+date: 1994/04/02 13:44:38;  author: entropy;  state: Exp;  lines: +1 -1
+Avoid pointer conversion warnings.
+----------------------------
+revision 44.2
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +4 -3
+Liberal use of const (and related changes).
+=============================================================================
+***** chdir.c
+----------------------------
+revision 44.2	
+date: 1994/04/05 08:40:18;  author: entropy;  state: Exp;  lines: +3 -0
+Do _enoent() translation:  can get EPATH if changed to a non-existent
+drive.
+=============================================================================
+***** chmod.c
+----------------------------
+revision 44.2	
+date: 1994/03/06 09:46:12;  author: nox;  state: Exp;  lines: +7 -0
+Pretend we succeed if we fail for a directory on a TOS filesystem.
+=============================================================================
+***** findfile.c
+----------------------------
+revision 44.2	
+date: 1994/04/02 13:47:22;  author: entropy;  state: Exp;  lines: +1 -1
+Change type of fext to match _buffindfile().
+=============================================================================
+***** getopt.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +5 -5
+Liberal use of const (and related changes).
+=============================================================================
+***** getpass.c
+----------------------------
+revision 44.3	
+date: 1994/07/09 16:30:28;  author: entropy;  state: Exp;  lines: +1 -1
+Minor bug fix in the last change...
+----------------------------
+revision 44.2
+date: 1994/07/08 15:02:16;  author: entropy;  state: Exp;  lines: +8 -0
+Fix a bug reported by itschere@techfak.uni-bielefeld.de:  getpass()
+was returning as soon as 8 characters were read, instead of waiting for
+the user to press return.
+=============================================================================
+***** getpw.c
+----------------------------
+revision 44.3	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+----------------------------
+revision 44.2
+date: 1994/03/29 00:41:10;  author: nox;  state: Exp;  lines: +8 -2
+getpwnam + getpwuid left the passwd file open and then try to reuse
+the open FILE * later, no good if a program closes all open fds before
+a fork etc.  (rebuilt uucp with new libs and suddenly file requests end
+up with getpwnam hanging in a blocking read from the modem line... :)
+=============================================================================
+***** grp.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** localtim.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** pgrp.c
+----------------------------
+revision 44.2	
+date: 1994/03/25 11:05:06;  author: roemer;  state: Exp;  lines: +0 -14
+Don't change the process group of the old tty.
+=============================================================================
+***** siglist.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +2 -2
+Liberal use of const (and related changes).
+=============================================================================
+***** sprintf.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 16:41:56;  author: roemer;  state: Exp;  lines: +1 -1
+There is a bug in sprintf, which goes like this:
+  char buf[10];
+  sprintf (buf, "%cxyz", 255);
+will only output the first '255' to 'buf', but not 'xyz'. This is because
+the PUTC() macro in doprnt.c checks the return value of the character
+output function against EOF. This is perfectly ok, but the character output
+function for sprintf -- sputc() -- returns the value of the printed character
+casted to int. Thus sputc(255, fp) will return EOF and sprintf() returns
+immediately.
+The following one line patch cures the problem.
+=============================================================================
+***** strerror.c
+----------------------------
+revision 44.3	
+date: 1994/04/02 01:30:30;  author: entropy;  state: Exp;  lines: +1 -1
+strerror() cannot be declared const.
+----------------------------
+revision 44.2
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +3 -4
+Liberal use of const (and related changes).
+=============================================================================
+***** stricmp.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:08:28;  author: schwab;  state: Exp;  lines: +9 -0
+This patch adds the functions strcasecmp and strncasecmp, typically
+found on BSD systems, to the MiNTlib.  Actually, they are already
+there, only misnamed :-).
+=============================================================================
+***** strnicmp.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:08:56;  author: schwab;  state: Exp;  lines: +10 -0
+This patch adds the functions strcasecmp and strncasecmp, typically
+found on BSD systems, to the MiNTlib.  Actually, they are already
+there, only misnamed :-).
+=============================================================================
+***** system.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** utime.c
+----------------------------
+revision 44.2	
+date: 1994/03/06 09:44:28;  author: nox;  state: Exp;  lines: +6 -3
+Pretend we succeed if we fail for a directory on a TOS filesystem.
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 44.2	
+date: 1994/03/01 19:45:06;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/dir.h
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:53:16;  author: entropy;  state: Exp;
+from include/sys...
+=============================================================================
+***** include/dirent.h
+----------------------------
+revision 44.2	
+date: 1994/03/25 11:44:16;  author: entropy;  state: Exp;  lines: +4 -0
+Fix __DIRENTSIZ() macro -- under MiNT it is always a fixed size.
+=============================================================================
+***** include/errno.h
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:43:38;  author: entropy;  state: Exp;  lines: +1 -0
+Define POSIX's ENOSYS as an alias for EINVAL.  Suggested by
+pvt1-117@nada.kth.se.
+=============================================================================
+***** include/ioctl.h
+----------------------------
+revision 44.4	
+date: 1994/03/25 12:38:12;  author: roemer;  state: Exp;  lines: +38 -0
+Added socket ioctl's for MiNT-Net.
+----------------------------
+revision 44.3
+date: 1994/03/10 13:41:16;  author: entropy;  state: Exp;  lines: +1 -1
+Chnage _RTSCTS to RTSCTS; nothing that's POSIX uses ioctl.h anyway.
+----------------------------
+revision 44.2
+date: 1994/03/08 21:27:52;  author: hohmuth;  state: Exp;  lines: +2 -0
+Add TIOCLBIS/LBIC.
+=============================================================================
+***** include/osbind.h
+----------------------------
+revision 44.2	
+date: 1994/07/08 16:27:18;  author: timg;  state: Exp;  lines: +1 -1
+The wrong definition of AND_MEMORY was selected for some versions of
+gcc.  We select the new syntax only for GCC > 2.5 (this may be
+incorrect for some versions of GCC between 2.2.2 and 2.5.0).
+=============================================================================
+***** include/regexp.h
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:48:12;  author: pvt1-117;  state: Exp;  lines: +1 -1
+add some const qualifiers
+/
+=============================================================================
+***** include/signal.h
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:28:34;  author: entropy;  state: Exp;  lines: +5 -0
+declar e sigblock(), sigsetmask() as int when not __MSHORT__, as per
+nox's suggestion.
+=============================================================================
+***** include/statfs.h
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:53:16;  author: entropy;  state: Exp;
+from include/sys...
+=============================================================================
+***** include/string.h
+----------------------------
+revision 44.4	
+date: 1994/07/08 14:20:08;  author: entropy;  state: Exp;  lines: +2 -0
+Add prototypes for strcasecmp() and strncasecmp().
+----------------------------
+revision 44.3
+date: 1994/03/30 12:38:36;  author: entropy;  state: Exp;  lines: +1 -1
+Can't make strerror const (it causes type conflicts in the presence of
+an extern declaration in an app).
+----------------------------
+revision 44.2
+date: 1994/03/29 00:48:12;  author: pvt1-117;  state: Exp;  lines: +1 -1
+add some const qualifiers
+/
+=============================================================================
+***** include/support.h
+----------------------------
+revision 44.4	
+date: 1994/07/09 06:44:22;  author: entropy;  state: Exp;  lines: +1 -1
+Add const in mknod() prototype.
+----------------------------
+revision 44.3
+date: 1994/04/02 13:48:06;  author: entropy;  state: Exp;  lines: +1 -1
+Update prototype of findfile().
+----------------------------
+revision 44.2
+date: 1994/03/29 00:48:12;  author: pvt1-117;  state: Exp;  lines: +1 -1
+add some const qualifiers
+/
+=============================================================================
+***** include/sysexits.h
+----------------------------
+revision 44.2	
+date: 1994/03/30 04:41:48;  author: entropy;  state: Exp;
+NEW file, sysexits.h, some possible exit codes.
+=============================================================================
+***** include/timeb.h
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:53:16;  author: entropy;  state: Exp;
+from include/sys...
+=============================================================================
+***** include/utsname.h
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:53:16;  author: entropy;  state: Exp;
+from include/sys...
+=============================================================================
+***** include/wait.h
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:27:00;  author: entropy;  state: Exp;  lines: +1 -0
+Add wait4() prototype.
+=============================================================================
+***** Makefile
+----------------------------
+revision 44.2	
+date: 1994/04/02 14:26:22;  author: entropy;  state: Exp;  lines: +2 -1
+*** empty log message ***
+=============================================================================
+***** do_lock.c
+----------------------------
+revision 44.3	
+date: 1994/03/06 10:54:58;  author: entropy;  state: Exp;  lines: +3 -1
+If the filesystem didn't like F_SETLKW, busy-wait in the library with F_SETLK.
+----------------------------
+revision 44.2
+date: 1994/03/06 10:45:50;  author: hohmuth;  state: Exp;  lines: +8 -2
+errno should be EINVAL and not -EINVAL.
+Add a fallback for filesystems such as Minixfs which don't understand
+Fcntl(..., F_SETLKW) where F_SETLK will be used instead.
+=============================================================================
+***** do_stat.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 16:37:04;  author: bjarne;  state: Exp;  lines: +1 -1
+Fixed inode incrementing for TOS.
+=============================================================================
+***** execp.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** fopenp.c
+----------------------------
+revision 44.2	
+date: 1994/04/02 13:50:30;  author: entropy;  state: Exp;  lines: +2 -1
+Eliminate pointer conversion warning.
+=============================================================================
+***** fstat.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 16:37:28;  author: bjarne;  state: Exp;  lines: +1 -1
+Fixed inode incrementing for TOS.
+=============================================================================
+***** gethostn.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -3
+Liberal use of const (and related changes).
+=============================================================================
+***** ioctl.c
+----------------------------
+revision 44.3	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +5 -1
+Liberal use of const (and related changes).
+----------------------------
+revision 44.2
+date: 1994/03/08 21:22:40;  author: hohmuth;  state: Exp;  lines: +8 -0
+Add TIOCLBIS/LBIC emulation.
+=============================================================================
+***** isatty.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:42:58;  author: nox;  state: Exp;  lines: +15 -8
+save 1 or 2 system calls in isatty and make it work more often on
+reused fds that were not closed thru close.  there still is the case
+fd not opened thru the lib, like named pipes and ptys because they need
+special Fcreate modes.  (hmm another reason why we should better have a
+real mknod or at least some kind of emulation for named pipes/ptys... :)
+=============================================================================
+***** mincl
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:25:56;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+=============================================================================
+***** mknod.c
+----------------------------
+revision 44.4	
+date: 1994/07/09 14:01:26;  author: entropy;  state: Exp;  lines: +1 -1
+Remove unused variable 'magic'.
+----------------------------
+revision 44.3
+date: 1994/07/08 16:53:04;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 44.2
+date: 1994/07/08 16:50:16;  author: schwab;  state: Exp;  lines: +21 -7
+A real mknod() function, for MinixFS 0.60pl10 and newer.
+=============================================================================
+***** open.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:42:58;  author: nox;  state: Exp;  lines: +3 -0
+save 1 or 2 system calls in isatty and make it work more often on
+reused fds that were not closed thru close.  there still is the case
+fd not opened thru the lib, like named pipes and ptys because they need
+special Fcreate modes.  (hmm another reason why we should better have a
+real mknod or at least some kind of emulation for named pipes/ptys... :)
+=============================================================================
+***** pipe.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:42:58;  author: nox;  state: Exp;  lines: +6 -0
+save 1 or 2 system calls in isatty and make it work more often on
+reused fds that were not closed thru close.  there still is the case
+fd not opened thru the lib, like named pipes and ptys because they need
+special Fcreate modes.  (hmm another reason why we should better have a
+real mknod or at least some kind of emulation for named pipes/ptys... :)
+=============================================================================
+***** popen.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** scanf.c
+----------------------------
+revision 44.4	
+date: 1994/07/08 16:46:00;  author: schwab;  state: Exp;  lines: +1 -0
+Fix a bug reported by huveneer@math.ruu.nl:  reading integers in
+hexadecimal format, e.g. scanf("%2x", &i); would fail if the
+hexadecimal number started with a zero.
+----------------------------
+revision 44.3
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +2 -1
+Liberal use of const (and related changes).
+----------------------------
+revision 44.2
+date: 1994/03/15 17:30:44;  author: entropy;  state: Exp;  lines: +1 -0
+Cope with malformed input - if EOF were received immediately it would keep
+reading until next EOF.  Now it indicates the error.
+Thanks to Thierry Bousch for the bug report.
+=============================================================================
+***** sigblock.c
+----------------------------
+revision 44.2	
+date: 1994/03/26 01:33:58;  author: entropy;  state: Exp;  lines: +8 -0
+declare sigblock(), sigsetmask() as int when not __MSHORT__, as per
+nox's suggestion.
+=============================================================================
+***** spawn.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** spawnvp.c
+----------------------------
+revision 44.2	
+date: 1994/03/29 00:54:10;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Liberal use of const (and related changes).
+=============================================================================
+***** symlink.c
+----------------------------
+revision 44.2	
+date: 1994/03/24 22:44:28;  author: entropy;  state: Exp;  lines: +6 -0
+do _enoent() translations in symlink() and readlink().
+=============================================================================
+***** thread.c
+----------------------------
+revision 44.2	
+date: 1994/03/25 10:46:48;  author: nox;  state: Exp;  lines: +9 -0
+Copy parent's basepage into tfork()'ed child for use by debuggers.
+=============================================================================
+***** wait4.c
+----------------------------
+revision 44.2	
+date: 1994/07/08 14:21:52;  author: schwab;  state: Exp;
+NEW file, wait4.c, providing the wait4() function.
+=============================================================================
+***** lattice/readme
+----------------------------
+revision 44.2	
+date: 1994/07/08 16:57:38;  author: pvt1-117;  state: Exp;
+NEW file:  notes on the Lattice C version of the MiNTlib, by Leif.
+=============================================================================
+***** sozobon/makefile
+----------------------------
+revision 44.2	
+date: 1994/03/08 21:32:00;  author: dsb;  state: Exp;  lines: +31 -37
+*** empty log message ***
+=============================================================================
+***** sozobon/readme
+----------------------------
+revision 44.2	
+date: 1994/03/08 21:32:32;  author: dsb;  state: Exp;  lines: +2 -2
+*** empty log message ***
+=============================================================================
+
+PATCHLEVEL44::
+
+***** a64l.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:27:40;  author: entropy;  state: Exp;  lines: +0 -49
+broke out functions
+=============================================================================
+***** abort.c
+----------------------------
+revision 43.2	
+date: 1994/02/27 13:16:42;  author: entropy;  state: Exp;  lines: +9 -7
+A possibly more ANSI/POSIX compliant abort().
+=============================================================================
+***** abs.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:33:08;  author: entropy;  state: Exp;  lines: +4 -9
+broke out functions
+=============================================================================
+***** atoi.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:33:32;  author: entropy;  state: Exp;
+NEW file, broken out from atol.c
+=============================================================================
+***** atol.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:34:10;  author: entropy;  state: Exp;  lines: +2 -8
+broke out functions
+=============================================================================
+***** chmod.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +2 -24
+broke out functions
+=============================================================================
+***** chown.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 18:37:20;  author: entropy;  state: Exp;
+NEW file, broken out from chmod.c
+=============================================================================
+***** div.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +3 -32
+broke out functions
+=============================================================================
+***** fgetpos.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:50:12;  author: entropy;  state: Exp;
+NEW file, broken out from fsetpos.c
+=============================================================================
+***** fopen.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +20 -146
+broke out functions
+=============================================================================
+***** fopen_i.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:46:12;  author: entropy;  state: Exp;
+NEW file, broken out from fopen.c
+=============================================================================
+***** fputs.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +15 -26
+broke out functions
+=============================================================================
+***** freopen.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:46:12;  author: entropy;  state: Exp;
+NEW file, broken out from fopen.c
+=============================================================================
+***** fseek.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +5 -41
+broke out functions
+=============================================================================
+***** fsetpos.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +17 -33
+broke out functions
+=============================================================================
+***** ftell.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:49:16;  author: entropy;  state: Exp;
+NEW file, broken out from fseek.c
+=============================================================================
+***** getegid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** geteuid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** getgid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** getpid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +5 -2
+broke out functions
+=============================================================================
+***** getppid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:50:12;  author: entropy;  state: Exp;
+NEW file, broken out from getpid.c
+=============================================================================
+***** getuid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +5 -63
+broke out functions
+=============================================================================
+***** l64a.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:27:04;  author: entropy;  state: Exp;
+NEW file, broke out from a64l.c.
+=============================================================================
+***** labs.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:28:50;  author: entropy;  state: Exp;
+NEW file, formerly in abs.c
+=============================================================================
+***** ldiv.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:42:52;  author: entropy;  state: Exp;
+NEW file, broken out from div.c
+=============================================================================
+***** lib.h
+----------------------------
+revision 43.3	
+date: 1994/02/28 14:03:04;  author: entropy;  state: Exp;  lines: +12 -0
+add some prototypes
+----------------------------
+revision 43.2
+date: 1994/02/27 11:51:30;  author: entropy;  state: Exp;  lines: +1 -0
+add _enoent() prototype.
+=============================================================================
+***** puts.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:47:38;  author: entropy;  state: Exp;
+NEW file, broken out from fputs.c
+=============================================================================
+***** regexp.c
+----------------------------
+revision 43.2	
+date: 1994/02/24 16:41:16;  author: schwab;  state: Exp;  lines: +1 -0
+regcomp fails to compile "(a+|b)*" (from libtest/tregex.c).  The bug
+is an uninitialized byte in reginsert.
+=============================================================================
+***** rewind.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:49:16;  author: entropy;  state: Exp;
+NEW file, broken out from fseek.c
+=============================================================================
+***** setegid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** seteuid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** setgid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** setregid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** setreuid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** setuid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** uidgid.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:52:34;  author: entropy;  state: Exp;
+NEW file, broken out from getuid.c
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 43.2	
+date: 1994/02/15 20:33:52;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/ioctl.h
+----------------------------
+revision 43.5	
+date: 1994/02/27 09:42:40;  author: entropy;  state: Exp;  lines: +13 -8
+Add some more TIOCM_* definitions
+----------------------------
+revision 43.4
+date: 1994/02/21 19:31:36;  author: entropy;  state: Exp;  lines: +29 -0
+Catch up with MiNT's file.h:  Add cursor ioctl's and some missing
+process ioctl's.
+----------------------------
+revision 43.3
+date: 1994/02/21 19:20:24;  author: entropy;  state: Exp;  lines: +9 -0
+Add TIOCMGET (faked) and related bitmasks.
+----------------------------
+revision 43.2
+date: 1994/02/19 14:25:04;  author: entropy;  state: Exp;  lines: +11 -9
+Added TIOCSDTR, TIOCCDTR and cleaned up a bit.
+=============================================================================
+***** include/mintbind.h
+----------------------------
+revision 43.2	
+date: 1994/02/26 08:45:42;  author: entropy;  state: Exp;  lines: +8 -0
+Add new MiNT system calls: Tmalarm(), Psigintr(), Suptime().
+All are unofficial and subject to change.
+=============================================================================
+***** include/ostruct.h
+----------------------------
+revision 43.2	
+date: 1994/02/22 17:47:58;  author: entropy;  state: Exp;  lines: +4 -0
+Complete the _PARAM structure used with Initmous().
+=============================================================================
+***** cfgetisp.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:38:48;  author: entropy;  state: Exp;
+NEW file, previously in cfspeed.c
+=============================================================================
+***** cfgetosp.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:38:48;  author: entropy;  state: Exp;
+NEW file, previously in cfspeed.c
+=============================================================================
+***** cfsetisp.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:38:48;  author: entropy;  state: Exp;
+NEW file, previously in cfspeed.c
+=============================================================================
+***** cfsetosp.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:38:48;  author: entropy;  state: Exp;
+NEW file, previously in cfspeed.c
+=============================================================================
+***** closedir.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** do_lock.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:55:50;  author: entropy;  state: Exp;
+NEW file, broken out from lockf.c
+=============================================================================
+***** do_stat.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 14:42:02;  author: entropy;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 13:24:18;  author: entropy;  state: Exp;
+NEW file, broken out from stat.c
+=============================================================================
+***** dup.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +2 -26
+broke out functions
+=============================================================================
+***** dup2.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:42:52;  author: entropy;  state: Exp;
+NEW file, broke out from dup.c
+=============================================================================
+***** enoent.c
+----------------------------
+revision 43.4	
+date: 1994/02/28 08:40:02;  author: entropy;  state: Exp;  lines: +1 -1
+Fix Fxattr() call (0 == follow links).
+----------------------------
+revision 43.3
+date: 1994/02/28 02:04:10;  author: entropy;  state: Exp;  lines: +7 -1
+block signals during critical portions of the code.
+----------------------------
+revision 43.2
+date: 1994/02/27 11:46:50;  author: entropy;  state: Exp;
+NEW file:  function to determine if an error should have been ENOENT
+instead of ENOTDIR (UNIX and GEMDOS have different ideas on this).
+=============================================================================
+***** execl.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:44:34;  author: entropy;  state: Exp;
+NEW file, broken out from exec.c
+=============================================================================
+***** execle.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:44:34;  author: entropy;  state: Exp;
+NEW file, broken out from exec.c
+=============================================================================
+***** execv.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:44:34;  author: entropy;  state: Exp;
+NEW file, broken out from exec.c
+=============================================================================
+***** execve.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:44:34;  author: entropy;  state: Exp;
+NEW file, broken out from exec.c
+=============================================================================
+***** flock.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:55:50;  author: entropy;  state: Exp;
+NEW file, broken out from lockf.c
+=============================================================================
+***** fscanf.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +0 -17
+broke out functions
+=============================================================================
+***** fstat.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 14:02:36;  author: entropy;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 13:24:18;  author: entropy;  state: Exp;
+NEW file broken out from stat.c
+=============================================================================
+***** getcwd.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +0 -13
+broke out functions
+=============================================================================
+***** getgroup.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 11:38:48;  author: entropy;  state: Exp;  lines: +0 -26
+Stripped out RCS header.
+=============================================================================
+***** getwd.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 14:55:16;  author: entropy;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 13:50:12;  author: entropy;  state: Exp;
+NEW file, broken out from getcwd.c
+=============================================================================
+***** inode.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:24:18;  author: entropy;  state: Exp;
+NEW file, broken out from stat.c
+=============================================================================
+***** ioctl.c
+----------------------------
+revision 43.4	
+date: 1994/02/21 19:20:52;  author: entropy;  state: Exp;  lines: +62 -27
+Add TIOCMGET (only works on /dev/modem1, requires MiNT 1.10
+(needs valid st_rdev from FSTAT).
+----------------------------
+revision 43.3
+date: 1994/02/19 15:05:00;  author: entropy;  state: Exp;  lines: +76 -57
+Use switch instead of cascading if's.
+----------------------------
+revision 43.2
+date: 1994/02/19 14:41:50;  author: entropy;  state: Exp;  lines: +24 -0
+Add TIOCCDTR and TIOCSDTR.
+=============================================================================
+***** isatty.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 15:00:50;  author: entropy;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +3 -44
+broke out functions
+=============================================================================
+***** isctty.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:55:16;  author: entropy;  state: Exp;
+NEW file, broken out from isatty.c
+=============================================================================
+***** lockf.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:36:30;  author: entropy;  state: Exp;  lines: +3 -79
+broke out functions
+=============================================================================
+***** lstat.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 14:02:36;  author: entropy;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 13:24:18;  author: entropy;  state: Exp;
+NEW file, broken out from stat.c
+=============================================================================
+***** mincl
+----------------------------
+revision 43.3	
+date: 1994/02/28 19:38:04;  author: entropy;  state: Exp;  lines: +34 -18
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/28 02:00:32;  author: entropy;  state: Exp;  lines: +1 -0
+*** empty log message ***
+=============================================================================
+***** open.c
+----------------------------
+revision 43.3	
+date: 1994/02/27 14:08:02;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 43.2
+date: 1994/02/27 12:04:08;  author: entropy;  state: Exp;  lines: +3 -1
+do _enoent() conversion.
+=============================================================================
+***** opendir.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** readdir.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** rewinddi.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** scanf.c
+----------------------------
+revision 43.2	
+date: 1994/02/24 16:44:30;  author: schwab;  state: Exp;  lines: +6 -1
+With the last change in scanf.c i have introduced a new bug: now
+sscanf("0", "%x", &i) fails!
+=============================================================================
+***** seekdir.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** stat.c
+----------------------------
+revision 43.4	
+date: 1994/02/28 15:34:16;  author: entropy;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 43.3
+date: 1994/02/28 13:26:12;  author: entropy;  state: Exp;  lines: +1 -326
+broke out functions
+----------------------------
+revision 43.2
+date: 1994/02/27 11:51:00;  author: entropy;  state: Exp;  lines: +3 -0
+do _enoent() translation.
+=============================================================================
+***** sync.c
+----------------------------
+revision 43.3	
+date: 1994/02/28 02:19:50;  author: entropy;  state: Exp;  lines: +1 -0
+Include <string.h> for strcpy() prototype.
+----------------------------
+revision 43.2
+date: 1994/02/19 12:57:34;  author: dsb;  state: Exp;  lines: +12 -6
+Fix for sozobon compatibility.
+=============================================================================
+***** tcdrain.c
+----------------------------
+revision 43.2	
+date: 1994/02/19 13:07:18;  author: entropy;  state: Exp;  lines: +22 -3
+A better tcdrain() using TIOCOUTQ in MiNT 1.10.
+=============================================================================
+***** tcflush.c
+----------------------------
+revision 43.2	
+date: 1994/02/19 12:23:38;  author: entropy;  state: Exp;  lines: +1 -1
+Bug fix: specify the *address* of the bitmask of the type of flush,
+not the bitmask itself.
+=============================================================================
+***** telldir.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:41:04;  author: entropy;  state: Exp;
+NEW file, broken out from dirent.c
+=============================================================================
+***** unlink.c
+----------------------------
+revision 43.2	
+date: 1994/02/27 11:56:12;  author: entropy;  state: Exp;  lines: +2 -0
+do _enoent() conversion.
+=============================================================================
+***** vfscanf.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:48:16;  author: entropy;  state: Exp;
+NEW file, broken out from fscanf.c
+=============================================================================
+***** vscanf.c
+----------------------------
+revision 43.2	
+date: 1994/02/28 13:48:16;  author: entropy;  state: Exp;
+NEW file, broken out from fscanf.c
+=============================================================================
+***** purec/Makefile
+----------------------------
+revision 43.2	
+date: 1994/02/28 17:59:16;  author: entropy;  state: Exp;  lines: +32 -18
+Add new targets.
+=============================================================================
+***** purec/mintlib.prj
+----------------------------
+revision 43.2	
+date: 1994/02/28 18:13:42;  author: entropy;  state: Exp;  lines: +46 -3
+Add new targets.
+=============================================================================
+***** sozobon/makefile
+----------------------------
+revision 43.3	
+date: 1994/02/28 17:41:18;  author: entropy;  state: Exp;  lines: +45 -32
+add new targets
+----------------------------
+revision 43.2
+date: 1994/02/19 12:58:24;  author: dsb;  state: Exp;  lines: +28 -13
+Updated for PL43.
+=============================================================================
+***** sozobon/readme
+----------------------------
+revision 43.2	
+date: 1994/02/19 12:58:44;  author: dsb;  state: Exp;  lines: +7 -10
+Updated for PL43.
+=============================================================================
+
+PATCHLEVEL43::
+
+***** libgcc2.c
+----------------------------
+revision 42.3	
+date: 1994/02/10 11:38:42;  author: entropy;  state: Exp;  lines: +1 -1
+Only use XFmode extended real floating point if XFLOAT_ENABLE is defined.
+----------------------------
+revision 42.2
+date: 1994/01/28 16:30:08;  author: schwab;  state: Exp;  lines: +1 -1
+Don't try to use extended float mode (XFmode) with gcc before version 2.4.
+Actually, this will also exclude gcc 2.4, since __GNUC_MINOR__ was
+introduced just with gcc 2.5.
+=============================================================================
+***** longlong.h
+----------------------------
+revision 42.2	
+date: 1994/01/28 16:30:30;  author: schwab;  state: Exp;  lines: +24 -25
+Revert the last change, we don't need a register prefix.
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 42.2	
+date: 1994/01/16 15:03:48;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/assert.h
+----------------------------
+revision 42.2	
+date: 1994/02/12 00:01:04;  author: entropy;  state: Exp;  lines: +14 -14
+Add back old statement-based assert macro, but now called __assert().
+=============================================================================
+***** include/osbind.h
+----------------------------
+revision 42.2	
+date: 1994/02/10 08:05:26;  author: entropy;  state: Exp;  lines: +2 -2
+Relax constraints from "r" to "g" on trap_14_wllwwwwwlw (used
+by Flopfmt()).
+=============================================================================
+***** Makefile
+----------------------------
+revision 42.2	
+date: 1994/02/10 11:43:04;  author: entropy;  state: Exp;  lines: +4 -1
+*** empty log message ***
+=============================================================================
+***** dup.c
+----------------------------
+revision 42.2	
+date: 1994/01/18 16:19:40;  author: entropy;  state: Exp;  lines: +0 -6
+Remove the code from dup() that could set the controlling tty.
+It was wrong.
+=============================================================================
+***** open.c
+----------------------------
+revision 42.2	
+date: 1994/01/18 16:15:50;  author: entropy;  state: Exp;  lines: +18 -11
+Several changes by Wolfgang Lux and entropy.
+1. Grab the lowest-numbered handle for all opens, instead of depending
+   on O_NOCTTY.
+2. Make the code dealing with controlling tty's a little bit more POSIXy.
+=============================================================================
+***** read.c
+----------------------------
+revision 42.2	
+date: 1994/01/18 14:51:26;  author: entropy;  state: Exp;  lines: +14 -2
+Oops!  When I fixed read() to work under TOS in unbuffered mode, I
+broke it for buffered mode.  This revision should work in both modes.
+Thanks to dsb for the bug report.
+=============================================================================
+***** scanf.c
+----------------------------
+revision 42.2	
+date: 1994/02/10 08:21:28;  author: schwab;  state: Exp;  lines: +3 -3
+The private variables fp_{do,ns,sval} are not intended to be exported
+and should be made static.
+=============================================================================
+***** sync.c
+----------------------------
+revision 42.2	
+date: 1994/02/10 08:09:22;  author: entropy;  state: Exp;  lines: +1 -25
+Removed RCS header junk that was causing patches to get mangled.
+=============================================================================
+
+PATCHLEVEL42::
+
+***** abs.c
+----------------------------
+revision 41.2	
+date: 1993/11/24 20:23:16;  author: pvt1-117;  state: Exp;  lines: +7 -0
+Inline abs() and labs() for LCC.
+=============================================================================
+***** bblink.c
+----------------------------
+revision 41.3	
+date: 1994/01/13 08:03:50;  author: schwab;  state: Exp;  lines: +29 -26
+Fixed version of update for GCC 2.5
+----------------------------
+revision 41.2
+date: 1993/11/30 18:51:36;  author: schwab;  state: Exp;  lines: +139 -2
+Updated for GCC 2.5
+=============================================================================
+***** buffindf.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:33:20;  author: schwab;  state: Exp;
+NEW file.
+The library uses the names findfile and buffindfile which are in the
+user's namespace. findfile is not really used and should be move into
+a separate file, and buffindfile should be renamed to _buffindfile.
+I have renamed findfile.c to buffindf.c and moved the function
+findfile into a new findfile.c, and changed all callers.
+=============================================================================
+***** bzero.cpp
+----------------------------
+revision 41.2	
+date: 1993/12/01 20:45:46;  author: michal;  state: Exp;  lines: +2 -0
+When Lmemset is defined and not Lbzero, the jump at the bottom
+of the memset setup reduces to a zero offset jump. put a
+#ifdef Lbzero (which amounts to  really #ifdef Lmemset && Lbzero)
+around the `jra do_set'.
+=============================================================================
+***** fdopen.c
+----------------------------
+revision 41.3	
+date: 1994/01/13 09:37:36;  author: entropy;  state: Exp;  lines: +2 -0
+*** empty log message ***
+----------------------------
+revision 41.2
+date: 1993/11/24 20:12:04;  author: nox;  state: Exp;  lines: +1 -1
+Use binary mode on tty's (under MiNT) to avoid extra ^M's.
+=============================================================================
+***** findfile.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:29:32;  author: schwab;  state: Exp;  lines: +2 -126
+The library uses the names findfile and buffindfile which are in the
+user's namespace. findfile is not really used and should be moved into
+a separate file, and buffindfile should be renamed to _buffindfile.
+I have renamed findfile.c to buffindf.c and moved the function
+findfile into the new findfile.c, and changed all callers.
+=============================================================================
+***** fopen.c
+----------------------------
+revision 41.4	
+date: 1994/01/09 11:12:06;  author: nox;  state: Exp;  lines: +2 -2
+*** empty log message ***
+----------------------------
+revision 41.3
+date: 1994/01/09 11:06:16;  author: nox;  state: Exp;  lines: +2 -0
+In _fopen() we seek to the end when file mode "a" is used (the kernel
+won't do this until the first write.)
+----------------------------
+revision 41.2
+date: 1993/11/24 20:12:34;  author: nox;  state: Exp;  lines: +1 -1
+Use binary mode on tty's (under MiNT) to avoid extra ^M's.
+=============================================================================
+***** getpw.c
+----------------------------
+revision 41.2	
+date: 1993/11/30 20:40:50;  author: nox;  state: Exp;  lines: +4 -2
+Convert backslashes in the home directory in the passwd file, for backwards
+compatibility.
+=============================================================================
+***** lib.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:51:48;  author: schwab;  state: Exp;  lines: +1 -1
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** libgcc2.c
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:51:58;  author: schwab;  state: Exp;  lines: +35 -62
+New entry points: L_builtin_new, L_caps_New and L_builtin_del are replaced
+by L_op_new, L_new_handler and L_op_delete.
+=============================================================================
+***** longlong.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:52:22;  author: schwab;  state: Exp;  lines: +25 -24
+Updated for GCC 2.5
+=============================================================================
+***** strerror.c
+----------------------------
+revision 41.2	
+date: 1993/11/24 21:14:58;  author: schwab;  state: Exp;  lines: +1 -1
+Move _sock_errlist[] into the text segment by making it const, so that
+-mbaserel works again.
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 41.3	
+date: 1993/11/04 03:26:16;  author: entropy;  state: Exp;  lines: +0 -0
+-
+----------------------------
+revision 41.2
+date: 1993/11/03 14:25:10;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/assert.h
+----------------------------
+revision 41.3	
+date: 1994/01/09 09:02:56;  author: lux;  state: Exp;  lines: +4 -13
+Make assert() macro more ANSI compliant by replacing the broken assert()
+macro with what was previously given as assertval(), and remove
+the assertval() macro.
+----------------------------
+revision 41.2
+date: 1993/11/30 18:50:46;  author: schwab;  state: Exp;  lines: +1 -1
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** include/compiler.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:50:50;  author: schwab;  state: Exp;  lines: +10 -0
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** include/gdbm.h
+----------------------------
+revision 41.2	
+date: 1993/12/01 20:42:48;  author: jrb;  state: Exp;  lines: +99 -21
+Synchronize with update36.
+=============================================================================
+***** include/ioctl.h
+----------------------------
+revision 41.2	
+date: 1993/11/24 21:09:20;  author: schwab;  state: Exp;  lines: +1 -0
+Add definition of B134.
+=============================================================================
+***** include/math-68881.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:50:58;  author: schwab;  state: Exp;  lines: +112 -48
+Give inline functions const attribute instead of declaring as const.
+Fix a bug in atan2 where the function from libpml gives a different result
+on the arguments (0, -1).
+=============================================================================
+***** include/math.h
+----------------------------
+revision 41.2	
+date: 1993/11/24 20:08:46;  author: jrb;  state: Exp;  lines: +28 -24
+allow define NO_INLINE_MATH to override _M68881_. Also, check
+for __GNUC_INLINE__ as a pre-requisite to inlining (so the  user
+may override globally with  __NO_INLINE__.
+=============================================================================
+***** include/minimal.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:51:10;  author: schwab;  state: Exp;  lines: +4 -3
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** include/mintbind.h
+----------------------------
+revision 41.3	
+date: 1994/01/09 10:01:00;  author: pvt1-117;  state: Exp;  lines: +1 -1
+Some changes for Lattice C.
+----------------------------
+revision 41.2
+date: 1993/11/24 20:50:10;  author: hohmuth;  state: Exp;  lines: +1 -1
+Fix return type of Pwaitpid() for Pure C.
+=============================================================================
+***** include/osbind.h
+----------------------------
+revision 41.2	
+date: 1994/01/09 10:01:28;  author: pvt1-117;  state: Exp;  lines: +3 -3
+Some changes for Lattice C.
+=============================================================================
+***** include/stdlib.h
+----------------------------
+revision 41.3	
+date: 1993/11/30 18:51:16;  author: schwab;  state: Exp;  lines: +3 -3
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+----------------------------
+revision 41.2
+date: 1993/11/24 20:20:46;  author: pvt1-117;  state: Exp;  lines: +10 -0
+Inline abs() and labs() for LCC.
+=============================================================================
+***** include/support.h
+----------------------------
+revision 41.3	
+date: 1994/01/09 09:28:44;  author: schwab;  state: Exp;  lines: +1 -1
+Rename buffindfile() to _buffindfile().
+----------------------------
+revision 41.2
+date: 1993/11/30 18:51:22;  author: schwab;  state: Exp;  lines: +2 -2
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** include/termios.h
+----------------------------
+revision 41.2	
+date: 1993/11/24 21:10:38;  author: schwab;  state: Exp;  lines: +1 -0
+Add definition of B134.
+=============================================================================
+***** include/unistd.h
+----------------------------
+revision 41.2	
+date: 1993/11/30 18:51:28;  author: schwab;  state: Exp;  lines: +1 -1
+Use new way to declare a function that doesn't return, since
+the old way wasn't ANSI conforming.
+=============================================================================
+***** dup.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 10:31:12;  author: roemer;  state: Exp;  lines: +3 -1
+Make dup2(x, x) return x without doing anything, instead of failing.
+[I also removed the "close(handle2);" since this violates POSIX and
+the Fforce() already closes the target handle for us -entropy]
+=============================================================================
+***** execp.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:28:56;  author: schwab;  state: Exp;  lines: +1 -1
+Rename buffindfile() to _buffindfile().
+=============================================================================
+***** fopenp.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:29:04;  author: schwab;  state: Exp;  lines: +1 -1
+Rename buffindfile() to _buffindfile().
+=============================================================================
+***** main.c
+----------------------------
+revision 41.4	
+date: 1994/01/09 10:15:48;  author: dsb;  state: Exp;  lines: +32 -30
+Cast malloc() calls for HSC.
+----------------------------
+revision 41.3
+date: 1994/01/09 09:11:18;  author: dirk_haun;  state: Exp;  lines: +2 -2
+Some time ago, I reported a bug in main.c of MiNT lib PL39, which destroys
+long PATH enviroment variables. Unfortunately, the bugfix itself was buggy
+:-( If PATH consisted only of a null byte, followed by the root directory of
+the boot drive, the result was garbage.  E.g. PATH=\0C:\\ resulted in
+PATH=/dev/c/nvurhgb so we allow for a size increase of up to five times the
+original instead of four.
+----------------------------
+revision 41.2
+date: 1993/11/24 20:35:52;  author: dirk_haun;  state: Exp;  lines: +2 -2
+_path_dos2unx enlarges the path by at most *four* times the number of
+elements, not two (with the old code, ";C:\;C:\CMD;E:\METAFONT" becomes
+":/dev/c/:/dev/c/cmd:/dev/e/meta".
+=============================================================================
+***** mincl
+----------------------------
+revision 41.3	
+date: 1994/01/09 11:15:20;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+----------------------------
+revision 41.2
+date: 1993/11/30 18:52:44;  author: schwab;  state: Exp;  lines: +2 -2
+Add new libgcc2 targets.
+=============================================================================
+***** open.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 10:47:04;  author: roemer;  state: Exp;  lines: +3 -2
+O_EXCL was being used incorrectly.  It is only used in relation to
+O_CREAT and has nothing to do with file sharing modes.  So we add
+it to modemask (allowing it to be passed through to Fopen()) and always
+use O_DENYNONE.
+=============================================================================
+***** scanf.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:56:18;  author: schab;  state: Exp;  lines: +230 -182
+The patch corrects these two bugs:
+- sscanf ("1", "%d%n", &i, &n) fails to set n, generally the value was
+off-by-one in the other cases
+- sscanf ("0x10", "%x", &i) sets i to 0 instead of 16
+
+Additionally i have implemented %p and %Lf (the latter only for
+M68881, since there is no long double support without fpu yet), and i
+have restructured the code to make it more efficient.
+=============================================================================
+***** spawn.c
+----------------------------
+revision 41.3	
+date: 1994/01/09 09:29:10;  author: schwab;  state: Exp;  lines: +1 -1
+Rename buffindfile() to _buffindfile().
+----------------------------
+revision 41.2
+date: 1993/11/24 21:06:22;  author: schwab;  state: Exp;  lines: +8 -5
+When running the interpreter for a script, the full pathname of the
+script should be passed, and not only the string from argv[0]. The
+latter normally does not include a path if the script was found
+through $PATH.
+=============================================================================
+***** spawnvp.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:29:24;  author: schwab;  state: Exp;  lines: +1 -1
+Rename buffindfile() to _buffindfile().
+=============================================================================
+***** sync.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:52:04;  author: schwab;  state: Exp;  lines: +9 -1
+fsync() uses the value from st_dev in the stat structure to form a
+pathname for Dcntl. This value can be > 0x100 for filesystems mounted
+via FS_MOUNT. Currently there is no way to sync such a filesystem, i
+have changed fsync to just return successfully in this case.
+=============================================================================
+***** tcattr.c
+----------------------------
+revision 41.2	
+date: 1993/11/24 21:11:36;  author: schwab;  state: Exp;  lines: +4 -5
+Make better mappings between termios attributes and real attributes,
+and fix typos.
+=============================================================================
+***** thread.c
+----------------------------
+revision 41.3	
+date: 1994/01/09 18:13:30;  author: entropy;  state: Exp;  lines: +21 -0
+entropy's attempt at implementing nox's idea for getting tfork() to
+work with -mbaserel.  Untested.
+----------------------------
+revision 41.2
+date: 1994/01/09 09:49:06;  author: schwab;  state: Exp;  lines: +2 -2
+This patch for MiNTlib PL41 fixes the memory leak. It just moves the
+calls to Mfree to the right place.
+=============================================================================
+***** unx2dos.c
+----------------------------
+revision 41.2	
+date: 1994/01/09 09:46:10;  author: schwab;  state: Exp;  lines: +6 -4
+When given an empty path, _path_unx2dos/_path_dos2unx trash the byte
+before the supplied buffer. This can be seen by executing
+PATH= printenv
+(under sh or bash), there will be a line beginning with "PATH", but no
+equal sign and probably some garbage behind.
+=============================================================================
+***** crlf/crlf.c
+----------------------------
+revision 41.3	
+date: 1994/01/09 14:38:22;  author: entropy;  state: Exp;  lines: +386 -386
+*** empty log message ***
+----------------------------
+revision 41.2
+date: 1994/01/09 14:35:58;  author: entropy;  state: Exp;  lines: +386 -296
+Merged changes from Markus Kilbinger and Martin Koehling.
+=============================================================================
+***** crlf/crlf.doc
+----------------------------
+revision 41.2	
+date: 1994/01/09 14:40:52;  author: entropy;  state: Exp;  lines: +7 -3
+*** empty log message ***
+=============================================================================
+***** crlf/crlf.ttp
+----------------------------
+revision 41.2	
+date: 1994/01/09 14:42:16;  author: entropy;  state: Exp;  lines: +276 -271
+*** empty log message ***
+=============================================================================
+***** crlf/makefile
+----------------------------
+revision 41.2	
+date: 1994/01/09 14:42:46;  author: entropy;  state: Exp;  lines: +1 -3
+*** empty log message ***
+=============================================================================
+
+PATCHLEVEL41::
+
+***** nlist.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:14;  author: hohmuth;  state: Exp;  lines: +3 -3
+add a few typecasts for __MSHORT__
+=============================================================================
+***** qsort.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 08:58:56;  author: jrb;  state: Exp;  lines: +9 -4
+adjust order of inclusion of compiler.h so that INLINE may be
+conditionally overriden even when __GNUC__
+=============================================================================
+***** strerror.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 11:33:36;  author: entropy;  state: Exp;  lines: +59 -1
+Add support for the socket lib.
+=============================================================================
+***** utime.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:04;  author: hohmuth;  state: Exp;  lines: +1 -1
+make assignments used as truth values clearer, to avoid
+spurious warnings
+=============================================================================
+***** wcmb.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:16;  author: hohmuth;  state: Exp;  lines: +2 -2
+make assignments used as truth values clearer, to avoid
+spurious warnings
+=============================================================================
+***** wcscat.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:24;  author: hohmuth;  state: Exp;  lines: +2 -2
+make assignments used as truth values clearer, to avoid
+spurious warnings
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 40.2	
+date: 1993/10/30 10:30:02;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/errno.h
+----------------------------
+revision 40.2	
+date: 1993/10/31 11:03:32;  author: entropy;  state: Exp;  lines: +40 -1
+Add support for the socket library.
+=============================================================================
+***** include/osbind.h
+----------------------------
+revision 40.3	
+date: 1993/10/31 09:23:14;  author: hohmuth;  state: Exp;  lines: +3 -3
+fix prototypes for Pure C: gemdos(), bios(), xbios()
+----------------------------
+revision 40.2
+date: 1993/10/31 09:00:00;  author: jrb;  state: Exp;  lines: +11 -2
+relax the constraints on the inputs of trap_14_wwwwwww (only
+Rsconf maps to this)  to "g" from "r", as these many "r" 's
+give gcc 2.>3.X heartaches (understandably). note this is ok
+since these args will never be expressions, and we never
+have to constrain hard enough to force eval before we change
+sp from underneath gcc.
+=============================================================================
+***** ioctl.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:04;  author: hohmuth;  state: Exp;  lines: +1 -1
+add a few typecasts for __MSHORT__
+=============================================================================
+***** open.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:24;  author: hohmuth;  state: Exp;  lines: +1 -1
+add a few typecasts for __MSHORT__
+=============================================================================
+***** popen.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:34;  author: hohmuth;  state: Exp;  lines: +6 -1
+add a few typecasts for __MSHORT__
+add #include <sys\types.h> for Turbo C
+=============================================================================
+***** read.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:32;  author: hohmuth;  state: Exp;  lines: +1 -1
+add typecasts to calls of Psignal(), Fselect() and Dreaddir(),
+to make the argument types match the prototypes
+=============================================================================
+***** select.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:42;  author: hohmuth;  state: Exp;  lines: +3 -3
+add typecasts to calls of Psignal(), Fselect() and Dreaddir(),
+to make the argument types match the prototypes
+add "U" to unsigned short constants
+=============================================================================
+***** tcbreak.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:44;  author: hohmuth;  state: Exp;  lines: +1 -1
+add a few typecasts for __MSHORT__
+=============================================================================
+***** truncate.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:24:52;  author: hohmuth;  state: Exp;  lines: +2 -2
+add a few typecasts for __MSHORT__
+=============================================================================
+***** ttyname.c
+----------------------------
+revision 40.2	
+date: 1993/10/31 09:25:50;  author: hohmuth;  state: Exp;  lines: +1 -1
+add typecasts to calls of Psignal(), Fselect() and Dreaddir(),
+to make the argument types match the prototypes
+=============================================================================
+***** purec/Makefile
+----------------------------
+revision 40.2	
+date: 1993/11/01 22:08:26;  author: hohmuth;  state: Exp;  lines: +14 -9
+*** empty log message ***
+=============================================================================
+***** purec/mintlib.prj
+----------------------------
+revision 40.2	
+date: 1993/11/01 22:08:26;  author: hohmuth;  state: Exp;  lines: +13 -0
+*** empty log message ***
+=============================================================================
+
+PATCHLEVEL40::
+
+***** abort.c
+----------------------------
+revision 39.2	
+date: 1993/10/28 17:54:14;  author: entropy;  state: Exp;  lines: +20 -2
+Fix for the TOS lib, and also remove a POSIX violation.
+=============================================================================
+***** utime.c
+----------------------------
+revision 39.2	
+date: 1993/10/27 15:01:02;  author: entropy;  state: Exp;  lines: +16 -1
+Implement the Dcntl() versionof FUTIME in utime().  Comment out the
+kludge for directories in the Fcntl() version.
+=============================================================================
+***** include/PatchLev.h
+----------------------------
+revision 39.2	
+date: 1993/10/27 14:20:24;  author: entropy;  state: Exp;  lines: +1 -1
+-
+=============================================================================
+***** include/support.h
+----------------------------
+revision 39.2	
+date: 1993/10/27 15:06:44;  author: jrb;  state: Exp;  lines: +2 -2
+Correct the protos for __exit() and _exit().
+=============================================================================
+***** truncate.c
+----------------------------
+revision 39.2	
+date: 1993/10/28 17:27:30;  author: entropy;  state: Exp;  lines: +10 -1
+Implement the Dcntl() version of FTRUNCATE in truncate().
+=============================================================================
+
+PATCHLEVEL39::
+
+***** include/PatchLev.h
+----------------------------
+revision 38.2	
+date: 1993/10/21 18:47:34;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+=============================================================================
+***** include/errno.h
+----------------------------
+revision 38.2	
+date: 1993/10/21 16:21:30;  author: entropy;  state: Exp;  lines: +1 -0
+Add ENOTEMPTY as alias for EEXIST (POSIX).
+=============================================================================
+***** include/limits.h
+----------------------------
+revision 38.3	
+date: 1993/10/23 18:44:56;  author: entropy;  state: Exp;  lines: +17 -18
+Raised some arbitrary limits (or changed to actual limit, as in the case
+of _POSIX_OPEN_MAX).  Rearranged things a bit for consistency.
+----------------------------
+revision 38.2
+date: 1993/10/23 18:28:52;  author: entropy;  state: Exp;  lines: +4 -0
+Set _POSIX_NGROUPS_MAX to 0 when not __MINT__.
+Thanks to ntomczak@vm.ucs.ualberta.ca for the bug report.
+=============================================================================
+***** include/time.h
+----------------------------
+revision 38.2	
+date: 1993/10/25 10:00:30;  author: entropy;  state: Exp;  lines: +7 -2
+Update select() prototype to use fd_set * for arguments, and
+make some stuff !_POSIX_SOURCE.
+=============================================================================
+***** include/types.h
+----------------------------
+revision 38.2	
+date: 1993/10/25 09:59:28;  author: entropy;  state: Exp;  lines: +4 -1
+Allow fd_set definition to be gotten from time.h too.
+=============================================================================
+***** include/wait.h
+----------------------------
+revision 38.2	
+date: 1993/10/24 18:47:48;  author: nox;  state: Exp;  lines: +1 -1
+Some older versions of GCC trip over the new wait macros...so
+it's better not to use them for now.
+=============================================================================
+***** Bugs
+----------------------------
+revision 38.2	
+date: 1993/10/24 18:18:10;  author: nox;  state: Exp;  lines: +22 -0
+Added some new entries.
+=============================================================================
+***** Changelog
+----------------------------
+revision 38.2	
+date: 1993/10/25 19:10:44;  author: entropy;  state: Exp;  lines: +1 -392
+New Changelog file.
+=============================================================================
+***** Files
+----------------------------
+revision 38.5	
+date: 1993/10/22 21:40:48;  author: entropy;  state: Exp;  lines: +19 -19
+Add Version and MKLOG.
+----------------------------
+revision 38.4
+date: 1993/10/21 16:58:28;  author: entropy;  state: Exp;  lines: +9 -8
+Add putpwent.c to the Files list (it was missing).
+----------------------------
+revision 38.3
+date: 1993/10/21 10:58:32;  author: entropy;  state: Exp;  lines: +18 -18
+Add Makefile.adm.
+----------------------------
+revision 38.2
+date: 1993/10/21 10:34:24;  author: entropy;  state: Exp;  lines: +59 -94
+Rearranged for automation.
+=============================================================================
+***** MKLOG
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:37:36;  author: entropy;  state: Exp;  lines: +1 -1
+Add DIRECTORY_NAME tag to be post-processed into the source directory
+name of the changed file.
+----------------------------
+revision 38.2
+date: 1993/10/21 18:39:50;  author: entropy;  state: Exp;
+NEW file, to automatically generate change logs from RCS.
+=============================================================================
+***** Makefile.adm
+----------------------------
+revision 38.5	
+date: 1993/10/25 19:09:04;  author: entropy;  state: Exp;  lines: +26 -0
+Add 'distrib' target.
+----------------------------
+revision 38.4
+date: 1993/10/22 02:34:56;  author: entropy;  state: Exp;  lines: +20 -0
+Add target 'changelogs' to assist in automatic generation of changelog
+files at release time.
+----------------------------
+revision 38.3
+date: 1993/10/21 17:13:20;  author: entropy;  state: Exp;  lines: +26 -2
+Add 'checkfiles' target to look for filenames missing from Files.
+----------------------------
+revision 38.2
+date: 1993/10/21 10:41:48;  author: entropy;  state: Exp;
+NEW file.
+=============================================================================
+***** OChangelog
+----------------------------
+revision 38.2	
+date: 1993/10/24 17:06:08;  author: entropy;  state: Exp;  lines: +393 -0
+Added previous contents of Changelog.
+=============================================================================
+***** PatchLev.h
+----------------------------
+revision 38.2	
+date: 1993/10/21 18:45:58;  author: entropy;  state: Exp;  lines: +1 -1
+*** empty log message ***
+=============================================================================
+***** Version
+----------------------------
+revision 38.2	
+date: 1993/10/22 02:31:34;  author: entropy;  state: Exp;
+NEW file containing version number for automatic generation of other
+files.
+=============================================================================
+***** crtinit.c
+----------------------------
+revision 38.2	
+date: 1993/10/21 22:15:54;  author: pvt1-117;  state: Exp;  lines: +1 -7
+Eliminate useless function setup_handlers().
+=============================================================================
+***** dup.c
+----------------------------
+revision 38.2	
+date: 1993/10/24 16:58:58;  author: entropy;  state: Exp;  lines: +6 -0
+Set the controlling terminal when appropriate.
+=============================================================================
+***** main.c
+----------------------------
+revision 38.2	
+date: 1993/10/24 12:40:10;  author: nox;  state: Exp;  lines: +1 -1
+Pty readers get double ^Ms when the writer doesn't have binmode set.
+I think we can just leave the ^M conversion to the tty itself
+(that's what CRMOD is for), at least under MiNT.
+=============================================================================
+***** open.c
+----------------------------
+revision 38.2	
+date: 1993/10/24 16:55:46;  author: entropy;  state: Exp;  lines: +23 -5
+Allow open() to set the controlling terminal when appropriate.
+Thanks to nox@jelal.north.de for the bug report.
+=============================================================================
+***** read.c
+----------------------------
+revision 38.2	
+date: 1993/10/22 21:00:42;  author: entropy;  state: Exp;  lines: +5 -4
+Fix some bugs with _read() on console under TOS:
+Formerly we appended a '\n' to every read, and incremented the byte count
+by one...this could cause a read to write past the end of the input
+buffer, and also messed up unbuffered tty input horribly.  So now
+we just do CRMOD translation on the last character read, changing the
+'\r' to '\n' in place.  (Thanks to sourada@iastate.edu for the bug report.)
+Also compare against __tchars.t_eofc instead of hardcoded '4', for
+consistency.
+=============================================================================
+***** rename.c
+----------------------------
+revision 38.2	
+date: 1993/10/21 17:17:08;  author: entropy;  state: Exp;  lines: +17 -5
+Don't allow a file to be renamed to itself (on filesystems where we
+can tell if two files are the same) so that files aren't accidentally
+deleted.
+=============================================================================
+***** select.c
+----------------------------
+revision 38.2	
+date: 1993/10/25 09:58:38;  author: entropy;  state: Exp;  lines: +3 -2
+Use fd_set * instead of long * for aguments.  Thanks roemer.
+=============================================================================
+***** wait.c
+----------------------------
+revision 38.2	
+date: 1993/10/24 18:51:40;  author: nox;  state: Exp;  lines: +1 -1
+See wait.h.
+=============================================================================
+***** waitpid.c
+----------------------------
+revision 38.2	
+date: 1993/10/24 18:52:00;  author: nox;  state: Exp;  lines: +1 -1
+See wait.h.
+=============================================================================
+***** lattice/mc.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mc3.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcnb.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcnb3.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcr.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcr3.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcrnb.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcrnb3.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcs.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcsnb.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcsr.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================
+***** lattice/mcsrnb.prj
+----------------------------
+revision 38.3	
+date: 1993/10/22 02:12:02;  author: pvt1-117;  state: Exp;  lines: +1 -0
+*** empty log message ***
+----------------------------
+revision 38.2
+date: 1993/10/21 22:19:54;  author: pvt1-117;  state: Exp;  lines: +7 -0
+*** empty log message ***
+=============================================================================

@@ -1,0 +1,30 @@
+; MiNT Library for Turbo/Pure C
+; Floating Point Support (*WITHOUT* direct FPU access via Line-F)
+
+; hohmuth 22 Sep 92
+
+mintflt.lib
+
+.C[-A-]
+.C[-P]
+.C[-M-]
+.C[-G-]
+.C[-DNDEBUG]
+.C[-8-]
+.L [-G -J]
+
+.C[-I..\..\include]
+
+=
+
+; things to override from mintlib.lib
+..\main.c [-P]
+..\doprnt.c
+..\scanf.c
+
+; things only useable with floating point support
+..\difftime.c
+
+; the Turbo/Pure C floating point library
+PCFLTLIB.LIB
+;TCFLTLIB.LIB

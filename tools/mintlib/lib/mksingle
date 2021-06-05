@@ -1,0 +1,35 @@
+#!/bin/sh
+# Name: mksingle
+# Usage: mksingle foo.o
+# This invokes 
+# "make TARGET=<CPU><int-size><addressing mode> foo.o" 
+# as many times as necessary to cover all the combinations of 
+# binary models, addressing, and CPU types available in the MiNTlib 
+# standard makefile.  The script stores the resulting foo.o 
+# object files in their respective libraries.
+
+for TARGET in $* ; do
+  for CPU in 68020 68000 ; do
+    for MODEL in short-int long-int ; do
+      for ADDRESSING in baserel absolute ; do
+
+	if [ -f $TARGET ] ; then rm $TARGET ; fi
+	make $TARGET "TARGET=\" $CPU $MODEL $ADDRESSING \""
+	if [ $? -eq 0 ] ; then
+	   if [ $CPU = "68020" ]; then CP="020"; else CP=""; fi
+	   echo $CPU $CP 
+	   if [ $MODEL = "short-int" ]; then MOD="16"; else MOD=""; fi
+	   echo $MODEL $MOD
+	   if [ $ADDRESSING = "baserel" ]; then ADDR="b"; else ADDR=""; fi
+	   echo $ADDRESSING $ADDR
+	   echo /usr/lib/m$CPU/$ADDR"c"$MOD$CP".a"
+	   ar rs /usr/lib/m$CPU/$ADDR"c"$MOD$CP".a"
+           if [ $? -ne 0 ] ; then exit -1 ; fi
+	   rm -f $TARGET
+	else
+	   exit -1
+	fi
+      done 
+    done 
+  done 
+done 

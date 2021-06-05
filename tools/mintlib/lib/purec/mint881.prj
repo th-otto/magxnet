@@ -1,0 +1,36 @@
+; MiNT Library for Pure C
+; Floating Point Support
+
+; uses FPU via Line-F (Pure C only!)
+
+; hohmuth 22 Sep 92
+
+mint881.lib
+
+.C[-A-]
+.C[-P]
+.C[-M-]
+.C[-G-]
+.C[-DNDEBUG]
+.C[-8]
+.L[-G -J]
+
+.C[-I..\..\include]
+
+=
+
+; things to override from mintlib.lib
+..\main.c
+..\doprnt.c
+..\scanf.c
+
+; we still want to use the clean version of alloca().
+;alloca.s [-D=STACKCH=1 -D=FPU=1]
+
+setjmp.s [-D=FPU=1]
+
+; things only useable with floating point support
+..\difftime.c
+
+; the Pure C floating point library with Line-F support
+PC881LIB.LIB

@@ -1,0 +1,220 @@
+This text files describes some bugs in the MiNT library, as well as some
+ways in which the library's behaviour differes from most UNIX systems.  If
+the document looks like I'm talking to myself in places, it's because it was
+originally compiled by boender@dutiws.TWI.TUDelft.NL (Hildo Biersma), and
+I've marked it up to use as a sort of checklist of things to fix.  Since
+some of these problems will be resolved in later releases of the library,
+try not to depend too heavily on the behavior described here.
+
+entropy@terminator.rs.itd.umich.edu (Nick Castellano)
+
+--------------------------------------------------------------------------
+
+*.c: ++boender
+  Currently, the code for the mintlibs does various checks
+  according to the various versions of MiNT. Now, this is all very
+  well, but in some cases, this causes *three* versions of the
+  code to exist: TOS, old MiNT and new MiNT. Should this be cleaned
+  up at some time, i.e. do we stop supporting MiNT before 0.8 or 0.9?
+  Some obvious candidates are killpg.c and unx2dos.c.
+
+access.c: ++entropy
+  I think my "superuser can access anything" assumption is wrong, especially
+  if checking execute permissions.
+
+alarm.c: ++entropy
+  alarm() will silently "round down" any requested time greater than
+  LONG_MAX / 1000 (approximately 2 million seconds).  Most UNIXes allow much
+  larger maximum values (usually LONG_MAX).  MiNT needs this extremely small
+  maximum value because wakeup scheduling is calculated in milliseconds by
+  the kernel.  This cannot be fixed without changing MiNT.  alarm() does not
+  work at all under TOS.
+
+clock.c: ++boender, ++entropy
+  clock() is currently implemented as an alias for _clock(), which makes it
+  hopelessly different from the UNIX version, since it returns time elapsed
+  since the program started, and not the CPU time used by the process and
+  its children that have terminated so far.  Also, the time units used are
+  different (200 Hz ticks instead of microseconds).  When clock() is fixed,
+  CLOCKS_PER_SEC in time.h will need to be changed, as ANSI specifies that
+  clock()/CLOCKS_PER_SEC gives the CPU time used, in seconds, since the
+  beginning of execution.  It may be a good idea to change CLK_TCK to agree,
+  or maybe CLK_TCK should be used for the actual 200 Hz hardware tick, and
+  change only CLOCKS_PER_SEC.  CLK_TCK is used in times.c.  CLOCKS_PER_SEC
+  is used in sleep.c.
+
+crtinit.c: ++nox
+  Some programs like uuxqt (taylors at least) understand exit code
+  EX_TEMPFAIL (75) to mean retry the command (uux job) later.  Now when
+  _crtinit can't initialize it does Pterm(-1) and uuxqt thinks the job can't
+  be retried, although it probably can...  so would it make sense to use
+  Pterm(EX_TEMPFAIL) instead?  Or maybe make this exit code compile-time
+  configurable like __default_mode__...
+
+getopt.c, unistd.h: ++boender
+  The three externally usable variables defined in getopt.c should be
+  included in <unistd.h>, where getopt() is declared too.  These
+  are: 'extern char *optarg', 'extern int opterr' and 'extern int optind'.
+  [Not really a bug.  Leave it this way because UNIX doesn't have these
+  vars in any headers either. -entropy]
+
+getrusag.c, wait3.c, resource.h: ++entropy
+  Most of the struct rusage members are fake.
+  
+ioctl.c: ++nox
+  TIOCSETP is #defined to be == TIOCSETN, but they are not really...
+  also still looks like it disables RTSCTS every time, unless i
+  specifically set that bit (0x2000), and thats not #defined in ioctl.h.
+  (and more things like TIOCFLUSH... but Eric knows them already. :-)
+
+kill.c: ++boender, ++entropy 
+  On UNIX (SysV), system processes (PID 0 and 1) are treated specially.
+  This is somewhat different under MiNT, where init(1), if run at all, need
+  not have PID 1.  PID 0 is already treated in the correct manner by
+  Pkill().  PID 1 really deserves special treatment under MiNT in any case,
+  because shooting signals at MiNT's child process (be it init(1), or some
+  shell, or whatever) isn't likely to have the expected results.  I'm not
+  sure if this can reasonably be resolved in the library alone.
+
+  Ultrix defines a system process as any process with a parent PID of 0.
+  This definition may be helpful for implementing kill() correctly in the
+  library.
+
+  The man page for the MiNT call Pkill() forgets to mention that
+  either the effective user ID of the caller must be zero (super-user) or
+  else the real user IDs must match.  Note that, on UNIX, the caller must
+  be super-user or else the real or effective user IDs of both processes
+  must match.  This might be a bug in MiNT or the MiNT documentation.
+  Ask Eric?
+
+limits.h: ++Uwe_Ohse@pb2.maus.de
+  CLK_TCK should be defined here and not just in time.h, since SVR4 does.
+  [I disagree, limits.h should be strictly ANSI and is already polluted
+  as it is -entropy]
+
+link.c: ++nox
+  link() returns the same error code for different things i.e. EACCESS when
+  it really means EEXIST.
+
+main.c: ++boender
+  In exit(), stdin, stdout and stderr are flushed, all other file
+  descriptors are closed. I don't know what POSIX says, but System V
+  wants stdin, stdout and stderr to be closed too.
+
+mkfifo.c: ++entropy
+  The mkfifo() function is fake.  It always returns failure.
+
+mknod.c: ++entropy
+  The current "emulation" of mknod() is really silly, it does nothing at
+  all and indicates that an error occurred.  We could at least try to
+  emulate properly for the kinds of files we know how to make (directories,
+  regular files, etc).
+
+mktemp.c: ++entropy
+  Produces different sorts of filenames than UNIX does.
+
+open.c: ++entropy
+  open() returns -4 instead of -1 on errors when __MSHORT__ is defined (but
+  only in certain cases).
+
+open.c: ++nox
+  Should open() do a TIOCSPGRP too when it Fforces the control tty?
+  I think, but i'm not 100% sure...
+  [The kernel does this for us automagically. -entropy]
+
+pgrp.c: ++entropy
+  The setsid() function never really disassociates the controlling tty from
+  the current process, since MiNT doesn't seem to have any such concept.  It
+  gets around this with a bunch of kludges in setsid(), ioctl(), and open().
+
+popen.c: ++boender
+  This function reads the environment variable SHELL to find your shell,
+  and takes /bin/sh as an alternative. I think the opposite should be
+  done: only take SHELL of /bin/sh does not exist.
+  [See my comments on system.c -entropy]
+
+read.c, write.c: ++entropy
+  When a backgrounded process is reading from or writing to its controlling 
+  tty, and its process group has no controlling tty, it should get a return
+  value of -1 from the read() or write() with errno set to EIO.  I'm
+  not really sure what the controlling tty of a process _group_ is, so
+  I'm clueless as to how to try to implement this.
+
+scanf.c: ++jrb
+  Evidently loses big time.  Run Gcctests and find out what's what.
+
+sleep.c: ++boender, ++entropy
+  sleep() will never sleep for more than LONG_MAX / 1000 (approximately 2
+  million) seconds because Talarm() is used in its implementation (see
+  alarm.c).  usleep() is of type void.  This may not be correct:  it is of
+  type unsigned on UN*X, and should be of type unsigned long in the mintlibs.
+
+stat.c: +nox
+  In lstat(), maybe make filenames with trailing slash follow symlinks?
+  sometimes it would be nice if i could do `ls -l /usr/' and get whats 
+  in there, not just the link...
+  [This sounds like a bad idea to me.  GNU ls takes a flag -L that does
+   this without any kludgery. -entropy]
+
+statfs.c: ++entropy
+  Hildo's kludge for /PROC, /PIPE, /SHM will have really unexpected results
+  for any signal handler that deals with the current directory, if it is
+  called in the small period of time while the current directory is
+  changed.  Shouldn't cause major problems.
+
+system.c: ++boender
+  Currently, this function emulates the UN*X function, including
+  simple input/output redirection. It might be wise to check
+  if "/bin/sh" exists; if it exists, to call "/bin/sh -c <cmdline>".
+  If it does not exist, keep the current behaviour (emulation).
+  [I feel better about the way this is currently handled as there are
+  too many broken shells out there, and too many problems with figuring
+  out what a user means by "/bin" on a tos file system, and so on.  The
+  current scheme is more likely to work for more users more of the time...
+  -entropy]
+  [well you could argue over that now that there are `real' shells
+  available at least for MiNT...  but more important, if it `emulates' it
+  could do better, like in system ("uux foobox!foo '>bar'") pass the
+  quoted '>bar' to uux at least as long as the `emulation' doesn't know
+  how to uucp back output of remote commands... :-) -nox@jelal.north.de]
+  [OK, if someone wants to write a fix for system() that execs a shell,
+  I'll accept it so long as there is a way (via an environment variable)
+  for the user to select the emulation as it is currently working.  Fixes
+  to make the emulation more robust would also be welcome. -entropy]
+
+types.h: ++entropy
+  Need ssize_t for POSIX compliance.
+
+unlink.c: ++nox@jelal.north.de
+  When a file is still open on a GEMDOS filesystem MiNT already sets some
+  flag and unlinks after the close, but until then open() still finds the
+  file!  (which can be annoying on things like lock files...)
+  [I don't think this can be fixed in the library.  MiNT acts this
+  way on purpose.  -entropy]
+
+utime.c: ++entropy
+  The utime() contains a kludge to make it look like the call succeds on a
+  directory, even though it really doesn't change the timestamp.
+
+utmp.c: ++boender
+  The utmp structure as defined differs from the System V structure.
+  Now, I don't know what BSD does, but I'll look it up. Do you
+  know what POSIX says about the utmp structure?
+  Also, the System V getutent, getutid, etc. calls are missing from
+  the mintlibs, but they are so dependent on fields in the utmp
+  structure that are missing in the mintlibs that they cannot be
+  written without changing the utmp structure.
+  I think complying with POSIX on this would be a Good Thing; if
+  someone could send me the relevant parts, I'll write the routines.
+  Note that all kind of stuff is dependent on this and has to be
+  emulated in the mintlibs, like getlogin(), or left out altogether,
+  like ttyslot().
+  Oh, and this: changing the utmp structure is a pretty large
+  operation, since init(1) will have to be overhauled completely.
+  As I don't think MiNT will ever write /etc/utmp and /etc/wtmp
+  structures on booting, perhaps we should leave this be.
+
+write.c: ++nox
+  On GEMDOS filesystems, don't try to write to a file when some other
+  process might have it open, you'll lose data.  And O_APPEND doesn't help.
+  Also writes don't update timestamps on GEMDOS filesystems.

@@ -1,0 +1,17 @@
+test.tos
+.C [-Y -S]
+.L [-Y -G -S=0]
+.C [-II:\C\SRC\LIB\MINTLIB\PL49\INCLUDE\]
+
+=
+crt0.s
+
+test.c
+
+; we don't link the function alloca() to test.tos, but this is a good
+; place to make it.
+alloca.s  [-D=STACKCH=1 -D=FPU=0]
+falloca.s [-D=STACKCH=1 -D=FPU=1]
+
+mintlib.lib
+; tcstdlib.lib

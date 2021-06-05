@@ -1,0 +1,300 @@
+MiNT Library for Turbo C / Pure C
+
+hohmuth 7 Mar 1993
+
+This file describes the build and installation procedure of the MiNT 
+library for Turbo C and Pure C for the source distribution.  (If you 
+have the binary distribution, see the file INSTALL.BIN.  For notes on 
+how to use the library, refer to README.PC)
+
+At the end of this file, the procedure for building the binary 
+distribution is described.
+
+--------------------------------------------------------------------------
+
+There are two ways for building the library:  One uses a makefile and 
+basically consists of configuring the makefile and hitting `make', the 
+other one uses project files and requires a bit of twiddling here and 
+there.  Personally, I prefer using the makefile, but I understand that 
+not everyone wants to spend a lot of time to set up an appropriate 
+environment for Make.
+
+--------------------------------------------------------------------------
+
+INSTALLATION USING `make'.
+--------------------------
+
+To use the makefile, you need the following programs:
+
+o   The compiler's tools (of course), in particular `pcc.ttp', `pasm.ttp' 
+    and `plink.ttp' (resp. for Turbo C: `tcc.ttp', `mas.ttp' and 
+    `tlink.ttp').
+
+o   GNU Make, version 3.60 or better.  (The makefile needs GNU Make's 
+    functionality, so please don't try another Make.)
+
+o   A good shell is recommended; if you use Turbo C, a shell is 
+    compulsory.  (When using Pure C, you can also let Make execute the 
+    programs.)
+
+    The Makefile has been written in a way that allows the use of both 
+    TOS style shells (those that don't grok Un*x style file names) and 
+    Un*x like shells.  However, your shell should support output 
+    redirection with ' > file'.
+
+o   `cp', `rm' (I recommend those from the GNU file utilities, linked 
+    with the MiNT library PL 25 or above; these utilities need to 
+    understand file names like "/dev/a/foo" instead of "A:\foo".)  (For 
+    Pure C, this is again not compulsory; in this case, we only need it 
+    for `make install' and `make clean'.)
+
+o   If you use Turbo C, you additionally need `echo', because we have to 
+    work around Turbo's missing ARGV capability.
+    
+o   If you use Turbo C and you _don't_ have the osbind library (see 
+    below), you additionally need `awk' because we have to hack the 
+    assembler sources for Turbo's assembler MAS.
+
+Make sure that Make and your shell both have a sufficiant stack; the 
+makefile ist pretty tough!  (If Make and your shell have been linked 
+with the MiNT library:  The standard 8 K of stack are not enough!  Try 
+to enlarge it with e.g. `fixstk 20K make.ttp'.)
+
+When using Turbo C, please note that the link pass (when creating the 
+library mintlib.lib) needs a _LOT_ of memory (2.5 MB RAM).  Pure C's 
+linker isn't that hungry.
+
+The MiNT Library comes with its own sources for TOS bindings.  Optionally, 
+you may use any other library of TOS bindings and link that one into the 
+MiNT library.  Note, however, that the TOS bindings library of Pure C 
+and Turbo C cannot be used for that (they're either incompatible with the 
+definitions in `osbind.h' and `mintbind.h', or do not contain bindings for 
+MiNT's GEMDOS functions).  As a TOS bindings substitute, the OSBIND 
+library by Ole Arndt and Ulf Moeller (version 2 or better) is a good 
+choice.
+
+If you use Turbo C, building the TOS bindings is non-trivial:  we have to 
+hack the sources using `awk', a filter program, because Turbo's assembler 
+MAS doesn't understand ".MODULE" and ".ENDMOD".  If you don't have this 
+program, I strongly suggest you to get the OSBIND library by Ole Arndt and 
+Ulf Moeller.
+
+To build the library, the following steps are nessecary.
+
+1)  Edit the `makefile' to suit your taste.  You should only have to edit 
+    the configuration section at the beginning of the file.  Simply 
+    follow the instructions given as comments in the makefile.  (Comments 
+    are on lines starting with `#'.)
+    
+    Here is a list of Make variables which have to be configured, and 
+    their default:
+    
+    TURBOC=                                 # undefined means "use Pure C"
+    COMPILERDIR=    /dev/d/pc               # compiler's dir.
+    LIBDIR=         $(COMPILERDIR)/lib      # compiler's lib dir
+    COMPILERINCDIR= $(COMPILERDIR)/include  # compiler's include dir
+    INCLUDEDIR=     /dev/g/gnu/include      # MiNT lib's include dir
+    OSBINDLIB=                  # undef'd means "don't have osbind lib"
+    INSTALLDIR=     $(LIBDIR)               # where to install MiNT lib
+    COMMONDIR=      ..                      # location of common sources
+    ASSERTIONS=                 # undef'd means "make assertions silently"
+    DEBUGINFO=                  # undef'd means "don't add debug info"
+    PCREL=                      # undef'd means "use absolute calls"
+    TOSIFY_NAMES=   yes         # compiler's tools need old style file names
+    TOSIFY_COMMAND=             # undef'd means "shell groks Un*x file names"
+    sh_backslash=   \\          # bourne shell needs escaped backslashes
+    SHELL=          /bin/sh                 # I use a standard Bourne shell
+    RM=             rm                      # remove command
+    CP=             cp                      # copy command
+    AWK=            awk                     # awk interpreter
+    ECHO=           echo                    # echo command
+    INSTALL_DATA=   cp                      # install command
+
+    A somewhat difficult decision is which shell to use.  I use a standard 
+    bourne shell (from the BSD networking distribution); Bash (the GNU 
+    Bourne Again Shell), Mupfel 1.89 or better (which comes with Gemini) 
+    and `shell.ttp' (from the Elvis for MiNT distribution) also work.  
+    Mupfel 1.21 will _not_ work.  I haven't tried Gulam, but I presume it 
+    works too.  When using Pure C, you could also try specifying no shell 
+    at all and have make executing your commands.
+    
+    Depending on your shell, you need to configure the Make variables 
+    SHELL, TOSIFY_COMMANDS and sh_backslash.  Here are the settings for 
+    the shells I tried:
+    
+    sh, bash        sh_backslash = \\
+    shell.ttp       sh_backslash = \$(nothing)
+    mupfel.ttp      sh_backslash = \$(nothing), TOSIFY_COMMANDS = yes
+
+2)  Copy the files math.h and float.h from your compiler's distribution 
+    to the MiNT library's include directory, renaming them to tcmath.h 
+    and tcfloat.h.
+
+    The following command does this for you:
+    
+        make install-includes
+    
+3)  You're ready to build the library now.  Hit
+
+        make
+        
+    This builds the following files:  mintlib.lib, mintflt.lib, crt0.o 
+    and alloca.o.  If you've configured for Pure C, additionally the 
+    following files will be built:  mint881.lib and falloca.o.
+    
+4)  If you prefer, you can make a quick test of your new library.  The 
+    command
+    
+        make test
+    
+    links a small test program with the library which, when invoked with 
+    `./test', prints out "Hello, world!".
+
+5)  Install the file you've built in step 3 into the appropriate 
+    directory by invoking
+    
+        make install
+        
+6)  You are done.  You can clean the source directories with
+
+        make clean
+        
+    which removes all intermediate files, or
+    
+        make realclean
+        
+    which additionally removes the libraries you've just built.
+
+--------------------------------------------------------------------------
+
+INSTALLATION USING PROJECT FILES.
+---------------------------------
+
+Environment.
+
+1)  Create a copy of the file pc.cnf (resp. tc.cnf) in this directory, 
+    named mintlib.cnf.
+
+2)  Copy the files math.h and float.h from the Pure/Turbo C include 
+    directory to the MiNT library include directory, naming them tcmath.h 
+    resp. tcfloat.h
+
+3)  Only for Turbo C: 
+    =================
+
+    o   Comment out the line "falloca.s [-D=STACKCH=1 -D=FPU=1]" in 
+        test.prj, and uncomment the line containing "tcstdlib.lib".
+
+    o   In mintflt.prj, change the file name pcfltlib.lib to tcfltlib.lib.
+
+    o   Comment out pclong.s in mintlib.prj.  (You'll have to link the 
+        standard library tcstdlib.lib for long int arithmetics support in 
+        your project files.)
+
+    o   We want to link bindings for TOS and MiNT functions in the MiNT 
+        library.  However, the assembler source files for the bindings 
+        are incompatible with Turbo's assembler MAS.  You have two ways 
+        to get around this:
+
+        a)  Go and find another bindings library and link that one into 
+        the MiNT Library.  (Note that the bindings library that comes with 
+        Turbo C cannot be used.)
+        I strongly suggest you to get the OSBIND library by Ole Arndt and 
+        Ulf Moeller.  List osbind.lib in mintlib.prj, and comment out 
+        bios, xbios.s, gemdos.s and mintbind.s.
+
+        b)  If you choose to build the MiNT library using `make' (see 
+        the first section of this file), the make procedure will do the 
+        nessecary hacks in the assembler sources using the program `awk'. 
+        I do not recommend doing the hacks by hand.
+
+4)  Start C, load mintlib.cnf and set the include directory to the the 
+    directory where the MiNT library's include files reside.  In the 
+    Options/Shell dialog, turn off "Make breaks on compiler warnings". 
+    With Pure C, turning on the compiler caches speeds up the Make 
+    procedure dramatically.
+    If you want debug information in the libraries, set the compiler 
+    switch -Y (Options/Compiler, Options/Assembler and Options/Linker).  
+    If you prefer absolute calls to subroutines (useful with large 
+    projects), turn -P on, too.
+    All other Compiler and Linker switches should be turned off.
+
+Make The Floating Point Library.
+
+This library contains the float/double support for the compiler as well 
+as versions of printf/scanf that support floating point numbers.
+
+5)  Select the project file MINTFLT.PRJ. Make all.
+
+5a) You have to delete the files main.o, doprnt.o, scanf.o, difftime.o 
+    and purec/setjmp.o now.  These files have to be recompiled with the 
+    Line-F support (step 6) and the main part of the MiNT library 
+    (step 7).
+
+Make The Line-F Support Library. (Pure C only)
+
+This library contains actually the same as the floating point library, 
+plus support for programs that use a FPU directly via Line-F.
+
+6)  Only for Pure C:
+    ================
+    Repeat steps 5 and 5a with MINT881.PRJ.
+
+Make The MiNT Library.
+
+7)  Select the project file MINTLIB.PRJ. Make all.
+    This step takes a while (around 15 minutes with Pure C and an 8MHz 
+    ST).
+
+Compile The Startup Code And The Assembler Version Of alloca();
+Test The Libraries.
+
+8)  Select the project file TEST.PRJ. Make all.
+    This compiles the startup code and the assembler versions of alloca(), 
+    and links a test program.
+    
+    (Pure C: You get a linker warning "Doubly defined symbol: 'alloca'" 
+    because alloca.s and falloca.s both define a symbol `alloca'.  Ignore 
+    it.)
+
+9)  Run. You should get a "Hello, world." message.
+
+Install The Libraries.
+
+10) Copy the files crt0.o, alloca.o, mintlib.lib, mintflt.lib, falloca.o 
+    and mint881.lib (the last two are Pure C only) to the directory you 
+    want them to reside.
+
+--------------------------------------------------------------------------
+
+HOW TO BUILD THE BINARY DISTRIBUTION.
+-------------------------------------
+
+The library binaries mintflt.lib and mint881.lib, when built with the 
+setup as shipped, will contain Turbo/Pure C's math library binaries.  
+These binaries should not be made available to the public.  If you want 
+to create a binary distribution, you should build library binaries which 
+don't contain the compiler's libraries.
+
+To do this, the following steps are nessecary:
+
+1)  Set up the makefile as described in the section "INSTALLATION USING 
+    `make'", step 1.
+    
+2)  Copy the compiler's math include as described in the same section, 
+    step 2. (`make install-includes')
+
+3)  The command
+
+        make bindist
+
+    will then create the files mintlib.lib, d_flt.lib, crt0.o and     
+    alloca.o.  If you've configured for Pure C, additionally the 
+    following files will be built:  d_881.lib and falloca.o.
+
+The files you've just built can be freely distributed, along with 
+`makefile', `tosify.mak' (these two from the source distribution) and 
+'INSTALL.BIN', the last describing how to build the mintflt.lib and 
+mint881.lib binaries from that distribution.
+
+

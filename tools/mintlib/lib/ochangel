@@ -1,0 +1,1246 @@
+NOTE:  entropy@terminator.rs.itd.umich.edu is the maintainer of the
+libraries as of PL26.
+
+Changes are listed in *reverse* order, most recent changes being
+first.
+
+PATCHLEVEL38::
+
+symlink.c:
+	Set errno properly for readlink() on a non-link (EINVAL not EACCES).
+lattice/setjmp.s: ++pvt1-117
+	Add sigsetjmp() and siglongjmp() for lattice.
+compiler.h: ++pvt1-117
+	Make LCC do the right thing in limits.h.
+termios.h, tcattr.c:
+	Add VLNEXT and VWERASE control chars.
+types.h: ++roemer@hera.rbi.informatik.uni-frankfurt.de.uni-frankfurt.de
+	Add fd_set type and related macros.
+falcon.h: ++Markus_Kilbinger@ac.maus.de
+	Change return types of VsetMask() and Dsp_Reserve() from
+	void to short.
+_mulsi3.s, _umulsi3.s: ++schwab
+	.lmul and .ulmul aren't equivalent.
+read.c, write.c: ++schwab
+	Reduce drag.  Also alias read to _read and write to _write
+	when __GNUC__ && !__MSHORT__.
+popen.c: ++schwab
+	Reduce drag.  Also simplify code by using waitpid().
+open.c: ++schwab
+	Pass as many flags as possible through to MiNT, and let it decide
+	what to do with them.  Only fall back on emulation if we can't pa a
+	given flag.
+ioctl.c, stat.c: ++schwab
+	Reduce drag.
+rename.c: ++schwab
+	Try to preserve the old file under the new name as long as possible,
+	in case an error occurs. Unfortunately we cannot determine exactly
+	why Frename() failed, so this is not perfect (bug?).  Also, reduce
+	library drag.
+alarm.c: ++schwab
+	Use Talarm() instead of alarm() to reduce drag.  Also
+	fix a bug in the code for old versions of MiNT. [I messed with
+	this a lot to get some more error checking and also added some
+	comments. -entropy]
+wait.h: ++schwab@ls5.informatik.uni-dortmund.de
+	Make the wait prototype indirection more robust.  Also fix the
+	definition of WIFSIGNALED().
+wait3.c:
+	Remove bogus usage of non-existent rusage value added in PL37.
+falcon.h: ++pvt1-117
+	Inline traps for Lattice.
+wcmb.c: ++pvt1-117
+	Use _wnull from wnull.c instead of a local variable.
+wcscat.c, wcscmp.c, wcscpy.c, wcslen.c, wnull.c: ++pvt1-117
+	NEW files for ISO wide char support.
+stdlib.h: ++pvt1-117@nada.kth.se
+	Add prototypes for new ISO widechar functions.
+
+PATCHLEVEL37::
+
+bzero.cpp, mincl:
+	Break bzero and memset into separate .o's (reduce drag).
+gethostn.c: ++sjg@phlem.ph.kcl.ac.uk, ++entropy
+	Look in /etc/hostname instead of /local/hostname, and look in the
+	file before the environment.
+lattice/mc3.prj, lattice/mcnb3.prj, lattice/mcr3.prj,
+lattice/mcrnb3.prj: ++pvt1-117
+	Remove long mul/div with 030 code.
+string.h, strcmp.c: ++pvt1-117
+	Allow use of builtin string functions.
+lattice/bcopy.s, lattice/crt0.s, lattice/inc.i, lattice/linea.s,
+lattice/setjmp.s, lattice/vfork.s: ++pvt1-117
+	If we're lucky, they might decide to keep us as pets.
+file.h:
+	Add FREAD and FWRITE macros for TIOCFLUSH flushing modes (not yet
+	implemented in MiNT).
+unistd.h:
+	Add tcgetpgrp() and tcsetpgrp() protos.
+ioctl.h:
+	Changes to account for definitions in common with termios.h,
+	also add _RTSCTS flag definition.
+termios.h, cfspeed.c, tcattr.c, tcbreak.c, tcdrain.c, 
+tcflow.c, tcflush.c, tcpgrp.c:
+	NEW files, partially implementing the POSIX termios functions.
+	(UNTESTED).
+wait.h:
+	Add WSTOPSIG() macro (POSIX).
+utime.c:
+	Add a kludge so that we pretend the utime() worked for directories.
+mkdir.c, stat.h:
+	Mode argument is now mode_t instead of unsigned (POSIX).
+mkfifo.c, stat.h:
+	NEW file providing a fake mkfifo(), and a prototype for it.
+mknod.c:
+	Provide at least a little functionality in mknod().
+resource.h, getrusag.c, wait3.c, wait.c:
+	Add BSD-compatible struct rusage members with 0 values for
+	minimal compatibility.
+	Use Pwaitpid() instead of Pwait3() for wait() and wait3()
+	(as requested in MiNT's dosmem.c).
+errno.h:
+	Added EOPNOTSUPP as (temporary) alias for EINVAL.
+	Added ECHILD as alias for ENOENT (POSIX).
+lattice/*.prj: ++pvt1-117
+	NEW files:  48 new project files for Lattice.  Yow.
+doprnt.c, fprintf.c, printf.c, sprintf.c, 
+vfprintf.c, vfprintf.c, lib.h: ++schwab
+	Change the interface of _doprnt to also pass a putchar function
+	similar to _scanf.  This allows use of sprintf in a program which
+	doesn't use stdio and it simplifies the implementation of sprintf a
+	bit.
+fscanf.c, scanf.c, sscanf.c, lib.h: ++schwab
+	The implementation of sscanf had a bug: the ungetc function would
+	write into the scanned string passed to sscanf.  This is a Bad Thing,
+	since the string could be in readonly memory.  Also changed the
+	interface a bit so that there is less need for casts.  Strictly
+	speaking, the old way of casting the function pointers can result in
+	undefined behaviour.
+getdtabl.c:
+	Use _SC_OPEN_MAX instead of magic number 2.
+lseek.c: ++schwab@ls5.informatik.uni-dortmund.de
+	Make lseek() and tell() always return -1 on errors.  Make lseek()
+	work better with unseekable devices.  Don't modify errno
+	when no error has occurred.  General cleanup.
+lattice/osbind.s, lattice/lcsnb.prj, lattice/lcnb.prj: ++pvt1-117
+	DELETED files.
+nlist.c, select.c, sync.c, truncate.c: ++pvt1-117
+	Add some typecasts to keep Lattice happy.
+mintbind.h: ++pvt1-117@nada.kth.se
+	Add some casts in the Lattice C inlines.
+frexp.cpp: ++Cristof_Stadler@s2.maus.de
+	Bug fix: add a missing @.
+read.c:
+	Add the beginnings of some code to make read() POSIX compliant.
+	It turns out that this will require kernel changes so this
+	code is currently inactive.
+lockf.c:
+	Fix so flock() and lockf() block when appropriate.
+dirent.c:
+	Bug fix: rewinddir() wasn't resetting the directory offset to 0.
+crtinit.c, ctime.c, doprnt.c, findfile.c, getpass.c, 
+localtim.c, strftime.c, strncat.c, unx2dos.c: ++pvt1-117@nada.kth.se
+	Removed some dead assignments and increments.
+stdlib.h:
+	Added NULL (POSIX).
+dup.c:
+	Clear the close-on-exec flag of the duped handle for both dup()
+	and dup2().
+open.c:
+	For O_TRUNC mode, try to use FTRUNCATE.  Also, clear the
+	close-on-exec bit of the opened file.
+
+PATCHLEVEL36::
+
+mincl:
+	Added target for nlist.o.
+mincl, sozobon/makefile, lattice/mincl.lcc, purec/mintlib.prj: ++entropy
+	Added targets for truncate.o, wcmb.o, printf.o, vfprintf.o,
+	vprintf.o.
+truncate.c, types.h: ++schwab
+	NEW file, implementation of truncate()/ftruncate().  Protos in
+	types.h.
+getwd.c: ++schwab
+	Make getwd() return an error message in the buffer on failure.
+_addsubs.cpp: ++nox
+	Correct an inverted branch.
+open.c: ++nox@jelal.north.de, ++entropy
+	Fix so that when we use Fcreate() we then Fclose() and Fopen() the
+	file, so we get sharing modes correct.
+utime.c: ++schwab
+	utime(NULL) uses time() to convert the current time to Unix format
+	and immediately converts it back to GEMDOS format. Instead it should
+	use the GEMDOS format directly.
+	stime() must be changed because Tset{date,time} can now return a
+	real error number. This depends on Tset{date,time} returning -1 if
+	args are bad, which is true for all TOS versions, i think.
+ttyname.c: ++schwab
+	ttyname() should not return names starting with "u:" when _rootdir is
+	'U', to be consistent with rest of library. find_ino now gets the
+	dir name in gemdos format and it calls dos2unx on it.  ttyname.c
+	unnecessarily depends on dirent.c, we know that Dreaddir works.  We
+	can also avoid the hairy fstat(), since we know that Fcntl(FSTAT)
+	works.
+signal.c: ++schwab
+	Pass through additional signal handler parameters via _trampoline().
+rename.c: ++rwilhelm@physik.tu-muenchen.de
+	Eliminate a useless strcmp().
+main.c: ++schwab
+	When converting a path variable from the environment, we can conserve
+	memory by using the fact that _path_unx2dos enlarges the path by at
+	most two times the number of elements. On the other hand, if there is
+	no PCONVERT env var, the provided space was too small.
+isatty.c: ++schwab
+	Removes the dependency of isatty() on ttyname().
+spawn.c: ++schwab
+	Cleaned up the script emulation code, and changed it in that only
+	files starting with "#!" are interpretable (as Unix does).  The
+	first 1024 bytes of the file are examined when looking for
+	interpreter and arguments.  A small bug is also corrected: errno
+	should never be changed when there is no error.
+falcon.h: ++Markus_Kilbinger@ac.maus.de
+	Add two omitted backslashes to fix new trap definitions.
+chmod.c: ++schwab@ls5.informatik.uni-dortmund.de
+	chmod() unnecessarily calls stat() to check if the file is a
+	directory; this information is already available through Fattrib().
+nlist.c, nlist.h: ++shenson@nyx.cs.du.edu
+	NEW files nlist.c, nlist.h.  A version of nlist() for mntlib/toslib.
+	Works OK with my binary config program but your milage may vary.
+wcmb.c, stdlib.h: ++pvt1-117@nada.kth.se
+	NEW file wcmb.c for ANSI wide char functions.
+waitpid.c: ++Robert.Wilhelm@Physik.TU-Muenchen.DE
+	Add a forgotten patch for non-GCC compilers.
+ctype.h: ++dsb@cs.duke.edu
+	The toint() macro in ctype.h was translating hex digits wrong.
+--begin jrb changes--
+math-68881.h: ++jrb
+	-- Put extern "C" around file when __cplusplus
+	-- Make hypot use internal version of sqrt (because signature
+	   clash in libg++:xfix )
+	-- Define internal version (_sqrt) of sqrt.
+osbind.h: ++Robert.Wilhelm@Physik.TU-Muenchen.DE
+	Changed addw #n,sp to lea n(s),sp which is 4 cycles shorter.
+fprintf.c: ++jrb
+	Break out vfprintf, printf and vprintf into their own .o's. That
+	way the user can replace any of them.
+printf.c, vfprintf.c, vprintf.c:: ++jrb
+	NEW files.
+mincl: ++jrb
+	Add targets for above.
+gnulib2.c: Steven Ourada (sourada@iastate.edu)
+	#define WORD_BIG_ENDIAN for long long.
+--end jrb changes--
+
+PATCHLEVEL35::
+
+unx2dos.c: ++schwab
+	_unx2dos("/dev/.") -> ".:" -> file not found.  This patch isn't
+	optimal, because it only works for the first 26 drives, but better
+	than before. (Who has more than 26 drives anyway? :-)
+wait.c, waitpid.c, wait.h: ++Robert.Wilhelm@Physik.TU-Muenchen.DE
+	Accept both POSIX and BSD style parameters.  [I'm not certain these
+	patches really leave us with a POSIX-compliant wait*() suite, but
+	I'll leave it be for now -entropy]
+Makefile: ++Bjarne_Pohlers
+	Fix 020 targets to use 'make install020', and fix all targets to
+	do 'make clean' only when necessary.
+doprnt.c, scanf.c: ++Bjarne_Pohlers@ms2.maus.de
+	Add support for printing/scanning long longs.
+div.c: ++pvt1-117
+	Add div functions for compilers other than GCC.
+bsearch.c: ++dsb
+	Fix bug reported by Thorsten Roskowetz: the order arguments to
+	bsearch()'s comparison function was reversed.
+sozobon/makefile, sozobon/readme: ++dsb
+	Updated to reflect recent changes in the library.
+thread.c: ++dsb
+	Fix a strange declaration (extern static?!?).
+sozobon/linea.s, sozobon/makefile: ++dsb@cs.duke.edu
+	Fix some HSC linker problems by punting alglobal.o.
+ioctl.h: ++Jan-Hinrich_Fessel@un.maus.ruhr.de (Jan-Hinrich Fessel)
+	Make it possible to include both ioctl.h and filesys.h.
+pgrp.c: ++schwab
+	Correctly check the MiNT version in _bsd_getpgrp().
+clock.c, doprnt.c, main.c, thread.c, uname.c: ++pvt1-117
+	Changes to keep Lattice C from generating annoying warnings, and
+	other miscellaneous cleanups. [Once again I've modified these
+	patches in various ways, so if something's broken it's my fault
+	-entropy].
+math.h, process.h, support.h, unistd.h, exec.c, execp.c, findfile.c, 
+scanf.c, spawn.c, spawnve.c, spawnvp.c, statfs.c, textio.c: ++schwab
+	Add 'const' to declarations where appropriate.
+malloc.c:  ++schwab
+	Make malloc() round all memory requests to the page size to be able
+	to use all the available memory.
+setjmp.cpp, setjmp.h: ++schwab
+	Some cleanup; one element of jmp_buf[] can be saved by using the
+	fact that signal 0 cannot be masked; why was the type char*[] insead
+	of long[]?
+osbind.cpp: ++schwab
+	Add some missing functions added; code cleanup.
+select.c: ++schwab@ls5.informatik.uni-dortmund.de
+	Fix select() to deal with timeouts of more than 65.535 seconds. This
+	is needed for emacs 19.
+statfs.c: ++schwab
+	In statfs(): before passing to Dcntl, the path must be passed
+	through _unx2dos, and it should be declared const.
+sysconf.c: ++schwab
+	Update the value returned for _PC_LAST.
+fopen.c: ++schwab
+	Make fopen() use 0666 as the default file mask (use umask() if you
+	want something else); make mkdir() respect the umask setting.
+mktemp.c: ++schwab
+	mktemp() can generate a name more than once; the length of the
+	pattern should not be changed (emacs depends on it).
+lattice/crt0.s: ++pvt1-117
+	Add some conditional stuff depending on program type.
+utime.c: ++shenson@nyx.cs.du.edu
+	Pass through a NULL tset argument unchanged to the filesystem
+	so that it can determine permissions correctly.
+falcon.h: ++hyc@hanauma.Jpl.Nasa.Gov, ++Markus_Kilbinger@ac.maus.de
+	Change several erroneous macros to correctly cast return to short.
+lattice/*: ++pvt1-117
+	Strip all carriage returns from Lattice C files.
+spawn.c: ++Ole_Arndt
+	Add script interpretation (#!).
+sync.c, support.h: ++Ole_Arndt
+	NEW file, sync() and fsync() (for Minixfs only).  Proto in support.h.
+sigactio.c: ++Ole_Arndt
+	Use __NSIG instead of NSIG, may as well be POSIX-clean.
+errno.h: ++Ole_Arndt
+	Add errors ENOTDIR and ELOOP.
+signal.h: ++Ole_Arndt@f.maus.de (Ole Arndt)
+	Fix definition of _SIGSET_MAX_INDEX to correct several bugs
+	in the POSIX signal mask functions.
+stdio.h:
+	Add vsscanf() and _getbuf() protos (yech).
+dirent.h:
+	Add alphasort() proto (excluded by _POSIX_SOURCE).
+utmp.c, wtmp.c, utmp.h:
+	Rename write_utmp() to _write_utmp().  Rename write_wtmp() to
+	_write_wtmp().  Add protos (and other cleanups) to utmp.h.
+atof.c, fdopen.c, fputs.c:
+	Move 'register' to beginning of declarations (shuts up gcc -Wall).
+fwrite.c: ++michal
+        With unbuffered IO fwrite miscounts number of characters written.
+findfile.c: ++michal
+	Try to accomodate tos style paths PATH=e:\bin,c:\bin,...
+unistd.h: ++jrb
+	Take out setlinebuf, doesn't really belong here.
+ffs.c: ++NTOMCZAK@vm.ucs.UAlberta.CA (Michal Jaegermann)
+	An even faster algorithm.  Yow!  Are we optimized yet?
+support.h:
+	Added _exit() and gethostname() protos. Removed write_utmp() and
+	write_wtmp() protos.
+lib.h, crtinit.c:
+	Moved prototypes from crtinit.c to lib.h, and added more to lib.h.
+abort.c, main.c, lib.h:
+	Make abort() close file handles in exactly the same manner
+	as exit().
+sigactio.c, signal.h: ++nox@jelal.north.de, ++Oskar, ++entropy
+	Fix type of sa_mask in struct sigaction (sigset_t, not long).
+	Clean up dirty tricks in sigaction() (UNTESTED).
+falcon.h: ++Markus_Kilbinger@ac.maus.de, ++entropy
+	Add missing traps.
+unistd.h, support.h:
+	Cleaned unistd.h for easier reading.  Moved back the link(),
+	symlink(), and readlink() protos from support.h (sorry if I seem
+	really indecisive on where some of these protos belong).
+doprnt.c, getdtabl.c, gethostn.c, mknod.c, nice.c, open.c, putenv.c,
+symlink.c, utime.c:
+	Include appropriate headers for protos (and fixed mknod() proto).
+sys/statfs.h:
+	Add statfs() proto.
+sys/errno.h, sys/ioctl.h, sys/resource.h, sys/signal.h, sys/wait.h:
+	Fix multiple-include protection to hopefully prevent possible
+	infinite include loops (see Bugs file).
+getpw.c, pwd.h: ++Jan-Hinrich_Fessel@un.maus.de (Oskar)
+	Use uid_t (_UID_T) for getpwuid() instead of int (POSIX).
+lattice/inc.i: ++pvt1-117@nada.kth.se
+	Fix a typo.
+
+PATCHLEVEL34::
+
+ffs.c: ++frog
+	Much faster algorithm.
+_fixsfsi.cpp, _fltsisf.cpp, frexp.cpp, modf.cpp,
+Makefile: ++dc4i@br0.hrz.th-darmstadt.de (Stefan Steyer)
+	Bug fixes for SFP004 coprocessor code.  Add sfp004 targets.
+doprnt.c: ++schwab@ls5.informatik.uni-dortmund.de (Andreas Schwab)
+	The decimal precision in a printf format does not include the sign or
+	hex prefix, e.g. printf ("%-2.5d", -18) should print "-00018".
+select.c, time.h: ++Frank_Baumgart@pb.maus.de, ++entropy
+	Get struct timeval from time.h, eliminate local definition.
+	Add prototype of select() to time.h (is there a better place?)
+ctype.h, grp.h, dirent.h, stddef.h, string.h:
+	Cleaned up for POSIX.
+wait.h, pwd.h:
+	Cleaned up for POSIX (need more work).
+compiler.h, limits.h, stdio.h:
+	Set stream limits for POSIX.
+locale.h:
+	Define NULL if not already defined (POSIX).
+limits.h:
+	Raise value of _POSIX_NGROUPS_MAX from 0 to arbitrary value of
+	512 now that we have a decent getgroups().
+fcntl.c, fcntl.h, errno.h:
+	Add definition of F_SETLKW to fcntl.h.  Add ELOCKED to errno.h.
+	If Fcntl() gets ELOCKED, return EACCES instead (POSIX).
+unistd.h, stat.h, fcntl.h:
+	Moved many prototypes to the correct headers.
+sigactio.c, signal.h:
+	Fix some violations of POSIX namespace.
+stab.h, stab.def, Copyright:
+	Symbol table definition files MOVED from gnu/ subdirectory to main
+	include file directory.  Copyright message for these files added to
+	Copyright file.
+OChangelog, Changelog:
+	"Changes" file renamed to OChangelog.  New file Changelog created.
+
+PATCHLEVEL33::
+
+getgroup.c: ++Ole_Arndt@f.maus.de, ++entropy
+	Completely rewritten getgroups() function to replace the bogus one.
+grp.c:
+	Ignore spaces preceeding usernames in /etc/group.
+main.c: ++Wolfgang
+	Remove the non-macro versions of stdin, stdout, stderr.  It causes
+	problems for some programs.  People doing debugging should know
+	about _iob[] anyway.
+setjmp.h: ++Wolfgang
+	Fix some brain-damage in the BSD setjmp/longjmp from PL32.
+types.h:
+	Rearrange major() macro.
+cuserid.c, stdio.h:
+	NEW file, cuserid() function for SysV compatibility.
+	Prototype and L_cuserid definition in stdio.h.
+regexp.c: ++pvt1-117
+	Don't nul-terminate inserted operand twice in reginsert().
+regsup.c: ++pvt1-117
+	Eliminate a useless increment.
+falcon.h: ++Markus_Kilbinger@ac.maus.de, ++entropy
+	Fix a typo in trap_14_wwwwww.  Add trap_14_wllll and trap_14_wlllll
+	macros for DSP calls (UNTESTED).  Cast Dsp_Lock() to short instead
+	of long.
+chmod.c:
+	For chown(), ignore EINVAL error so we don't get annoying errors
+	on the TOS filesystem.
+Makefile:
+	Synch up with parts of jrb's TOS-library Makefile.
+purec/install.bin: ++hohmuth
+	Documentation update.
+purec/makefile: ++hohmuth
+	Fix a bug which could have caused problems in a binary distribution
+	for Turbo C.
+mincl:
+	Don't compile libgcc2 with -mshort.
+Copyright:
+	Add copyright notice for libgcc2.c.
+GNUGPL2:
+	NEW file, GNU General Public License version 2.  Modules covered by
+	this license are noted in the file Copyright.
+isatty.c: ++nox
+	Fix _isctty() for much better performance.
+compiler.h: ++pvt1-117
+	Add correct definition for __CDECL for Lattice C.
+stat.h: ++nox@jelal.north.de
+	Use mode_t instead of u_short for type of st_mode.
+types.h: ++nox
+	Do typedef time_t if _POSIX_SOURCE.  [I think my O'Reilly POSIX book
+	mislead me on this one. -entropy]
+sigactio.c:
+	Give sigpending() a return value.  Oops.
+ioctl.c:
+	Include appropriate headers.
+linea.c:
+	Explicitly return the value for linea2() instead of magically
+	using d0.
+ffs.c, support.h:
+	NEW file for BSD function ffs().  Proto in support.h.
+sysvar.c: ++pvt1-117, ++entropy
+	Add some typecasts to (hopefully) make Lattice C happy.
+	[The patch I got did this differently, and in my opinion,
+	in a more messy way.  Hopefully this is good enough -entropy]
+lib.h: ++pvt1-117
+	Remove findfile() proto, it is in support.h.
+getrusag.c: ++pvt1-117, ++entropy
+	Add a prototype _add_tval().
+scandir.c: ++pvt1-117
+	Bug fix:  don't use names[0] as argument to sizeof() before names
+	is initialized.
+chdir.c: ++pvt1-117
+	Remove some dead code.
+thread.c: ++pvt1-117
+	Add proto for startup().
+calloc.c, random.c, spawn.c, ttyname.c: ++pvt1-117
+	Remove extern function declarations in favor of prototypes.
+fopenp.c, textio.c, utmp.c, wtmp.c: ++pvt1-117
+	Make parameters const where appropriate.
+a64l.c, alarm.c, close.c, console.c, eprintf.c, fork.c, getbuf.c, getcwd.c,
+getdtabl.c, initsig.c, mkdir.c, mknod.c, pipe.c, psignal.c, putenv.c,
+raise.c, rmdir.c, strlwr.c, strrev.c, strupr.c, unx2dos.c: ++pvt1-117
+	Include appropriate headers for protos.
+dirent.c, sscanf.c, stat.c, timeoday.c: ++pvt1-117
+	A few typecasts here and there to keep Lattice C happy.
+stdio.h: ++pvt1-117, ++entropy
+	Add prototypes for setlinebuf(), vscanf(), vfscanf().
+	Cleaned up a bit for POSIX.
+signal.h, unistd.h: ++pvt1-117, ++entropy
+	Add prototypes for kill() and killpg() to signal.h.
+	Remove kill() prototype from unistd.h.
+getgroup.c, unistd.h: ++pvt1-117, ++entropy
+	Use correct parameters for getgroups().
+	Add prototype to unistd.h.
+pause.c: ++pvt1-117, ++entropy
+	Always return -1 with errno set to EINTR if MiNT's Pause() call
+	returns without a longjmp() out of a signal handler.
+support.h: ++pvt1-117, ++entropy
+	Add protos for putenv(), _console_read_byte(),
+	_console_write_byte(), _text_read(), _text_write(), getdtablesize(),
+	write_utmp(), write_wtmp(), nice(), mknod(), fopenp().
+mintbind.h: ++pvt1-117@nada.kth.se
+	Fixes for Lattice C.
+GMakefile.16, GMakefile.32:
+	Renamed gmakefil.16 and gmakefil.32 to GMakefile.16 and GMakefile.32.
+Copyright:
+	Renamed copyrigh.t to Copyright.
+Files:
+	Renamed common to Files.
+
+PATCHLEVEL32::
+
+sozobon/linea.s: ++dsb
+	Prevent it from trying to redefine the Line-A variables that were
+	already defined in alglobal.c.
+support.h: ++warwick@cs.uq.oz.au
+	Remove two occurances of the string "new" for C++ compatibility.
+ctype.h:
+	More POSIX namespace monkey business.
+types.h:
+	Made lots of stuff #ifndef _POSIX_SOURCE.  Added a few POSIX types
+	(nlink_t, mode_t).
+popen.c:
+	I somehow managed to apply two patches to fix the close-on-exec flags
+	for the child, without noticing.  Thanks to nox for pointing this
+	out.  I think I've fixed it.
+purec/makefile, purec/mintlib.prj: ++entropy
+	Add ctermid.c to sources.
+purec/makefile, purec/mintlib.prj: ++hohmuth
+	Add switch for generating PC-relative function calls.
+	Change default to assume the user does not have osbind.lib.
+	PCREL stuff.  Add pgrp.c to sources.
+purec/readme.pc, purec/install.src: ++hohmuth
+	Updated documentation.
+doprnt.c: ++hohmuth
+	Make a long constant explicit for Pure C.
+stat.c: ++hohmuth
+	An error return value was missing (was return; is now return -1;).
+statfs.c: ++hohmuth@freia.inf.tu-dresden.de
+	Cast &mfsinfo to long, for Pure C.
+setjmp.h:
+	Implemented BSD-compatible _setjmp(), _longjmp(), setjmp(), and
+	longjmp().  Selectable by defining _BSD_SOURCE.  BUG: not compatible
+	with __STRICT_ANSI__.
+fcntl.h:
+	Add POSIX-required mask FD_CLOEXEC, to select the close-on-exec
+	bit from the flags used in F_GETFD/F_SETFD fcntl().
+sozobon/makefile: ++entropy
+	Add ctermid.o and pgrp.o to targets.
+unistd.h:
+	Do not define prototype for getopt() if _POSIX_SOURCE is defined.
+types.h:
+	Do not #include <utime.h> if _POSIX_SOURCE is defined.
+utime.h:
+	Added prototype for utime().
+main.c: ++schwab@issan.informatik.uni-dortmund.de
+	The isatty status should be cleared for dumped programs.
+float.h: ++schwab
+	Update for GCC 2.4/enquire 4.3; the values for LDBL_{EPSILON,MIN,MAX}
+	are computed with bc and verified with enquire.  The new values for
+	{FLT,DBL,LDBL}_EPSILON seem reasonable, since enquire computes the
+	right value for sozobon.
+unistd.h:
+	Changed BSD process group selection switch from _BSD_PGRP to
+	_BSD_SOURCE.
+stat.h: ++nox, ++entropy
+	Added S_ISCHR(), S_ISDIR(), S_ISBLK(), S_ISREG(), S_ISFIFO(),
+	S_ISMEM(), S_ISLNK(), S_IRWXU, S_IRWXG, S_IRWXO.
+	(btw, is S_IMEM a typo of S_IFMEM or was that intentional?)
+setjmp.cpp, setjmp.h:
+	Implemented POSIX sigsetjmp() and setlongjmp().
+ioctl.c, ioctl.h, pgrp.c:
+	Implemented BSD's TIOCNOTTY ioctl, moved tty disconnection code
+	out of pgrp.c.
+sigactio.c, signal.h:
+	Implemented POSIX signal set manipulation functions: sigaddset(),
+	sigdelset(), sigemptyset(), sigfillset(), sigismember(),
+	sigpending(), sigprocmask(), sigsuspend().
+fopen.c:
+	Always use O_NOCTTY flag in the call to open().
+write.c:
+	If Fwrite() returns 0 on a regular file, assume the disk is full
+	and return -1 with errno set to ENOSPC.
+errno.h, strerror.c:
+	Add definition of EIO and ENOSPC.
+read.c:
+	If attempting to read from controlling terminal while backgrounded
+	(e.g. while the tty is in a different process group), and SIGTTIN is
+	ignored or blocked, return -1 with errno set to EIO.
+isatty.c, support.h:
+	Add new function _isctty() to determine if a file descriptor refers
+	to the current process's controlling tty.  Prototype in support.h.
+ttyname.c:
+	Use L_ctermid instead of magic number 32 for length of
+	ttyname() return value.
+ctermid.c, stdio.h:
+	NEW file, POSIX ctermid() function.  Prototype and constant L_ctermid
+	in stdio.h.
+doprnt.c: ++dsb@cs.duke.edu
+	HSC choked on a string with implicit newlines (that is,
+		"like
+		this"
+	as GCC is wont to do); I replaced it with explicit "\n"'s and string
+	concatenation.
+fread.c, fwrite.c: ++dsb
+	Some judicious changes from size_t to unsigned long to allow reads
+	and writes of >=64K with HSC.
+getpw.c: ++dsb
+	Minor tweak to work around a foible in HSC.
+compiler.h: ++dsb
+	Changes for HSC v2.00 and higher.
+utime.h: ++dsb
+	Changed "#endif _UTIME_H" to "#endif /* _UTIME_H */" to keep HSC
+	from complaining.
+sozobon/asm_pp.ttp, sozobon/asm_pp/*: ++dsb
+	DELETED files; that functionality is provided via external programs
+	now.
+sozobon/readme, sozobon/makefile: ++dsb
+	REPLACED files.
+_addsubs.cpp, _addsubd.cpp, _div*.cpp, _mul*.cpp: michal
+	Following some discussions with Olaf I rewrote addition routines to
+	conform - at least here - strictly to IEEE spec.  As a matter of fact
+	they even decreased in size. :-) Corrects handling various cased
+	when you add or multiply infinities or NaNs.  To my best knowledge
+	this now follows IEEE specifications, although do not quote me on
+	that. :-) There is also some code rearangement in division routines
+	to reduce unnecessary branching.  Thanks michal!
+vdibind.h: ++jrb
+	Change type of errorvar parameter from int * to short *.
+errno.h: ++jrb
+	Allow for inclusion into .cpp assembler files.
+osbind.h: Markus Gutschke <srb242@GOEDEL.UNI-MUENSTER.DE>
+	Stack adjustment amount was wrong. Was 6 should be 10. Thanks
+	markus.
+osbind.h: Robert.Wilhelm@Physik.TU-Muenchen.DE
+	Wrong stack adjustment for trap_1_wwwll was 16 should have
+	been 14. Thanks robert.
+_cmpdf2.s, _cmpsf2.s: ++jrb
+	DELETED files.
+_cmpdf2.cpp, _cmpsf2.cpp: ++jrb
+	NEW files.
+open.c, fcntl.h:
+	If controlling tty is "disassociated" from the process, the next tty
+	device to be opened is the new controlling tty (unless O_NOCTTY is
+	specified in the flags during the open()).  O_NOCTTY definition
+	added to fcntl.h.
+pgrp.c:
+	Made a more reasonable attempt at setsid().  Kludge a way to
+	"disassociate" the controlling tty by forcing fd -1 to /dev/null.
+README:
+	RENAMED readme to README.
+Changes:
+	RENAMED changes to Changes.
+Bugs:
+	RENAMED bugs to Bugs.
+math-68881.h:
+	RENAMED math-688.h to math-68881.h.  (It was already "really"
+	named this, but I was running on a TOS filesystem).
+PatchLev.h, ident.c:
+	RENAMED patchlev.h to PatchLev.h.
+Makefile:
+	RENAMED makefile to Makefile.
+
+PATCHLEVEL31::
+
+statfs.c: ++shenson@camborne-school-of-mines.ac.uk
+	Enhanced to get more information from minixfs.
+unistd.h:
+	Added pause() and sigpause() prototypes.  Changed prototype of
+	setpgrp() to reflect new SysV-compatible version, and make proto
+	apply only if not _POSIX_SOURCE.  Changed prototype of getpgrp() to
+	reflect return type of pid_t (POSIX).  Added setpgid(), setsid(),
+	_bsd_setpgrp() and _bsd_getpgrp() protos.  To access the BSD
+	functions by their usual names, define the macro _BSD_PGRP (and do
+	_not_ define _POSIX_SOURCE) before including unistd.h (for example,
+	gcc -D_BSD_PGRP -c foo.c).
+pgrp.c:
+	NEW file, for process group related functions. Renamed setpgrp to
+	_bsd_setpgrp().  Created new SysV-compatible setpgrp(). Created
+	new BSD-compatible _bsd_getpgrp() (requires MiNT 1.03 or newer).
+	Created new POSIX setpgid() and setsid().
+getuid.c:
+	Removed getpgrp(), setpgrp() functions.  See pgrp.c.
+math-68881.h: ++jrb
+	Sync up with gnu version.
+math.h: ++jrb
+	Change all #ifdef _M68881 to
+	#if defined(_M68881) ||  defined(__M6881__)
+	__M68881__ gets automatically defined when gcc -m68881.
+doprnt.c: ++michal
+	Still, so far I found two bugs in floating point support.  One
+	was introduced by Howard when he tried to catch garbled results from
+	floating point operations.  He caught in the process also negative
+	zero and that was part of the reason why Scott got NaN.
+	[in the part that check for overflows]
+_divdf3.cpp: ++michal
+	The other part was a wrong branch in a division routine which
+	was giving a negative zero as a result of a division 0.0/1.0.
+_divdf3.cpp, _divsf3.cpp:: ++michal, olaff
+	Fixed sign for retinf, and retzero.
+doprint.c:
+	Undid my NaN fix; received a similar but not identical fix from bammi.
+mintbind.h, osbind.h:  ++pvt1-117
+	More changes to the Lattice C inlines.
+findfile.c:  ++Uwe_Ohse@pb2.maus.de
+	Added a new function buffindfile (like findfile, but with
+	one argument more (the buffer to write the findname in)), changed the
+	function findfile to call buffindfile.  Makes code work better with
+	multi-threaded code.
+spawnvp.c, fopenp.c:  ++Uwe_Ohse
+	Use buffindfile instead of findfile and include support.h
+	for prototypes.
+spawn.c:  ++Uwe_Ohse
+	Threw away some static arrays.
+support.h:  ++Uwe_Ohse
+	Added prototype for buffindfile.
+eprintf.c:  ++Uwe_Ohse
+	There was a static buffer which seemed pretty useless, so i
+	changed the function to use a local buffer.
+execp.c:  ++Uwe_Ohse
+	Uses buffindfile instead of findfile.
+main.c:  ++schwab
+	Add initialization code for new G++ minimal support.
+	Add non-macro versions of stdin, stdout, stderr for debuggers.
+getcwd.c: ++schwab
+	Remove kludge for broken GCC 1 optimizer since mintbind.h has
+	been fixed and GCC 1 is no longer supported anyway.  Upgrade!
+gbl-ctors.h, longlong.h, libgcc2.c: ++schwab
+	NEW files.  G++ minimal support.
+mincl:  ++schwab
+	Use gcc2's "-x assembler-with-cpp" to compile the .cpp files,
+	instead of doing the preprocessing in a separate step.
+	NOTE:  IF YOU STILL USE GCC 1.XX, UPGRADE NOW!
+	Also add support for several new files.
+mincl:	++Jan-Hinrich_Fessel@un.maus.de
+	Add missing rule for the 020 libraries.
+doprnt.c:
+	Fixed a bug reported by Helmut Kalowski and Robert Wilhelm.
+	-0.0 and also 0.0/n for some values of n were being incorrectly
+	printed as NaN.
+purec/bios.s, purec/gemdos.s, purec/xbios.s: ++hohmuth
+	Replaced files.
+purec/readme.pc: ++hohmuth
+	Update Ulf's address.
+purec/osmacros.s, purec/xbios.s, purec/bios.s, purec/filter.awk,
+purec/gemdos.s: ++hohmuth
+	NEW files.
+purec/install.bin, purec/install.src: ++hohmuth
+	Doc updates.
+purec/bcopy.s, purec/mintbind.s, purec/mintlib.prj, purec/makefile: ++hohmuth
+	Various changes.
+osbind.h: ++hohmuth
+	Remove most of the "Network Gemdos Extensions" cruft from the
+	Turbo C section.
+purec/install.src: ++hohmuth
+	Small change in the docs.
+purec/readme, purec/memcpy.c: ++hohmuth
+	DELETED files.
+purec/bcopy.s:	++Frank_Rossien@s2.maus.de
+	Faster algorithm, also replaces memcpy.c.
+purec/mintlib.prj: ++hohmuth
+	Removed memcpy.c.
+purec/makefile, purec/tosify.mak: ++hohmuth
+	NEW files: for people who don't like the Pure C shell.
+purec/install.src, purec/install.bin, purec/readme.pc:	++hohmuth
+	NEW files: updated documentation.
+crtinit.c, spawn.c: ++hohmuth
+	Implement extension to ARGV standard, allowing blank arguments.
+aesbind.h, gemfast.h: ++bammi
+	Rename MENU to MENU_T.  Add definition of WHITEBAK.  Remove ib_resvd
+	element from ICONBLK.
+minimal.h: ++bammi, ++schwab
+	Add __main().
+falcon.h, stdarg.h, varargs.h, compiler.h, mintbind.h, osbind.h: ++bammi
+	Changes for GCC 2.
+gnu/stab.def: ++bammi, ++schwab
+	Replaced file.
+gnu-out.h: ++bammi
+	NEW file for the includes distribution, since more than just the GCC
+	utils are using it now.
+strlwr.c, strupr.c: ++bammi
+	Use toupper() and tolower() instead of twiddling bits manually.
+gmon.c: ++bammi@cadence.com, ++schwab
+	Clean up prototypes for tick(), new C language mcount() for
+	GCC 2.
+lattice/bcopy.s, lattice/crt0.s, lattice/linea.s, lattice/setjmp.s,
+lattice/vfork.s: ++pvt1-117
+	Updated files.
+symlink.c: ++hohmuth
+	In readlink(), don't fail if filename is exact size of the buffer,
+	use strncpy() to prevent writing past allocated buffer.
+unx2dos.c: ++hohmuth
+	Improved the _dos2unx() conversion scheme: we now produce file 
+	names which are more compatible to Posix.
+	NOTE: The Posix file name can now become longer than the DOS file 
+	name!
+symlink.c: ++hohmuth
+	readlink()'s siz parameter is no longer passed on to 	
+	Freadlink(), because DOS and Unix file names can be of different 
+	length.
+stat.c: ++hohmuth
+	Compute the correct size for symbolic links; some programs depend 
+	on it (namely Kenneth Almquist's bourne shell `ash').
+unx2dos.c: ++hohmuth
+	New routines _path_unx2dos() and _path_dos2unx(), for conversion 
+	of a list of file names.
+lib.h: ++hohmuth
+	Add prototypes for new _path_unx2dos() and _path_dos2unx().
+main.c, spawn.c: ++hohmuth
+	Added DOS<->Posix path conversion for all environment variables 
+	that are listed in the environment variable PCONVERT.  If PCONVERT
+	does not exist, it defaults to "PATH".
+main.c:	++hohmuth
+	The UNIXMODE interpretation code should ignore the parameter of 
+	the ".<c>" directive.  Fixed that.
+lattice/bcopy.s, lattice/crt0.s, lattice/linea.s, lattice/setjmp.s,
+lattice/vfork.s: ++pvt1-117
+	Replaced files.
+linea.h: ++pvt1-117
+	Inlines for Lattice C.
+lattice/inc.i: ++pvt1-117
+	New file for Lattice C.
+osbind.h: ++pvt1-117
+	More inlines for Lattice C (Fsfirst() and Fsnext()).
+ostruct.h: ++nox
+	Make ibufhd and ibuftl (in _IOREC struct) volatile, so they are
+	not incorrectly optimized.
+wait.h: ++Robert.Wilhelm@Physik.TU-Muenchen.DE
+	Add WIFCOREDUMPED(), WTERMSIG(), and WEXITSTATUS().
+popen.c: ++nox@jelal.north.de
+	Ensure parent's end of pipe gets close on exec, so child doesn't
+	hang forever.
+memccpy.c, memchr.c, memcmp.c, strchr.c, strrchr.c: ++schwab
+	memcmp() should compare with unsigned char.  strchr(), strrchr()
+	should not depend on signedness.  memccpy() and memcmp() simplified.
+types.h: ++Jan-Hinrich_Fessel@un.maus.de
+	Add typedef for u_int, and add a makedev() macro.
+realloc.c: ++schwab@ls5.informatik.uni-dortmund.de
+	In realloc, a block can only be split in two if there's enough room
+	left for a struct mem_chunk (plus a bit more).
+thread.c, support.h: ++boender, ++entropy
+	Add prototype for tfork() in support.h, #include <support.h> in
+	thread.c.
+getpw.c, grp.c, grp.h, putpwent.c, pwd.h: ++boender@dutiws.twi.tudelft.nl
+	New password aging code, support System V routines.
+osbind.h, mintbind.h: ++pvt1-117@nada.kth.se
+	Inline stuff for Lattice C.
+wait.c, wait3.c, waitpid.c, wait.h: ++hohmuth, ++entropy
+	Add prototypes for the waitxxx() functions, change definitions
+	accordingly.  Follow the POSIX standard for definitions of these
+	functions.
+utime.c, ioctl.h: ++kuehn@goedel.uni-muenster.de, ++entropy
+	Implement Julian's utime() patch.
+sozobon/orig/*:
+	Removed old files.
+eprintf.c: ++hohmuth@freia.inf.tu-dresden.de
+	_say()'s parameter is const; also add prototype for _say().
+sleep.c: ++hohmuth
+	Corrected signal handler's prototype, use long instead 
+	of __Sigfunc.
+getcwd.c, times.c: ++hohmuth
+	Added some casts to int for errno.
+purec/*.prj, purec/readme: ++hohmuth
+	Modified syntax of symbol definitions for assembler sources, for 
+	improved compatibility with Turbo C's assembler.
+abort.c: ++boender@dutiws.twi.tudelft.nl
+	Do not call exit(), use _exit() instead.
+statfs.c: ++boender
+	Add a kludge to get better answers on U:/PROC, U:/PIPE, U:/SHM.
+sleep.c:
+	Really fixed the problem with usleep() sleeping forever.
+bsearch.c: ++nox@jelal.north.de (Juergen Lock), ++entropy
+	Relax bug checking, return NULL for 0 parameters instead of
+	assert()ing them to be non-NULL.
+errno.h: ++schwab@ls5.informatik.uni-dortmund.de (Andreas Schwab)
+	New error, EPIPE.
+fcntl.h: ++schwab
+	Move internals of the library file I/O stuff to the library's
+	"lib.h".
+close.c, dup.c, ioctl.c, isatty.c: ++schwab
+	Account for the above change.
+_addsubd.cpp, _addsubs.cpp, _divdf3.cpp, _divsf3.cpp, _extends.cpp,
+_fixdfsi.cpp, _fixsfsi.cpp, _fxunsd.cpp, _muldf3.cpp, _mulsf3.cpp,
+_truncdf.cpp: ++schwab
+	Use "bset #bitno,dn" instead of "orl #imm,dn" for speed.
+	Fix a typo in _fixsfsi.cpp.
+atof.c: ++schwab
+	Fix a bug.
+ctime.c: ++schwab
+	[I don't understand this change, so I won't try to document it. -ent]
+doprnt.c: ++schwab
+	Fix 68020 version of _ICONV (divull arguments were reversed).
+filbuf.c: ++schwab
+	Set fp->_cnt = 0 on EOF or error.
+fopen.c: ++schwab
+	Don't close tty device if victim of freopen().  Also in freopen(),
+	get a new buffer if file was closed.
+ltoa.c: ++schwab
+	#include "lib.h" once only.
+popen.c: ++schwab
+	Arrange for close parent's side of pipe in child process.  Free
+	all used resources carefully.  Clean up linked list routines for
+	pipe resource tracking.
+strerror.c: ++schwab
+	Add message for EPIPE.
+strftime.c: ++schwab
+	Fix typo in case 't'.  Initialize buf if format directive is
+	undefined.
+strtol.c: ++schwab
+	Negating LONG_MIN gives overflow.
+sysconf.c: ++schwab
+	Pass argument to pathconf() through _unx2dos().
+wait.c, wait3.c, waitpid.c: ++schwab
+	Check for invalid signals (can result from Pterm(n) with n > 255).
+	In waitpid.c, don't crash by recording status into NULL pointer.
+	In wait3.c and waitpid.c, don't zero status->w_coredump.
+
+PATCHLEVEL30::
+
+purec/mintbind.s: ++hohmuth@freia.inf.tu-dresden.de
+	Add bindings for Dgetcwd() and Salert() system calls.
+crlf/crlf.c:
+	Fix so it compiles on suns.
+aesbind.h, vdibind.h, gemfast.h: ++jrb
+	Changes for SpeedoGDOS and Falcon AES.
+strlwr.c, strupr.c: ++jrb
+	Made more robust.
+
+PATCHLEVEL29::
+
+sleep.c:
+	It's up to the user, not the library, to make sure we don't lose by
+	longjmp()ing out of a signal handler (and thus not restore our
+	context correctly).  This simplifies things quite a bit, and fixes
+	the annoying granularity of the PL28 version.
+sleep.c:
+	Fixed a bug, usleep(0) used to sleep forever (until interrupted)
+	instead of no time.
+purec/alloca.s, purec/*.prj, purec/readme: ++hohmuth@freia.inf.tu-dresden.de
+	Rename STACK_CHECKING to STACKCH, for compatibility with Turbo C.
+crtinit.c: ++hohmuth
+	Add _PgmSize variable, featuring the total size of the program.
+exec.c: ++boender@dutiws.twi.tudelft.nl
+	Remove references to "extern char **environ", we can just pass NULL
+	to spawnve() to get the current environment.  Remove functions
+	execlp() and execvp() to reduce library drag.
+execp.c: ++boender
+	NEW file, containing execlp() and execvp(), previously in exec.c.
+fork.c, getpid.c, kill.c, killpg.c, pipe.c, select.c, wait.c:
+	Include <mintbind.h> instead of "mintbind.h", this should speed up
+	your makes by a few milliseconds.
+times.c:
+	Fixed a small bug, errno wasn't being set correctly in one case.
+makefile, mincl:
+	Remove GLIB3 stuff, bammi says there's no getting around -lg++.
+gnulib3.c, xyzzy.cc:
+	DELETED files, bammi says there's no getting around -lg++.
+
+PATCHLEVEL28::
+
+a64l.c: ++boender@dutiws.twi.tudelft.nl
+	Add to comments a note that prototypes are in support.h.
+alarm.c: ++boender, ++entropy
+	If requested time is greater than MiNT can handle, "round down" to
+	(LONG_MAX/1000) seconds, to prevent unexpected "inquiry" calls to
+	Talarm() (or even possible crashes).  This is only relevant if long
+	integers are used, since (USHRT_MAX < (LONG_MAX/1000)).  Do NOT set
+	errno if an error results (the only error that can be recognized,
+	anyway, is that alarm() was called when MiNT was not active.  In
+	this case, 0 is returned and no alarm is set.)
+getpass.c:
+	Read password from /dev/tty, instead of stdin, if MiNT is active.
+link.c, symlink.c, support.h:
+	Functions link(), symlink() now take "const char *" instead of
+	"char *" parmeters.
+getcwd.c: ++boender, ++entropy
+	Use Dgetcwd() when running on MiNT 0.96 or newer.
+limits.h: ++jrb (bammi@cadence.com)
+	Fix definition of INT_MIN, evidently casting it to float didn't work
+	with the old (equivalent) value.
+stdlib.h: ++jrb
+	Changed alloca macro for better parameter checking.
+eprintf.c: ++jrb
+	Make _say() a function instead of a macro.
+fwrite.c, linea.c: ++jrb
+	Some stuff I missed in patchlevel 26.
+vdiesc1.h: ++jrb
+	DELETED file, seems this was some leftover temp file, everything in
+	it is already in vdibind.h.
+access.c: ++boender, ++entropy
+	Use real, not effective, user id's for access() checks.
+	Fix so access() always returns success on existing files if real
+	user id is 0 (root), regardless of file mode.
+stat.c: ++ers
+	Fix so stat("foo\\") is equivalent to stat("foo"), under TOS.
+unx2dos.c: ++hohmuth
+	Support unx2dos() and dos2unx() on non-GCC compilers (to the minimal
+	extent to which they are supported on GCC).
+sleep.c: ++entropy, ++boender
+	Allow sleep() to be interrupted by signals under MiNT (0.95 or
+	greater) by re-implementing with Psigpause() etc.
+clock.c, getrusag.c, sleep.c, thread.c, times.c, time.h: ++boender, ++entropy
+	Replace all occurrences of clock() with _clock(), temporarily
+	alias clock() to call _clock() until we have something better.
+times.c:
+	Set errno and return -1 on error.
+mintbind.h:
+	Add new GEMDOS functions (macros) Dgetcwd() and Salert().
+errno.h: ++boender
+	Define ENODEV as alias for EUKDEV/EUNDEV.
+
+PATCHLEVEL27::
+
+isatty.c:
+	Did some testing, it looks OK.  Fixed up the comments so
+	it should be obvious how it works.
+alloca.s, bcopy.s: ++dsb@cs.duke.edu
+	RENAME to alloca.cpp, bcopy.cpp so we can do conditional compilation.
+alloca.cpp, bcopy.cpp, bzero.cpp: ++dsb
+	Changes for HSC.
+mincl:
+	Account for the name changes.
+compiler.h: ++dsb
+	Rearrange the __SOZOBONC__ #defines, fix a typo.
+ctime.c, fscanf.c, sscanf.c: ++dsb
+	Make compatible with HSC.
+ident.c: ++hohmuth@freia.inf.tu-dresden.de
+	Include patchlev.h instead of PatchLev.h since I zoo up the libs
+	on a vanilla TOS filesystem.  This makes cross-compiling easier.
+compiler.h: ++hohmuth
+	define __TCC_GEMLIB__ when used with Pure/Turbo C
+aesbind.h, gemfast.h: ++hohmuth
+	Make it useable with Pure's GEM library.  The special declarations
+	in aesbind.h check for __TCC_GEMLIB__.  Improved compatibility with
+	Turbo's GEM declarations when __TCC_COMPAT__ is defined.
+osbind.h: ++hohmuth
+	Fix typos, add macros for sloppier type checking when used with 
+	Pure C.
+strupr.c: ++hohmuth
+	NEW file:  add library call strupr().
+string.h: ++hohmuth
+	Add declaration of strupr().
+mincl, lattice/mincl.lcc, purec/mintlib.prj, sozobon/makefile:
+	Add strupr.c.
+doprnt.c: ++Ulf_Moeller@hh2.maus.de
+	Fix up the ARG macro (which tends to produce wrong results with Pure
+	C (which uses a type conversion scheme within ?: that differs from
+	GCC)).
+purec/*default*.prj: ++hohmuth
+	The default project files now produce .ttp files by default.
+purec/mint*.prj: ++ulf
+	Use long distance jumps to call main().
+purec/setjmp.s: ++ulf
+	Save one more reggie.
+purec/bcopy.s: ++(forgot who, sorry)
+	Add symbol _bcopy.
+dirent.c: ++hohmuth
+	Avoid warning when compiling with __MSHORT__.
+regexp.c: ++hohmuth
+	Make it Turbo/PureC-proof.
+ctime.c: ++hohmuth
+	Add prototype for two_dig().
+purec/bzero.c, purec/memcpy.c, purec/memset.c: ++hohmuth
+	Moved files into purec/ since they are no longer in sozobon/.
+purec/mintlib.prj: ++hohmuth
+	Add a64l.c, account for moved files.
+sozobon/makefile: ++hohmuth
+	Add strupr.c.
+falcon.h: ++hyc@hanauma.jpl.nasa.gov
+	Remove superfluous equals sign in enum declaration.
+bugs: ++boender@dutiws.twi.tudelft.nl
+	Many new entries.  Thanks, Hildo!
+fread.c: ++ulf
+	Fix return value for text mode.
+times.c, times.h: ++ulf
+	Use long return value instead of int.  This allows larger values
+	and agrees with the SysV man page.
+crlf/crlf.c, crlf/crlf.doc, crlf/Makefile:
+	NEW files.  Program to strip (or add) carriage returns from (or to)
+	test files.
+*:
+	Carriage returns stripped from all top-level files and all include
+	files (files in sozobon/, purec/, and lattice/ not stripped).
+
+PATCHLEVEL26::
+
+changes:
+	Rotated file to newest-first order.
+readme:
+	Added a few words of my own.
+falcon.h:
+	Protected against multiple #include's.
+st-out.h: ++jrb
+	Synchronized with bammi's version from incl85.
+string.h:
+	Added some parens to appease gcc -Wall with gcc 2.3.1.
+getuid.c: ++boender@dutiws.twi.tudelft.nl, ++entropy
+	Only negative returns from Psetuid() and Psetgid() indicate
+	an error.  Positive returns indicate success (the PID is
+	returned from the OS).  Modified getuid() and setgid() accordingly.
+_isnan.s: ++jrb
+	NEW module from bammi's update27.
+linea.h: ++jrb
+	Applied bammi's patch from update27 (bammi's new address)
+a64l.c: ++boender@dutiws.twi.tudelft.nl
+	NEW module for conversion between longs and base-64 ASCII strings.
+a64l.c: ++entropy
+	Use __PROTO, use compiler.h, etc.
+support.h:
+	Added prototypes for a64l(), l64a().
+bugs:
+	NEW file.  Will be used as a sort of scratchpad for things that
+	should be fixed.
+common:
+	NEW file to give an idea of what files are (or, rather, should be)
+	the same in both the mntlib and bammi's toslib.
+mincl: ++jrb
+	Added _isnan.o to GLIB1.
+mincl: ++entropy
+	Added a64l.o to PORT.
+makefile: ++entropy
+	Added the -mbaserel libs to the default ("top") target.
+	Added my personal setup in an ifdef.
+_addsubd.cpp, _addsubs.cpp, _cmpdf2.s, _cmpsf2.s, 
+_divdf3.cpp, _divsf3.cpp, _extends.cpp, _muldf3.cpp, _mulsf3.cpp, 
+_negdf2.s, _negsf2.s, _normdf.cpp, _normsf.cpp, _truncdf.cpp,
+atof.c, doprnt.c: ++jrb
+	Synched with bammi's update27 and intermediate update.
+support.h: ++boender@dutiws.twi.tudelft.nl, ++entropy
+	Fixed prototype for link().  Removed protoype for isatty()
+	(it exists in unistd.h)
+limits.h:
+	Added #define PASS_MAX 8.
+getpass.c:
+	Fixed to use PASS_MAX, fixed off-by-one-error (was writing past end
+	of static buf, very bad news).  Removed some small kludges.
+fflush.c: ++boender@dutiws.twi.tudelft.nl, ++entropy
+	Return EOF instead of 0 for files that aren't open.
+kill.c: ++boender@dutiws.twi.tudelft.nl, ++entropy
+	Allow negative pid's so process groups can be signalled.
+isatty.c: ++boender@dutiws.twi.tudelft.nl, ++entropy
+	Only seek back to original position if fd wasn't a tty, to avoid
+	OS overhead.  Don't bother setting errno, there's no point in
+	doing so.  Old code had a comment saying it tries to seek forward
+	one byte, but it was actually seeking to absolute position one.
+	Now it does SEEK_CUR; hopefully this won't break it.
+
+PATCHLEVEL25::
+
+ioctl.h:
+	ANYP means "no parity", not "any speed"
+wtmp.c: ++entropy@gnu.ai.mit.edu
+	If we're going to write to a file, we
+	really should open it for writing, not reading!
+difftime.c: ++entropy@gnu.ai.mit.edu
+	The parameters were reversed. Ouch.
+bcmp.c: ++hohmuth@freia.inf.tu-dresden.de
+	Change the ODD macro to return a 16 bit value (for
+	Pure C)
+crtinit.c:
+	Changed the "switch(_stksize)" statement into an
+	if-then-else (apparently PureC can have troubles
+	with a long in a switch statement).
+purec/: ++hohmuth@freia.inf.tu-dresden.de
+	Updated documentation for the unixname program,
+	and provided source code.
+open.c:
+	Modified to use the kernel's O_APPEND when appropriate.
+spawn.c: ++ulf@wolfhh.hanse.de
+	Fixed an off-by-one error in the command line calculation
+	stuff.
+
+Changes from Andreas Schwab (scwab@ls5.informatik.uni-dortmund.de):
+* compiler.h: for gcc2, use the builtin sizes
+* gemfast.h: add XCONTROL messages and WF_COLOR defines
+* mintbind.h, osbind.h: add the missing definitions
+* rusage.h: fix typo, add <time.h> for struct timeval
+* screen.h: fix definitions for TT
+* stdio.h: allow 32 open files as does MiNT
+* stdlib.h (alloca): avoid cpp warning, nearly all GNU programs define
+	it unconditionally
+* termcap.h: fix typo
+* wait.h (WSTOPPED): use expected value
+
+select.c:
+	Fixed the parameters (they were supposed to have type
+	"long *" rather than "long").
+dirent.[ch]:
+	Fixed a very bogus use of the Dreaddir() return value,
+	which in fact is a magic cookie that can't be used!
+
+various places:
+	Applied bammi's updates (thanks, bammi!)
+
+PATCHLEVEL24::
+
+Applied Howard's patches for various .cpp and .s files.
+Thanks!
+
+PATCHLEVEL23::
+
+Makefile,mincl,bcopy.s,*.cpp:
+	Applied jrb's & hyc's updates.
+purec/*:
+	Applied Michael's Pure C patches.
+waitpid.c:
+	New file, courtesy of Howard.
+mintbind.h,linea.h:
+	Fixed various bugs; again, thanks, Howard!
+crtinit.c:
+	Made the baserel code more stable.
+lattice/vfork.s:
+	Fixed the setting of errno in the __MSHORT__
+	case.
+
+PATCHLEVEL22:
+
+inistack.c:
+	Change _initial_stack into an uninitialized variable, so
+	that fixstk doesn't try to set it by default.
+purec/*:
+	Apply Michael's patches for Pure C.
+mintbind.h:
+	Fix the definition for Psigaction. Remove misspelling of
+	Sigpalette.
+scanf.c:
+	Apply Ulf's patch for Pure C.
+doprnt.c,getpages.c,getpass.c,malloc.c,obstack.c,stricmp.c,strnicmp.c,
+strrchr.c,textio.c:
+	Apply Michael's Pure C patches.
+sbrk.c:
+	Corrected the sense of the #ifdef __GNUC__ (thanks, Michael).
+system.c:
+	Fixed a silly return statement.
+regexp.c:
+	Got rid of a warning about "regprop" not being defined when
+	!DEBUG.
+crtinit.c:
+	Fixed to make shared text programs possible with Howard's
+	new gcc.
+crt0.s,gcrt0.s:
+	REPLACED by crt0.cpp.
+mincl:
+	Updated to reflect the new crt0.cpp.
+makefile.b16,makefile.b32:
+	New makefiles for gcc with -mbaserel.
+

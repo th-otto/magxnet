@@ -1,0 +1,185 @@
+index: purec, mintbind.s
+Date: Fri, 29 May 1998 09:36:39 +0200
+From: Christian Felsch <felsch@tu-harburg.de>
+
+...changes for compiling PL48 with PureC.
+________________________________________
+
+index: include/st-out.h
+Date: Sat, 30 May 1998 
+From: Julian F. Reschke
+
+I would recommend change as follows:
+
+#define F_RESERVED	0x08	/* reserved for future use */
+
+to:
+
+#define F_SMALLTPA	0x08	/* used in MagiC: TPA can be allocated
+ 				as specified in the program header
+ 				rather than the biggest free memory
+ 				block */
+________________________________________
+
+index: fgetc.c
+Date: 10 June 1998
+From: Yves Pelletier <Yves.Pelletier@ec.gc.ca>
+
+Reverted to pre-PL48 fgetc.c.  Change introduced with PL48
+was incorrect.  Mea culpa.
+________________________________________
+
+index: localtim.c
+Date: Fri, 7 Aug 1998 20:31:00 +0200
+From: Helmut_Karlowski@mausd.gun.de,
+    Helmut Karlowski <Helmut_Karlowski@mausd.gun.de>
+
+i just had a problem with missing globals daylight and timezone: They
+where not in the lib.
+
+So i changed in localtim.c this:
+
+#ifdef HAS_BSD_TIME
+/*USG_COMPAT*/
+time_t                  timezone = 0;
+int                     daylight = 0;
+#endif /* defined USG_COMPAT */
+________________________________________
+
+index: getcooki.c
+Date: Wed, 9 Sep 1998 17:53:16 +0200 (MESZ)
+From: Frank Naumann <fnaumann@prinz-atm.cs.Uni-Magdeburg.DE>
+
+Somebody really use this function? Lots of bugs ...
+
+Here is a updated version. Any comments?
+
+--------------------------------------
+
+index: statfs.c, statfs.h, dcntl.h
+Date: 8 Oct 1998
+From: Christian Felsch <felsch@tu-harburg.de>
+
+Changes to statfs.[ch] to make it take advantage of MiNT 1.15.0.
+statfs now requires dcntl.h, which has been added to the MiNTlib
+distribution.  
+
+Remark by Y.P.: there is a small difference between MiNTlib dcntl.h
+and the one from the MiNT 1.15.0 distribution: type ulong had to be
+explicitely defined in the MiNTlib dcntl.h.
+________________________________________
+
+index: mksingle
+Date: 20 Oct 1998
+From: Yves Pelletier <Yves.Pelletier@ec.gc.ca>
+
+"mksingle" is a simple Bourne shell script that can be used to update
+the MiNTlib when a single source file has been modified.  
+
+usage: ./mksingle foo.o
+
+will create foo.o from foo.c.  The script does successive invocations
+of "make" with all possible combinations of CPU type, integer model,
+and addressing modes supported by the MiNTlib makefile.  The resulting
+object files are archived in the appropriate libraries.  This script
+works well enough on my setup; if you like the idea you may want to
+adapt it to yours.
+
+________________________________________
+
+index: patchlev.h, \lib\version
+
+Date: 2008-01-18
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Set PatchLevel to "49a"
+
+________________________________________
+
+index: ostruct.h
+Date: 2008-01-18
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Add struct xattr for Fxattr
+
+________________________________________
+
+index: cookie.h
+Date: 2008-03-02
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Add file from latest MiNT-Lib 0.56.1 to sys\
+
+________________________________________
+
+index: errno.h
+Date: 2008-03-02
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Add EACCDN
+
+________________________________________
+
+index: statfs.c
+Date: 2012-09-10
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+ get_fsname()
+    - šbergabe an Dcntl ge„ndert
+
+________________________________________
+
+index: mintlib.prj
+Date: 2012-09-11
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Add getcooki.c, getgid.c, enoent.c
+
+________________________________________
+
+index: ostruct.h
+Date: 2012-09-11
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Modern version from the structrure XATTR
+
+________________________________________
+
+index: purec\mintbind.s
+Date: 2012-09-15
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Correct binding form Tsetitimer and Dxreaddir
+
+________________________________________
+
+index: getcooki.c
+Date: 2012-09-19
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Make sure that P_VALUE is zeroed if the cookie can't
+be found.  Reported by Tommy Andersen (tommya@post3.tele.dk).
+
+________________________________________
+
+index: include\ssystem.h, clock.c, main.c, sysvar.c, timeoday.c ,uname.c
+Date: 2012-09-20
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Use new defines (S_) from the latest MiNT-Lib 0.56.1.
+
+------------------------------------------
+index: include\patchlev.h, lib\patchlev.h, \lib\version
+
+Date: 2012-10-06
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+Set PatchLevel to "49b"
+
+------------------------------------------
+
+index: include\mintbind.h
+Date: 2012-10-06
+From: Gerhard Stoll <gerhard_stoll@gmx.de>
+
+The parameter xattr in Dxreaddir is a pointer

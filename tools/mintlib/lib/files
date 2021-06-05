@@ -1,0 +1,76 @@
+
+COMMON= \
+_addsubd.cpp  _addsubs.cpp  _cmpdf2.cpp	  _cmpsf2.cpp	_divdf3.cpp \
+_divmods.s    _divsf3.cpp   _extends.cpp  _fixdfsi.cpp	_fixsfsi.cpp \
+_fltsi.cpp    _fltsisf.cpp  _fxunsd.cpp	  _isnan.s	_muldf3.cpp \
+_mulsf3.cpp   _mulsi3.s	    _negdf2.s	  _negsf2.s	_normdf.cpp \
+_normsf.cpp   _truncdf.cpp  _udivmod.s	  _umulsi3.s	a64l.c \
+abort.c	      abs.c	    access.c	  alglobal.c	alloca.cpp \
+alphasor.c    atof.c	    atoi.c	  atol.c	bblink.c \
+bcmp.c	      bcopy.cpp	    binmode.c	  bsearch.c	buffindf.c \
+bzero.cpp     calloc.c	    chdir.c	  chmod.c	chown.c \
+ctermid.c     ctime.c	    ctype.c	  cuserid.c	defmode.c \
+difftime.c    div.c	    div.cpp	  doprnt.c	eprintf.c \
+errbase.h     fclose.c	    fdopen.c	  fflush.c	ffs.c \
+fgetc.c	      fgetpos.c	    fgets.c	  filbuf.c	findfile.c \
+flonum.h      fopen.c	    fopen_i.c	  fprintf.c	fputc.c \
+fputs.c	      fread.c	    freopen.c	  frexp.cpp	frwbin.c \
+fseek.c	      fsetpos.c	    ftell.c	  ftw.c		fungetc.c \
+fwrite.c      gbl-ctors.h   getbuf.c	  getegid.c	getenv.c \
+geteuid.c     getgid.c	    getlogin.c	  getopt.c	getpass.c \
+getpid.c      getppid.c	    getpw.c	  gets.c	getuid.c \
+getw.c	      gmon.c	    gnulib2.c	  grp.c		ic.c \
+ig.c	      il.c	    ip.c	  iw.c		l64a.c \
+labs.c	      ldexp.cpp	    ldiv.c	  lib.h		libgcc1.c \
+libgcc2.c     linea.c	    localtim.c	  longlong.h	lseek.c \
+ltoa.c	      malloc.c	    memccpy.c	  memchr.c	memcmp.c \
+mktemp.c      modf.cpp	    nlist.c	  obstack.c	perror.c \
+pgrp.c	      printf.c	    psignal.c	  putenv.c	puts.c \
+qsort.c	      raise.c	    rand.c	  random.c	realloc.c \
+regexp.c      regsup.c	    rewind.c	  sbrk.c	setbuf.c \
+setegid.c     seteuid.c	    setgid.c	  setjmp.cpp	setlocal.c \
+setregid.c    setreuid.c    setuid.c	  setvbuf.c	sgtty.c \
+siglist.c     sprintf.c	    stksiz.c	  strcat.c	strchr.c \
+strcmp.c      strcoll.c	    strcpy.c	  strcspn.c	strdup.c \
+strerror.c    strftime.c    stricmp.c	  strlen.c	strlwr.c \
+strncat.c     strncmp.c	    strncpy.c	  strnicmp.c	strpbrk.c \
+strrchr.c     strrev.c	    strspn.c	  strstr.c	strtok.c \
+strtol.c      strtoul.c	    strupr.c	  system.c	sysvar.c \
+textio.c      time.c	    timeoday.c	  tmpfile.c	tmpnam.c \
+toxxx.c	      uidgid.c	    utime.c	  vfprintf.c	vprintf.c \
+wcmb.c	      wcscat.c	    wcscmp.c	  wcscpy.c	wcslen.c \
+wnull.c \
+
+MINTLIB= \
+Makefile      alarm.c	    atexit.c	  cfgetisp.c	cfgetosp.c \
+cfsetisp.c    cfsetosp.c    clock.c	  close.c	closedir.c \
+console.c     crt0.cpp	    crtinit.c	  do_lock.c	do_stat.c \
+dup.c	      dup2.c	    enoent.c	  execl.c	execle.c \
+execp.c	      execv.c	    execve.c	  fcntl.c	flock.c \
+fopenp.c      fork.c	    fscanf.c	  fstat.c	getcwd.c \
+getdtabl.c    getgroup.c    gethostn.c	  getpages.c	getrusag.c \
+getwd.c	      heapbase.c    ident.c	  inistack.c	initsig.c \
+inode.c	      ioctl.c	    isatty.c	  isctty.c	kill.c \
+killpg.c      link.c	    lockf.c	  lstat.c	main.c \
+mincl	      mkdir.c	    mkfifo.c	  mknod.c	nice.c \
+open.c	      opendir.c	    osbind.cpp	  pause.c	pipe.c \
+popen.c	      putpwent.c    read.c	  readdir.c	rename.c \
+rewinddi.c    rmdir.c	    scandir.c	  scanf.c	seekdir.c \
+select.c      setrlimi.c    sigactio.c	  sigblock.c	signal.c \
+sleep.c	      spawn.c	    spawnve.c	  spawnvp.c	sscanf.c \
+stat.c	      statfs.c	    symlink.c	  sync.c	sysconf.c \
+tcattr.c      tcbreak.c	    tcdrain.c	  tcflow.c	tcflush.c \
+tcpgrp.c      telldir.c	    thread.c	  times.c	truncate.c \
+ttyname.c     uname.c	    unlink.c	  unx2dos.c	utmp.c \
+vfork.cpp     vfscanf.c	    vscanf.c	  wait.c	wait3.c \
+wait4.c	      waitpid.c	    write.c	  wtmp.c \
+
+MINTLIB_NOCL= \
+AUTHORS	      Bugs	    Changelog	  Copyright	Files \
+GMakefile.16  GMakefile.32  GNUGPL2	  MKDIFFS	MKLOG \
+Makefile.adm  OChangelog    PatchLev.h	  README	README.FAQ \
+Version \
+
+CRUFT= \
+gnuaux.c      gnulib2.c \
+
