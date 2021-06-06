@@ -7,36 +7,40 @@ include ../configvars
 PROGRAMS = libsock.a
 
 OBJS = \
-	herror.o \
 	accept.o \
 	bind.o \
 	connect.o \
-	sockglob.o \
 	gethost.o \
-	sockname.o \
+	getnet.o \
+	getproto.o \
+	getserv.o \
+	getservn.o \
+	herror.o \
+	hostname.o \
+	hstrerr.o \
 	inetaddr.o \
-	makeaddr.o \
+	inetlnao.o \
+	inetneto.o \
+	inetnetw.o \
 	listen.o \
-	res_comp.o \
+	makeaddr.o \
+	poll.o \
 	recv.o \
+	recvfrom.o \
+	res_comp.o \
 	res_init.o \
 	res_mkq.o \
 	res_quer.o \
 	res_send.o \
+	select.o \
 	send.o \
 	sendmsg.o \
 	sendto.o \
-	socket.o \
-	hostname.o \
-	recvfrom.o \
-	poll.o \
-	select.o \
-	getnet.o \
-	getproto.o \
-	getserv.o \
-	inetneto.o \
-	inetnetw.o \
 	sethost.o \
+	socket.o \
+	sockglob.o \
+	sockname.o \
+	sockpair.o \
 	$(empty)
 
 all:: $(PROGRAMS)

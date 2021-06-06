@@ -8,7 +8,6 @@
 #include <string.h>
 #include "stsocket.h"
 #include <sys/ioctl.h>
-#include "ifopts.h"
 #include <unistd.h>
 
 /*
