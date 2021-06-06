@@ -42,10 +42,17 @@ static char *net_aliases[MAXALIASES];
 static int _net_stayopen;
 
 
+#ifdef __MINT__
+#define READ_TEXT "rt"
+#else
+#define READ_TEXT "r"
+#endif
+
+
 void setnetent(int f)
 {
 	if (netf == NULL)
-		netf = fopen(_PATH_NETWORKS, "r");
+		netf = fopen(_PATH_NETWORKS, READ_TEXT);
 	else
 		rewind(netf);
 	_net_stayopen |= f;
@@ -69,7 +76,7 @@ struct netent *getnetent(void)
 	char *cp;
 	char **q;
 
-	if (netf == NULL && (netf = fopen(_PATH_NETWORKS, "r")) == NULL)
+	if (netf == NULL && (netf = fopen(_PATH_NETWORKS, READ_TEXT)) == NULL)
 		return NULL;
   again:
 		p = fgets(line, BUFSIZ, netf);

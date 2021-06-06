@@ -80,11 +80,6 @@ long Fcntl(short f, long arg, short cmd);
 
 #ifdef __atarist__
 
-/* WTF? */
-#undef stderr
-extern FILE _iob[];
-#define stderr (&_iob[2])
-
 #include <resolv.h>
 #include <netinet/in.h>
 #include <net/if.h>						/* for struct ifconf */

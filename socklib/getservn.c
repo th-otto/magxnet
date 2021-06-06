@@ -33,92 +33,47 @@
 
 #include "stsocket.h"
 
-#define	MAXALIASES	35
-
-static FILE *servf = NULL;
-static char line[BUFSIZ + 1];
-static struct servent serv;
-static char *serv_aliases[MAXALIASES];
-int _serv_stayopen;
+extern int _serv_stayopen;
 
 
-#ifdef __MINT__
-#define READ_TEXT "rt"
-#else
-#define READ_TEXT "r"
-#endif
-
-
-void setservent(int f)
+struct servent *getservbyname(const char *name, const char *proto)
 {
-	if (servf == NULL)
-		servf = fopen(_PATH_SERVICES, READ_TEXT);
-	else
-		rewind(servf);
-	_serv_stayopen |= f;
-}
+	struct servent *p;
+	char **cp;
 
-
-void endservent(void)
-{
-	if (servf)
+	setservent(_serv_stayopen);
+	while ((p = getservent()) != NULL)
 	{
-		fclose(servf);
-		servf = NULL;
+		if (strcmp(name, p->s_name) == 0)
+			goto gotname;
+		for (cp = p->s_aliases; *cp; cp++)
+			if (strcmp(name, *cp) == 0)
+				goto gotname;
+		continue;
+	  gotname:
+		if (proto == 0 || strcmp(p->s_proto, proto) == 0)
+			break;
 	}
-	_serv_stayopen = 0;
+	if (!_serv_stayopen)
+		endservent();
+	return p;
 }
 
 
-struct servent *getservent(void)
+struct servent *getservbyport(int port, const char *proto)
 {
-	char *p;
-	char *cp;
-	char **q;
+	struct servent *p;
 
-	if (servf == NULL && (servf = fopen(_PATH_SERVICES, READ_TEXT)) == NULL)
-		return NULL;
-  again:
-		if ((p = fgets(line, BUFSIZ, servf)) == NULL)
-			return NULL;
-		if (*p == '#')
-			goto again;
-		cp = strpbrk(p, "#\n");
-		if (cp == NULL)
-			goto again;
-		*cp = '\0';
-		serv.s_name = p;
-		p = strpbrk(p, " \t");
-		if (p == NULL)
-			goto again;
-		*p++ = '\0';
-		while (*p == ' ' || *p == '\t')
-			p++;
-		cp = strpbrk(p, ",/");
-		if (cp == NULL)
-			goto again;
-	*cp++ = '\0';
-	serv.s_port = htons((u_short) atoi(p));
-	serv.s_proto = cp;
-	q = serv.s_aliases = serv_aliases;
-	cp = strpbrk(cp, " \t");
-	if (cp != NULL)
-		*cp++ = '\0';
-	while (cp && *cp)
+	setservent(_serv_stayopen);
+	while ((p = getservent()) != NULL)
 	{
-		if (*cp == ' ' || *cp == '\t')
-		{
-			cp++;
+		if (p->s_port != port)
 			continue;
-		}
-		if (q < &serv_aliases[MAXALIASES - 1])
-			*q++ = cp;
-		cp = strpbrk(cp, " \t");
-		if (cp != NULL)
-			*cp++ = '\0';
+		if (proto == 0 || strcmp(p->s_proto, proto) == 0)
+			break;
 	}
-	*q = NULL;
-	return &serv;
+	if (!_serv_stayopen)
+		endservent();
+	return p;
 }
-
 

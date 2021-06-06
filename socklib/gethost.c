@@ -33,6 +33,11 @@
 
 #include "stsocket.h"
 
+/* WTF? */
+#undef stderr
+extern FILE _iob[];
+#define stderr (&_iob[2])
+
 #ifdef __PUREC__
 void bcopy (const void *__src, void *__dest, size_t __n);
 char *index (const char *__s, int __c);

@@ -40,13 +40,20 @@ static FILE *protof = NULL;
 static char line[BUFSIZ + 1];
 static struct protoent proto;
 static char *proto_aliases[MAXALIASES];
-int _proto_stayopen;
+static int _proto_stayopen;
+
+
+#ifdef __MINT__
+#define READ_TEXT "rt"
+#else
+#define READ_TEXT "r"
+#endif
 
 
 void __setprotoent(int f)
 {
 	if (protof == NULL)
-		protof = fopen(_PATH_PROTOCOLS, "r");
+		protof = fopen(_PATH_PROTOCOLS, READ_TEXT);
 	else
 		rewind(protof);
 	_proto_stayopen |= f;
@@ -70,7 +77,7 @@ struct protoent *__getprotoent(void)
 	register char *cp,
 	**q;
 
-	if (protof == NULL && (protof = fopen(_PATH_PROTOCOLS, "r")) == NULL)
+	if (protof == NULL && (protof = fopen(_PATH_PROTOCOLS, READ_TEXT)) == NULL)
 		return NULL;
   again:
 		if ((p = fgets(line, BUFSIZ, protof)) == NULL)
@@ -148,4 +155,3 @@ struct protoent *getprotobyname(const char *name)
 		endprotoent();
 	return p;
 }
-

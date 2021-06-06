@@ -47,6 +47,11 @@
 #include "stsocket.h"
 #include "mintsock.h"
 
+/* WTF? */
+#undef stderr
+extern FILE _iob[];
+#define stderr (&_iob[2])
+
 const char *h_errlist[] =
 {
 	"Error 0",

@@ -8,6 +8,7 @@ mintlib.lib
 
 .C[-A-]
 .C[-P]
+.C[-K-]
 .C[-M-]
 .C[-G-]
 .C[-DNDEBUG]
