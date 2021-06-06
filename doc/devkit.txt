@@ -1,0 +1,70 @@
+MagiCNet development kit
+
+Notes for Pure C developers
+---------------------------
+
+In this folder you'll find the basic library and header files for
+writting sockets compatible applications. Most used (about 99% ;-)
+are two files, <sys/socket.h> and <netinet/in.h>. Both include
+<compiler.h>, if you have an older (or modified) version of this
+file, please make sure to comment out the #ifndef __MINT__ part
+of modify it in such a way as to selectively activate it.
+
+If you want to use Finstat()/Foutstat() please use my modified
+version of PCTOSLIB.LIB, the original (from Pure C v1.1) has
+a BUG that makes these two calls useless, ie although the 
+prototype in TOS.H is correct ( long Finstat (int f) ) they
+use the file handle as long, thus the result is wrong.
+(a thanks to Henk Robbers here for TTDiger which is IMO the
+best tool for such things).
+
+PCSTDLIB.LIB is unfortunately not updated for sockets, not a big
+problem for prototype projects but quite a trouble for ports
+from other platforms. Possible solutions:
+
+For fdopen (most common) you can use something like:
+
+/* Associate a file or socket descripter (small integer) with a 
+stream */
+
+FILE	*fdopen ( int handle, char *mode)
+{
+	FILE *fp = (FILE *)calloc (1, sizeof (FILE));
+	
+	if (fp == NULL)
+		return (fp);
+	fp->Handle = handle;
+	if ( *mode != 'w')
+		return (NULL);
+	fp->BufStart = malloc (BUFSIZ);
+	fp->BufPtr = fp->BufLvl = fp->BufStart;
+	fp->BufEnd = (char *)fp->BufStart + BUFSIZ;
+	fp->Flags = 0xA;
+	fp->ungetFlag = -1;
+	return (fp);
+}
+
+For other modes fp->Flags might need other values, you should either
+check freopen of the PCSTDLIB or wait for me to extend the library :-)
+
+The other problem is with errno and the relevant error messages, you
+can return -1 (generic error) for sockets errors until we fix this
+one too.
+
+Alternatively you can use the Pure C compatible MiNTLib by Christian
+Felsch but in this case you'll also have to use the relevant header
+files (the FILE structure is completely different between the two).
+
+The above library can also be used as the LAST lib in your project
+file for accessing some unimplemented functions in Pure C libs.
+
+Please contact me if you have any problems with porting or developing
+any applications and I hope we'll find a solution.
+
+Sources for MagiCNet, tools, net library, drivers etc will be 
+available soon, I need first to clear out my own mess of header
+files locations after so many tests with MiNTNet and MagiCNet
+development.
+
+Good luck with MagiCNet
+Vassilis

@@ -77,7 +77,7 @@ struct ifaddr
 	struct sockaddr	ifu_broadaddr;
 	struct sockaddr	ifu_dstaddr;
       } ifa_ifu;
-    void /* struct iface */ *ifa_ifp;	/* Back-pointer to interface.  */
+    struct ifnet *ifa_ifp;	/* Back-pointer to interface.  */
     struct ifaddr *ifa_next;	/* Next address for interface.  */
   };
 
