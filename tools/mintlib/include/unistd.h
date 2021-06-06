@@ -128,12 +128,16 @@ __EXTERN char *	ttyname	__PROTO((int));
 __EXTERN int	unlink	__PROTO((const char *));
 __EXTERN int	write	__PROTO((int, const void *, unsigned));
 
-#ifndef _POSIX_SOURCE
+#if !defined(_POSIX_SOURCE) || defined(__USE_MISC)
 __EXTERN int	_bsd_getpgrp __PROTO((int));
 __EXTERN int	_bsd_setpgrp __PROTO((int, int));
 __EXTERN int    getdtablesize __PROTO ((void));
 __EXTERN int	getloadavg __PROTO((double *, int));
 __EXTERN char *	getwd	__PROTO((char *));
+extern char *optarg;
+extern int optind;
+extern int optopt;
+extern int opterr;
 __EXTERN int	getopt	__PROTO((int, char * const *, const char *));
 __EXTERN int	getpagesize __PROTO((void));
 __EXTERN char *	getpass	__PROTO((const char *prompt));

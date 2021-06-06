@@ -26,6 +26,7 @@
 typedef struct { long hi; unsigned long lo; } llong;	/* 64bit int */
 # endif
 
+typedef unsigned long  ulong;
 
 # define F_DUPFD		0		/* handled by kernel */
 # define F_GETFD		1		/* handled by kernel */
@@ -235,6 +236,8 @@ struct ploadinfo
 # define SIOCGPGRP	(('S' << 8) | 6)
 # define SIOCATMARK	(('S' << 8) | 7)
 
+#define SIOCGIFNAME	(('S' << 8) | 10)	/* get iface name */
+#define SIOCSIFLINK	(('S' << 8) | 11)	/* connect iface to device */
 # define SIOCGIFCONF	(('S' << 8) | 12)	/* get iface list */
 # define SIOCGIFFLAGS	(('S' << 8) | 13)	/* get flags */
 # define SIOCSIFFLAGS	(('S' << 8) | 14)	/* set flags */
@@ -248,9 +251,11 @@ struct ploadinfo
 # define SIOCSIFNETMASK	(('S' << 8) | 22)	/* set iface network mask */
 # define SIOCGIFMETRIC	(('S' << 8) | 23)	/* get metric */
 # define SIOCSIFMETRIC	(('S' << 8) | 24)	/* set metric */
-
+#define SIOCSLNKFLAGS	(('S' << 8) | 25)	/* set link level flags */
+#define SIOCGLNKFLAGS	(('S' << 8) | 26)	/* get link level flags */
 # define SIOCGIFMTU	(('S' << 8) | 27)	/* get MTU size */
 # define SIOCSIFMTU	(('S' << 8) | 28)	/* set MTU size */
+#define SIOCGIFSTATS	(('S' << 8) | 29)	/* get interface statistics */
 
 # define SIOCADDRT	(('S' << 8) | 30)	/* add routing table entry */
 # define SIOCDELRT	(('S' << 8) | 31)	/* delete routing table entry */
@@ -259,6 +264,10 @@ struct ploadinfo
 # define SIOCGARP	(('S' << 8) | 41)	/* get ARP table entry */
 # define SIOCSARP	(('S' << 8) | 42)	/* set ARP table entry */
 
+#define SIOCSIFHWADDR	(('S' << 8) | 49)	/* set hardware address */
+#define SIOCGIFHWADDR	(('S' << 8) | 50)	/* get hardware address */
+#define SIOCGLNKSTATS	(('S' << 8) | 51)	/* get link statistics */
+#define SIOCSIFOPT	(('S' << 8) | 52)	/* set interface option */
 
 /*
  * terminals

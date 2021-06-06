@@ -132,6 +132,8 @@ struct __ploadinfo {
 #define SIOCATMARK	(('S' << 8) | 7)
 
 /* socket configuration controls */
+#define SIOCGIFNAME	(('S' << 8) | 10)	/* get iface name */
+#define SIOCSIFLINK	(('S' << 8) | 11)	/* connect iface to device */
 #define SIOCGIFCONF	(('S' << 8) | 12)	/* get iface list */
 #define SIOCGIFFLAGS	(('S' << 8) | 13)	/* get flags */
 #define SIOCSIFFLAGS	(('S' << 8) | 14)	/* set flags */
