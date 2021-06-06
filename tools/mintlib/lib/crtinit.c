@@ -71,9 +71,9 @@
 /* define this symbol to get ARGV argument passing that's strictly
  * compatible with the Atari standard. If it's not defined, then
  * the startup code won't validate the ARGV= variable by checking
- * the command byte for 0x127. Note that there are still some
+ * the command byte for 127. Note that there are still some
  * applications (gulam is a notable example) that implement only
- * part of the standard and don't set the command byte to 0x127.
+ * part of the standard and don't set the command byte to 127.
  */
 
 #if 0
@@ -83,6 +83,7 @@
 #include <basepage.h>
 #include <osbind.h>
 #include <support.h>
+#include <sys/cookie.h>
 #include "lib.h"
 
 #define isspace(c) ((c) == ' '||(c) == '\t')
@@ -389,8 +390,8 @@ BASEPAGE *bp;
 		if (desktoparg && envp > &environ[1])
 		{
 			/* launched from desktop -- fix up env */
-			char *p,
-			*q;
+			char *p;
+			char *q;
 
 			q = envp[-2];				/* current one is envp[-1] */
 			while (*q)
@@ -430,7 +431,11 @@ BASEPAGE *bp;
 	while (i > 0 && isspace(*cmdln))
 		cmdln++, --i;
 
-	if (*cmdln != '\'')
+	if (
+#ifdef ARP_HACK
+		Getcookie(C_MagX, NULL) == C_FOUND &&
+#endif
+		*cmdln != '\'')
 	{
 		while (i > 0)
 		{

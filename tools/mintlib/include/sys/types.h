@@ -33,7 +33,7 @@ typedef long		off_t;
 typedef _PID_T		pid_t;		/* process id type */
 typedef _UID_T		uid_t;		/* user id type */
 
-#ifndef _POSIX_SOURCE
+#if !defined(_POSIX_SOURCE) || defined(__USE_BSD)
 typedef unsigned char	u_char;
 typedef unsigned short	u_short;
 typedef unsigned int 	u_int;
@@ -46,6 +46,14 @@ typedef void *		caddr_t;
 #ifndef _FD_SET_T
 #define _FD_SET_T unsigned long
 typedef _FD_SET_T fd_set;
+#endif
+
+typedef	unsigned char u_int8_t;
+typedef	unsigned short int u_int16_t;
+#if defined(__MSHORT__) || defined(__PUREC__)
+typedef	unsigned long u_int32_t;
+#else
+typedef	unsigned int u_int32_t;
 #endif
 
 #define FD_ZERO(set)		(*(set) = 0L)

@@ -3,13 +3,21 @@
 #include <mintbind.h>
 #include <ssystem.h>
 
+extern int no_ssystem;
+
 long get_sysvar(var)
 void *var;
 {
 	long ret;
 	long save_ssp;
 
-	if (Ssystem(-1, NULL, NULL))
+	if (
+#ifdef ARP_HACK
+		no_ssystem
+#else
+		Ssystem(-1, NULL, NULL)
+#endif
+		)
 	{
 		save_ssp = (long) Super((void *) 0L);
 		/* note: dont remove volatile, otherwise gcc will reorder these
@@ -27,7 +35,13 @@ long val;
 {
 	long save_ssp;
 
-	if (Ssystem(-1, NULL, NULL))
+	if (
+#ifdef ARP_HACK
+		no_ssystem
+#else
+		Ssystem(-1, NULL, NULL)
+#endif
+		)
 	{
 		save_ssp = (long) Super((void *) 0L);
 		*((volatile long *) var) = val;

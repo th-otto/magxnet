@@ -136,7 +136,7 @@ static int opt_set(char *ifname, struct ifopt *ifo)
 
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
 	ifr.ifr_data = (void *) ifo;
-	if (ioctl(sock, SIOCSIFOPT, &ifr) < 0)
+	if (ioctl(sockfd, SIOCSIFOPT, &ifr) < 0)
 	{
 		switch (errno)
 		{

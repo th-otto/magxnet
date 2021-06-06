@@ -1,7 +1,7 @@
 # ifndef _ifopts_h
 # define _ifopts_h
 
-extern int sock;
+extern int sockfd;
 
 int opt_file(char *fname, char *ifname);
 int parse_hwaddr(char *hw, char *addr);

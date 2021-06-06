@@ -16,6 +16,7 @@ mintlib.lib
 .L[-G -L -Y -J]
 
 .C[-I..\..\include]
+.C[-DARP_HACK]
 
 =
 

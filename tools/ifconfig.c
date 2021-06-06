@@ -30,8 +30,11 @@
 #endif
 
 
-int sock;
+int sockfd;
 
+/*
+ * BUG: calling Fcntl directly does not set errno
+ */
 #define ioctl(fd, cmd, arg) Fcntl(fd, (long)(arg), cmd)
 
 
@@ -78,7 +81,7 @@ static void get_stats(const char *ifname, struct ifstat *stats)
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
-	if (ioctl(sock, SIOCGIFSTATS, &ifr) < 0)
+	if (ioctl(sockfd, SIOCGIFSTATS, &ifr) < 0)
 		memset(stats, 0, sizeof(*stats));
 	else
 		*stats = ifr.ifr_stats;
@@ -90,7 +93,7 @@ static long get_mtu_metric(const char *ifname, short which)
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
-	if (ioctl(sock, which, &ifr) < 0)
+	if (ioctl(sockfd, which, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot get %s: %s\n", ifname,
 #ifdef NOTYET
@@ -112,7 +115,7 @@ static void set_mtu_metric(const char *ifname, short which, long val)
 
 	strcpy(ifr.ifr_name, ifname);
 	ifr.ifr_metric = val;
-	if (ioctl(sock, which, &ifr) < 0)
+	if (ioctl(sockfd, which, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot set %s: %s\n", ifname,
 #ifdef NOTYET
@@ -131,7 +134,7 @@ static short get_flags(const char *ifname)
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
-	if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0)
+	if (ioctl(sockfd, SIOCGIFFLAGS, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot get FLAGS: %s\n", ifname, strerror(errno));
 		exit(1);
@@ -147,7 +150,7 @@ static void set_flags(const char *ifname, short flags)
 
 	strcpy(ifr.ifr_name, ifname);
 	ifr.ifr_flags = flags;
-	if (ioctl(sock, SIOCSIFFLAGS, &ifr) < 0)
+	if (ioctl(sockfd, SIOCSIFFLAGS, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot set FLAGS: %s\n", ifname, strerror(errno));
 		if (errno == ENODEV && (flags & (IFF_UP | IFF_RUNNING)) == IFF_UP)
@@ -165,7 +168,7 @@ static int get_lnkflags(const char *ifname, int *flags)
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
-	if (ioctl(sock, SIOCGLNKFLAGS, &ifr) < 0)
+	if (ioctl(sockfd, SIOCGLNKFLAGS, &ifr) < 0)
 		return -1;
 
 	*flags = ifr.ifr_flags;
@@ -183,7 +186,7 @@ static int set_lnkflags(const char *ifname, int flags)
 	strcpy(ifr.ifr_name, ifname);
 	ifr.ifr_flags = flags;
 
-	if (ioctl(sock, SIOCSLNKFLAGS, &ifr) < 0)
+	if (ioctl(sockfd, SIOCSLNKFLAGS, &ifr) < 0)
 		return -1;
 
 	return 0;
@@ -201,7 +204,7 @@ static void set_addr(const char *ifname, short which, in_addr_t addr)
 	strcpy(ifr.ifr_name, ifname);
 	memcpy(&ifr.ifr_addr, &in, sizeof(in));
 
-	if (ioctl(sock, which, &ifr) < 0)
+	if (ioctl(sockfd, which, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot set %s: %s\n", ifname,
 #ifdef NOTYET
@@ -224,7 +227,7 @@ static unsigned long get_addr(const char *ifname, short which)
 
 	strcpy(ifr.ifr_name, ifname);
 	ifr.ifr_addr.sa_family = AF_INET;
-	if (ioctl(sock, which, &ifr) < 0)
+	if (ioctl(sockfd, which, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot get %s: %s\n", ifname,
 #ifdef NOTYET
@@ -253,7 +256,7 @@ static int get_hwaddr(const char *ifname, unsigned char *hwaddr)
 
 	strcpy(ifr.ifr_name, ifname);
 
-	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
+	if (ioctl(sockfd, SIOCGIFHWADDR, &ifr) < 0)
 	{
 		fprintf(stderr, "%s: cannot get HW address\n", ifname);
 		exit(1);
@@ -373,7 +376,7 @@ static void list_all_if(short all)
 
 	ifc.ifc_len = sizeof(ifr);
 	ifc.ifc_req = ifr;
-	if (ioctl(sock, SIOCGIFCONF, &ifc) < 0)
+	if (ioctl(sockfd, SIOCGIFCONF, &ifc) < 0)
 	{
 		perror("cannot get interface list");
 		exit(1);
@@ -418,8 +421,8 @@ int main(int argc, char **argv)
 	int flags;
 	int lflags;
 
-	sock = socket(PF_INET, SOCK_DGRAM, 0);
-	if (sock < 0)
+	sockfd = socket(PF_INET, SOCK_DGRAM, 0);
+	if (sockfd < 0)
 	{
 		perror("cannot open socket");
 		exit(1);
@@ -564,7 +567,7 @@ int main(int argc, char **argv)
 					ifr.ifr_addr.sa_family = AF_INET;
 					shw->shw_len = (unsigned short)sizeof(hwaddr);
 					memcpy(shw->shw_addr, hwaddr, sizeof(hwaddr));
-					if (ioctl(sock, SIOCSIFHWADDR, &ifr) < 0)
+					if (ioctl(sockfd, SIOCSIFHWADDR, &ifr) < 0)
 						fprintf(stderr, "interface does not support SIOCSIFHWADDR ioctl\n");
 				}
 #endif

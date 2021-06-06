@@ -30,16 +30,16 @@ FILE _iob[_NFILE];						/* stream buffers initialized below */
 typedef void (*ExitFn) __PROTO( (void));
 ExitFn *_at_exit;
 int _num_at_exit;						/* number of functions registered - 1 */
-static int no_ssystem;
+int no_ssystem;
 
 /*
  * get MiNT version number. Since this has to be done in supervisor mode,
  * we might as well set the start-up time of the system here, too.
  */
 /* this function is called in user mode if the kernel supports Ssystem() */
-static long getMiNT __PROTO((void));
 
-static long getMiNT()
+#ifndef ARP_HACK
+static long getMiNT(void)
 {
 	long *cookie;
 
@@ -78,6 +78,7 @@ static long getMiNT()
 	__mint = 0;
 	return 0;
 }
+#endif
 
 /* supplied by the user */
 __EXTERN int main __PROTO((int, char **, char **));
@@ -109,6 +110,9 @@ char **_argv,
 	extern int __default_mode__;		/* in defmode.c or defined by user */
 	extern short _app;					/* tells if we're an application or acc */
 
+#ifdef ARP_HACK
+	long value;
+#endif
 	char *p,
 	*tmp;
 	size_t len,
@@ -125,10 +129,19 @@ char **_argv,
  * check for MiNT
  */
 	no_ssystem = (int)Ssystem(-1, NULL, NULL);
+#ifdef ARP_HACK
+	_starttime = get_sysvar((void *)0x4baL);
+	_childtime = 0;
+	if (Getcookie(0x4d694e54L, &value) == 0)
+		__mint = (int)value;
+	else
+		__mint = 0;
+#else
 	if (no_ssystem)
 		(void) Supexec(getMiNT);
 	else
 		(void) getMiNT();
+#endif
 
 	if (_app)
 		_pdomain = Pdomain(1);			/* set MiNT domain */
