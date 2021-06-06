@@ -1,5 +1,7 @@
 /*
- * Adopted to Mint-Net 1994, Kay Roemer
+ * Adopted to Mint-Net 1994, Kay Roemer.
+ *
+ * Modified to support Pure-C, Thorsten Otto.
  */
 
 /*
@@ -35,23 +37,66 @@
  * SUCH DAMAGE.
  */
 
-/*
- * Convert network-format internet address
- * to base 256 d.d.d.d representation.
- */
-
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
+#include <ctype.h>
 
-char *inet_ntoa(struct in_addr in)
+/*
+ * Internet network address interpretation routine.
+ * The library routines call this routine to interpret
+ * network numbers.
+ */
+in_addr_t inet_network(const char *cp)
 {
-	static char b[18];
-	char *p;
+	unsigned long val;
+	unsigned long base;
+	int n;
+	char c;
+	unsigned long parts[4];
+	unsigned long *pp = parts;
+	int i;
 
-	p = (char *) &in;
-#define	UC(b)	(((int)b)&0xff)
-	sprintf(b, "%d.%d.%d.%d", UC(p[0]), UC(p[1]), UC(p[2]), UC(p[3]));
-	return b;
+  again:
+	val = 0;
+	base = 10;
+	if (*cp == '0')
+		base = 8, cp++;
+	if (*cp == 'x' || *cp == 'X')
+		base = 16, cp++;
+	while ((c = *cp) != '\0')
+	{
+		if (isdigit(c))
+		{
+			val = (val * base) + (c - '0');
+			cp++;
+			continue;
+		}
+		if (base == 16 && isxdigit(c))
+		{
+			val = (val << 4) + (c + 10 - (islower(c) ? 'a' : 'A'));
+			cp++;
+			continue;
+		}
+		break;
+	}
+	if (*cp == '.')
+	{
+		if (pp >= parts + 4)
+			return INADDR_NONE;
+		*pp++ = val, cp++;
+		goto again;
+	}
+	if (*cp && !isspace(*cp))
+		return INADDR_NONE;
+	*pp++ = val;
+	n = (int)(pp - parts);
+	if (n > 4)
+		return INADDR_NONE;
+	for (val = 0, i = 0; i < n; i++)
+	{
+		val <<= 8;
+		val |= parts[i] & 0xff;
+	}
+	return val;
 }

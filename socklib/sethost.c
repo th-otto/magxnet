@@ -1,9 +1,5 @@
 /*
- * Adopted to Mint-Net 1994, Kay Roemer
- */
-
-/*
- * Copyright (c) 1983 Regents of the University of California.
+ * Copyright (c) 1985 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,23 +31,18 @@
  * SUCH DAMAGE.
  */
 
-/*
- * Convert network-format internet address
- * to base 256 d.d.d.d representation.
- */
+#include "stsocket.h"
 
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdio.h>
 
-char *inet_ntoa(struct in_addr in)
+void sethostent(int stayopen)
 {
-	static char b[18];
-	char *p;
+	if (stayopen)
+		_res.options |= RES_STAYOPEN | RES_USEVC;
+}
 
-	p = (char *) &in;
-#define	UC(b)	(((int)b)&0xff)
-	sprintf(b, "%d.%d.%d.%d", UC(p[0]), UC(p[1]), UC(p[2]), UC(p[3]));
-	return b;
+
+void endhostent(void)
+{
+	_res.options &= ~(RES_STAYOPEN | RES_USEVC);
+	_res_close();
 }

@@ -31,6 +31,12 @@ OBJS = \
 	recvfrom.o \
 	poll.o \
 	select.o \
+	getnet.o \
+	getproto.o \
+	getserv.o \
+	inetneto.o \
+	inetnetw.o \
+	sethost.o \
 	$(empty)
 
 all:: $(PROGRAMS)

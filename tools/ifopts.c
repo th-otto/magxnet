@@ -166,9 +166,9 @@ int opt_file(char *fname, char *ifname)
 {
 	FILE *fp;
 	static char opt_file_buf[LINE_MAX];
-	char *cp,
-	*opt,
-	*val;
+	char *cp;
+	char *opt;
+	char *val;
 	struct ifopt ifo;
 
 	file = fname;

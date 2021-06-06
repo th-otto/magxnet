@@ -126,14 +126,23 @@ extern FILE _iob[];
 #undef _PATH_HOSTS
 #undef _PATH_HOSTCONF
 #undef _PATH_RESCONF
+#undef _PATH_PROTOCOLS
+#undef _PATH_SERVICES
+#undef _PATH_NETWORKS
 #ifdef __MINT__
-#define _PATH_HOSTS     "u:/etc/hosts" /* BUG: u not uppercase */
-#define _PATH_HOSTCONF  "u:/etc/host.conf" /* BUG: u not uppercase */
+#define _PATH_HOSTS     "u:/etc/hosts"
+#define _PATH_HOSTCONF  "u:/etc/host.conf"
 #define _PATH_RESCONF   "u:/etc/resolv.conf"
+#define	_PATH_PROTOCOLS	"u:/etc/protocols"
+#define _PATH_SERVICES  "u:/etc/services"
+#define	_PATH_NETWORKS	"u:/etc/networks"
 #else
 #define _PATH_HOSTS     "u:\\etc\\hosts" /* BUG: u not uppercase */
 #define _PATH_HOSTCONF  "u:\\etc\\host.conf" /* BUG: u not uppercase */
 #define _PATH_RESCONF   "u:\\etc\\resolv.conf"
+#define	_PATH_PROTOCOLS	"u:\\etc\\protocols"
+#define _PATH_SERVICES  "u:\\etc\\services"
+#define	_PATH_NETWORKS	"u:\\etc\\networks"
 #endif
 
 
@@ -187,4 +196,5 @@ const char *__hostalias(const char *name);
 int res_init(void);
 int res_send(const uint8_t *buf, int buflen, uint8_t *answer, int anslen);
 int res_querydomain(const char *name, const char *domain, int class, int type, uint8_t *answer, int anslen);
+void _res_close(void);
 

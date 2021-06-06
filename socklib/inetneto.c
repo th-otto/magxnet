@@ -1,5 +1,7 @@
 /*
  * Adopted to Mint-Net 1994, Kay Roemer
+ *
+ * Modified to support Pure-C, Thorsten Otto.
  */
 
 /*
@@ -35,23 +37,23 @@
  * SUCH DAMAGE.
  */
 
-/*
- * Convert network-format internet address
- * to base 256 d.d.d.d representation.
- */
-
 #include <sys/types.h>
+#include <sys/param.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
 
-char *inet_ntoa(struct in_addr in)
+/*
+ * Return the network number from an internet
+ * address; handles class a/b/c network #'s.
+ */
+in_addr_t inet_netof(struct in_addr in)
 {
-	static char b[18];
-	char *p;
+	in_addr_t i = ntohl(in.s_addr);
 
-	p = (char *) &in;
-#define	UC(b)	(((int)b)&0xff)
-	sprintf(b, "%d.%d.%d.%d", UC(p[0]), UC(p[1]), UC(p[2]), UC(p[3]));
-	return b;
+	if (IN_CLASSA(i))
+		return ((i) & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT;
+	else if (IN_CLASSB(i))
+		return ((i) & IN_CLASSB_NET) >> IN_CLASSB_NSHIFT;
+	else
+		return ((i) & IN_CLASSC_NET) >> IN_CLASSC_NSHIFT;
 }
