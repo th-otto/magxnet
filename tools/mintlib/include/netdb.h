@@ -140,7 +140,7 @@ extern struct hostent *gethostent (void);
 
    This function is a possible cancellation point and therefore not
    marked with __THROW.  */
-extern struct hostent *gethostbyaddr (const void *__addr, __socklen_t __len, int __type);
+extern struct hostent *gethostbyaddr (const char *__addr, __socklen_t __len, int __type);
 
 /* Return entry from host data base for host with NAME.
 

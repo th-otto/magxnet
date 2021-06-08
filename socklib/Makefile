@@ -12,6 +12,8 @@ OBJS = \
 	connect.o \
 	gethost.o \
 	getnet.o \
+	getprote.o \
+	getprotn.o \
 	getproto.o \
 	getserv.o \
 	getservn.o \
@@ -41,6 +43,7 @@ OBJS = \
 	sockglob.o \
 	sockname.o \
 	sockpair.o \
+	sockopt.o \
 	$(empty)
 
 all:: $(PROGRAMS)

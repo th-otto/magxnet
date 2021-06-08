@@ -33,24 +33,92 @@
 
 #include "stsocket.h"
 
-extern int _proto_stayopen;
 
-struct protoent *getprotobyname(const char *name)
+#define	MAXALIASES	35
+
+static FILE *protof = NULL;
+static char line[BUFSIZ + 1];
+static struct protoent proto;
+static char *proto_aliases[MAXALIASES];
+int _proto_stayopen;
+
+
+#if defined(__MINT__) && !defined(NO_MINT)
+#define READ_TEXT "rt"
+#else
+#define READ_TEXT "r"
+#endif
+
+
+void setprotoent(int f)
 {
-	struct protoent *p;
-	char **cp;
-
-	setprotoent(_proto_stayopen);
-	while ((p = getprotoent()) != NULL)
-	{
-		if (strcmp(p->p_name, name) == 0)
-			break;
-		for (cp = p->p_aliases; *cp != 0; cp++)
-			if (strcmp(*cp, name) == 0)
-				goto found;
-	}
-  found:
-	if (!_proto_stayopen)
-		endprotoent();
-	return p;
+	if (protof == NULL)
+		protof = fopen(_PATH_PROTOCOLS, READ_TEXT);
+	else
+		rewind(protof);
+	_proto_stayopen |= f;
 }
+
+
+void endprotoent(void)
+{
+	if (protof)
+	{
+		fclose(protof);
+		protof = NULL;
+	}
+	_proto_stayopen = 0;
+}
+
+
+struct protoent *getprotoent(void)
+{
+	char *p;
+	register char *cp,
+	**q;
+
+	if (protof == NULL && (protof = fopen(_PATH_PROTOCOLS, READ_TEXT)) == NULL)
+		return NULL;
+  again:
+		if ((p = fgets(line, (int)BUFSIZ, protof)) == NULL)
+			return NULL;
+		if (*p == '#')
+			goto again;
+		cp = strpbrk(p, "#\n");
+		if (cp == NULL)
+			goto again;
+		*cp = '\0';
+		proto.p_name = p;
+		cp = strpbrk(p, " \t");
+		if (cp == NULL)
+			goto again;
+	*cp++ = '\0';
+	while (*cp == ' ' || *cp == '\t')
+		cp++;
+	p = strpbrk(cp, " \t");
+	if (p != NULL)
+		*p++ = '\0';
+	proto.p_proto = atoi(cp);
+	q = proto.p_aliases = proto_aliases;
+	if (p != NULL)
+	{
+		cp = p;
+		while (cp && *cp)
+		{
+			if (*cp == ' ' || *cp == '\t')
+			{
+				cp++;
+				continue;
+			}
+			if (q < &proto_aliases[MAXALIASES - 1])
+				*q++ = cp;
+			cp = strpbrk(cp, " \t");
+			if (cp != NULL)
+				*cp++ = '\0';
+		}
+	}
+	*q = NULL;
+	return &proto;
+}
+
+

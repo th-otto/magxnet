@@ -143,6 +143,16 @@ extern const unsigned char *_ctype;
 #endif
 
 /*
+ * another ugly hack:
+ * some programs are linked with mintlib,
+ * but using a socketlib that was compiled without
+ */
+#ifdef NO_MINT
+#undef __MINT__
+#define memcmp(a, b, c) bcmp(a, b, c)
+#endif
+
+/*
  * only temporary to get binary identical results;
  * ioctl() should be avoided because it pulls in
  * lots of unneeded stuff
@@ -817,9 +827,15 @@ struct hostent *gethostbyname(const char *name)
 }
 
 
+#if (defined(__MINT__) || defined(NO_MINT)) && !defined(__GNUC__)
+struct hostent *gethostbyaddr(const char *addr, socklen_t len, int type)
+#else
 struct hostent *gethostbyaddr(const void *__addr, socklen_t len, int type)
+#endif
 {
+#if (!defined(__MINT__) && !defined(NO_MINT)) || defined(__GNUC__)
 	const unsigned char *addr = (const unsigned char *) __addr;
+#endif
 	int n;
 	querybuf buf;
 	int cc;
@@ -831,8 +847,7 @@ struct hostent *gethostbyaddr(const void *__addr, socklen_t len, int type)
 	if (!service_done)
 		init_services();
 
-	cc = 0;
-	while (service_order[cc] != SERVICE_NONE)
+	for (cc = 0; service_order[cc] != SERVICE_NONE; cc++)
 	{
 		switch (service_order[cc])
 		{
@@ -919,7 +934,6 @@ struct hostent *gethostbyaddr(const void *__addr, socklen_t len, int type)
 			h_errno = HOST_NOT_FOUND;
 			break;
 		}
-		cc++;
 	}
 	return NULL;
 }

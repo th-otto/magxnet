@@ -35,22 +35,17 @@
 
 extern int _proto_stayopen;
 
-struct protoent *getprotobyname(const char *name)
+struct protoent *getprotobynumber(int protocol)
 {
 	struct protoent *p;
-	char **cp;
 
 	setprotoent(_proto_stayopen);
 	while ((p = getprotoent()) != NULL)
-	{
-		if (strcmp(p->p_name, name) == 0)
+		if (p->p_proto == protocol)
 			break;
-		for (cp = p->p_aliases; *cp != 0; cp++)
-			if (strcmp(*cp, name) == 0)
-				goto found;
-	}
-  found:
 	if (!_proto_stayopen)
 		endprotoent();
 	return p;
 }
+
+

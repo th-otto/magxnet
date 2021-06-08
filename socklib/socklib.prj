@@ -40,7 +40,9 @@ recvfrom.c
 poll.c
 select.c
 getnet.c
+getprote.c
 getproto.c
+getprotn.c
 getserv.c
 inetneto.c
 inetnetw.c

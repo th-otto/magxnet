@@ -50,7 +50,7 @@ char *rindex (const char *__s, int __c);
  * ioctl() should be avoided because it pulls in
  * lots of unneeded stuff
  */
-#ifdef __MINT__
+#if defined(__MINT__) && !defined(NO_MINT)
 #include <sys/ioctl.h>
 #define READ_TEXT "rt"
 #else

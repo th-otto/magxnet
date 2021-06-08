@@ -124,7 +124,7 @@ long Fcntl(short f, long arg, short cmd);
 #undef _PATH_PROTOCOLS
 #undef _PATH_SERVICES
 #undef _PATH_NETWORKS
-#ifdef __MINT__
+#if defined(__MINT__) && !defined(NO_MINT)
 #define _PATH_HOSTS     "u:/etc/hosts"
 #define _PATH_HOSTCONF  "u:/etc/host.conf"
 #define _PATH_RESCONF   "u:/etc/resolv.conf"

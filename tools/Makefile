@@ -10,6 +10,7 @@ PROGRAMS += iflink.ttp
 PROGRAMS += ifstats.ttp
 PROGRAMS += netstat.ttp
 PROGRAMS += route.ttp
+PROGRAMS += ping.ttp
 
 all:: $(PROGRAMS)
 
@@ -30,6 +31,9 @@ netstat.ttp: netstat.o $(SOCKLIB_DEP)
 
 route.ttp: route.o $(SOCKLIB_DEP)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ route.o $(SOCKLIB)
+
+ping.ttp: ping.o $(SOCKLIB_DEP)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ ping.o $(SOCKLIB)
 
 clean::
 	rm -f *.o *.pdb *.prg *.ttp *.map $(PROGRAMS)

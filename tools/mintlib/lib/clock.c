@@ -6,31 +6,37 @@
 #include <osbind.h>
 #include <mintbind.h>
 #include <ssystem.h>
+#include <sysvars.h>
 
 extern clock_t _starttime;				/* in main.c */
 
+#ifndef ARP_HACK
 static clock_t now;
 
 /* this must execute in supervisor mode; it fetches the system variable
  * containing the number of 200HZ ticks since the system was booted
  */
 
-static long getnow __PROTO((void));
 
-static long getnow()
+static long getnow(void)
 {
 	now = *((unsigned long *) 0x4baL);
 	return 0;
 }
+#endif
 
-clock_t _clock()
+clock_t _clock(void)
 {
+#ifdef ARP_HACK
+	return get_sysvar((void *)0x000004baL) - _starttime;
+#else
 	if (Ssystem(-1, NULL, NULL))
 	{
 		(void) Supexec(getnow);
 		return (now - _starttime);
 	} else
 		return (Ssystem(S_GETLVAL, 0x000004baL, NULL) - _starttime);
+#endif
 }
 
 /* This next bit of nonsense is temporary...clock() should be fixed! */
