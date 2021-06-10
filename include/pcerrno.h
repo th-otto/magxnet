@@ -12,6 +12,8 @@
 #define	EOPNOTSUPP		(307)		/* Operation not supported.  */
 #undef EMFILE
 #define	EMFILE			(35)		/* Too many open files.  */
+#undef EACCES
+#define EACCES			(36)		/* Permission denied.  */
 #undef ENOMEM
 #define	ENOMEM			(39)		/* Cannot allocate memory.  */
 #undef EBADF

@@ -1,16 +1,17 @@
 struct magxnet_cookie {
-	void *o0;
-	void *o4;
-	void *o8;
-	long (*o12)(void);
-	void *o16;
-	void *o20;
+	const char *version;
+	const char *author;
+	unsigned long magic;
+	long (*init_timer)(void);
+	void (*o16)(void);
+	BASEPAGE *base;
 	long (*Fopen)(const char *filename);
 	short (*Fclose)(short fd);
 	void *o32;
 	struct sockdev *dev_table;
 	void *o40;
 	long o44;
+	long o48;
 };
 
 

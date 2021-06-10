@@ -1,0 +1,31 @@
+#
+# Makefile for sockets.dev
+#
+
+include ../configvars
+
+PROGRAMS = sockets.dev
+
+OBJS = \
+	main.o \
+	sockdev.o \
+	etvtimer.o \
+	mxkernel.o \
+	rest.o \
+	mxdev.o \
+	x28.o \
+	$(empty)
+
+all:: $(PROGRAMS)
+
+EVAL_MSHORT = \
+	if echo "" | $(CC) $(CFLAGS) -dM -E - | grep -q __MSHORT__; then echo 1; else echo 0; fi
+
+.s.o:
+	$(CC) -c $(CFLAGS) -Wa,-defsym,GNUC=1 -Wa,-defsym,MSHORT=$(shell $(EVAL_MSHORT)) -o $@ $<
+
+sockets.dev: $(OBJS) $(SOCKLIB_DEP)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(SOCKLIB)
+
+clean::
+	rm -f *.o *.pdb *.prg *.ttp *.map $(PROGRAMS)

@@ -68,7 +68,7 @@ int open_socket(int flag)
 		}
 		if (sockets_dev->o44 != 0)
 			return -1;
-		Supexec(sockets_dev->o12);
+		Supexec(sockets_dev->init_timer);
 		sockets_dev->o44 = 1;
 	}
 	sock_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
