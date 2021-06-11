@@ -35,7 +35,7 @@ struct stat *st;
 	_DOSTIME timeptr;
 	short magic;
 
-	if ((r = Fcntl(fd, (long) st, FSTAT)) != -EINVAL)
+	if ((r = Fcntl(fd, (long) st, FSTAT)) != -ENOSYS)
 	{
 		if (r)
 		{

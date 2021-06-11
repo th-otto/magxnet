@@ -33,7 +33,7 @@ DIR *dirp;
 		r = Dclosedir(dirp->handle);
 	else
 		r = 0;
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		/* hmm, something went wrong, just ignore it. */
 		r = 0;

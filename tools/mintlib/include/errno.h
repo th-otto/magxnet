@@ -45,8 +45,8 @@ extern "C" {
 #define	EIDISK		 17		/* insert disk */
 #define EOTHER		 EIDISK		/*    "    "   */
 					/* (gap) */
-#define	EINVAL		 32		/* invalid function number */
-#define ENOSYS		 EINVAL		/*   "        "       "    */
+#define	EINVAL		 25		/* invalid function number */
+#define ENOSYS		 32		/*   "        "       "    */
 #define	ENOENT		 33		/* file not found */
 #define ESRCH		 ENOENT		/* pid not found */
 #define ECHILD		 ENOENT		/* no children (wait/waipid) */

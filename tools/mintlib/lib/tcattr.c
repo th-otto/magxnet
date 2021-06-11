@@ -192,7 +192,7 @@ const struct termios *stp;
 		}
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	r = Fcntl((short) fd, (long) &t, TIOCSETC);

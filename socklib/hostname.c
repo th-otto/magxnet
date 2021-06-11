@@ -12,7 +12,6 @@
 #if defined(__GNUC__) || defined(__MINT__)
 #include <unistd.h>
 #endif
-#include <errno.h>
 
 #ifndef ENAMETOOLONG
 #define ENAMETOOLONG 86

@@ -15,7 +15,7 @@ int rgid,
 	if (have_setregid)
 	{
 		r = Psetregid(rgid, egid);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_setregid = 0;
 		else if (r < 0)
 		{

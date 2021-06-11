@@ -133,12 +133,12 @@ void usleep(usec)
 unsigned long usec;
 {
 	unsigned long stop;
-	int r = -EINVAL;
+	int r = -ENOSYS;
 
 	if (usec >= 1000)
 		r = Fselect((unsigned) (usec / 1000), 0L, 0L, 0L);
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		stop = _clock() + USEC_TO_CLOCK_TICKS(usec);
 		while (_clock() < stop)

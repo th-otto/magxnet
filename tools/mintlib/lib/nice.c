@@ -17,11 +17,11 @@ int p;
 	if (have_pnice)
 	{
 		r = Pnice(p);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_pnice = 0;
 		else
 			return -(int) (short) r;
 	}
-	errno = EINVAL;
+	errno = ENOSYS;
 	return -1;
 }

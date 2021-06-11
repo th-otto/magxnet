@@ -29,7 +29,7 @@ int action;
 		flushtype = 0;
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	r = Fcntl((short) fd, &flushtype, TIOCFLUSH);

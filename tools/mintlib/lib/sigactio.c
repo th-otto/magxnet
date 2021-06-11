@@ -27,7 +27,7 @@ struct sigaction *oact;
 
 	if (have_psigaction)
 	{
-		if (Psigaction(-1, NULL, NULL) == -EINVAL)
+		if (Psigaction(-1, NULL, NULL) == -ENOSYS)
 			have_psigaction = 0;
 	}
 
@@ -116,7 +116,7 @@ int signo;
 
 	if ((!set) || (signo >= __NSIG))
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	idx = _SIGSET_INDEX(signo);
@@ -134,7 +134,7 @@ int signo;
 
 	if ((!set) || (signo >= __NSIG))
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	idx = _SIGSET_INDEX(signo);
@@ -150,7 +150,7 @@ sigset_t *set;
 
 	if (!set)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	for (idx = _SIGSET_MAX_INDEX; idx >= 0; idx--)
@@ -167,7 +167,7 @@ sigset_t *set;
 
 	if (!set)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	for (idx = _SIGSET_MAX_INDEX; idx >= 0; idx--)
@@ -186,7 +186,7 @@ int signo;
 
 	if ((!set) || (signo >= __NSIG))
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	idx = _SIGSET_INDEX(signo);
@@ -199,7 +199,7 @@ sigset_t *set;
 {
 	if (!set)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	(void) sigemptyset(set);
@@ -217,7 +217,7 @@ sigset_t *oset;
 
 	if (!set)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	switch (how)
@@ -233,7 +233,7 @@ sigset_t *oset;
 		omask = Psigsetmask(set->__sigset_data[0]);
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		rv = -1;
 	}
 	if (oset)

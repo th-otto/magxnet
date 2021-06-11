@@ -27,7 +27,7 @@ int fd;
 	/* save 1 or 2 system calls (isatty gets called on every open...) */
 
 	retval = (int)Fcntl(fd, &dummy, TIOCGPGRP);
-	if (retval == -EINVAL)
+	if (retval == -ENOSYS)
 	{
 		oldloc = Fseek(0L, fd, SEEK_CUR);	/* save current location */
 		if (Fseek(1L, fd, SEEK_CUR) != 0)

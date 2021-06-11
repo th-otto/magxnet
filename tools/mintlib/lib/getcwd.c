@@ -41,13 +41,13 @@ int size;
 
 	r = (int) Dgetcwd(path, 0, size - 2);
 
-	if (r != 0 && r != -EINVAL)
+	if (r != 0 && r != -ENOSYS)
 	{
 		if (buf_malloced)
 			free(buf);
 		errno = -r;
 		return NULL;
-	} else if (r == -EINVAL)
+	} else if (r == -ENOSYS)
 	{
 		(void) Dgetpath(path, 0);
 	}

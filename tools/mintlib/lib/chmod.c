@@ -27,11 +27,11 @@ int mode;
 	if ((r == -ENOENT) && (Dpathconf(path, 5) == 2) && (Fattrib(path, 0, 0) == FA_DIR))
 		return 0;
 #endif
-	if (r && (r != -EINVAL))
+	if (r && (r != -ENOSYS))
 	{
 		errno = -r;
 		return -1;
-	} else if (r != -EINVAL)			/* call was successfull */
+	} else if (r != -ENOSYS)			/* call was successfull */
 		return 0;
 
 

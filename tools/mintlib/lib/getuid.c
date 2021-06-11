@@ -14,7 +14,7 @@ uid_t getuid()
 	if (have_getuid)
 	{
 		r = Pgetuid();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_getuid = 0;
 		else
 			return (uid_t) r;

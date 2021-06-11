@@ -20,7 +20,7 @@ pid_t getpgrp()
 	if (have_pgrp)
 	{
 		r = Pgetpgrp();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_pgrp = 0;
 		else
 			return (pid_t) r;
@@ -35,7 +35,7 @@ int setpgrp()
 	if (have_pgrp)
 	{
 		r = Psetpgrp(0, 0);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_pgrp = 0;
 		else
 			return r;
@@ -52,7 +52,7 @@ int pid,
 	if (have_pgrp)
 	{
 		r = Psetpgrp(pid, grp);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 		{
 			if (grp != -1)
 				have_pgrp = 0;
@@ -88,10 +88,10 @@ pid_t setsid()
 	if (have_pgrp)
 	{
 		prc_pgrp = Pgetpgrp();
-		if (prc_pgrp == -EINVAL)
+		if (prc_pgrp == -ENOSYS)
 		{
 			have_pgrp = 0;
-			errno = EINVAL;
+			errno = ENOSYS;
 		} else
 		{
 			if (prc_pgrp != Pgetpid())
@@ -114,7 +114,7 @@ pid_t setsid()
 			}
 		}
 	} else
-		errno = EINVAL;
+		errno = ENOSYS;
 
 	return (pid_t) rc;
 }

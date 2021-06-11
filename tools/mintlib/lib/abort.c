@@ -14,7 +14,7 @@
 __EXITING abort()
 {
 #ifdef __MINT__
-	if (Pkill(Pgetpid(), SIGABRT) != -EINVAL)
+	if (Pkill(Pgetpid(), SIGABRT) != -ENOSYS)
 	{
 		/* process still alive, maybe SIGABRT was blocked */
 		(void) Psigsetmask(Psigblock(0) & ~(sigmask(SIGABRT)));

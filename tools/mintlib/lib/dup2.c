@@ -27,7 +27,7 @@ int handle1,
 		if (__OPEN_INDEX(handle2) < __NHANDLES)
 			__open_stat[__OPEN_INDEX(handle2)] = __open_stat[__OPEN_INDEX(handle1)];
 
-		if ((flags = (long) Fcntl(handle2, (long) 0, F_GETFD)) != -EINVAL)
+		if ((flags = (long) Fcntl(handle2, (long) 0, F_GETFD)) != -ENOSYS)
 			(void) Fcntl(handle2, flags & ~FD_CLOEXEC, F_SETFD);
 	}
 	return (rv < 0) ? -1 : handle2;

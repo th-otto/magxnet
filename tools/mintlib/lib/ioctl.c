@@ -173,14 +173,14 @@ void *arg;
 					*msig |= ((m & (1 << 6)) ? 0 : TIOCM_RNG);
 					return 0;
 				}
-				errno = EINVAL;
+				errno = ENOSYS;
 				return -1;
 			}
 		case TIOCSETP:
 /*
 	      if (__mint <= 0x10a) {
 		r = Fcntl(fd, arg, cmd);
-		if (r != -EINVAL)
+		if (r != -ENOSYS)
 		  break;
 		cmd = TIOCSETN;
 	      }
@@ -227,10 +227,10 @@ void *arg;
 		case TIOCSPGRP:
 			break;
 		default:
-			r = -EINVAL;
+			r = -ENOSYS;
 		}
 	} else
-		r = -EINVAL;
+		r = -ENOSYS;
 
 	if (r < 0)
 	{

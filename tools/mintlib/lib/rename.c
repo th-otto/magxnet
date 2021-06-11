@@ -24,7 +24,7 @@ const char *_oldname,
 	_unx2dos(_oldname, oldname, sizeof(oldname));
 	_unx2dos(_newname, newname, sizeof(newname));
 
-	if (((xattr = Fxattr(1, newname, &newstat)) != -EINVAL)
+	if (((xattr = Fxattr(1, newname, &newstat)) != -ENOSYS)
 		&& (xattr == 0)
 		&& (Fxattr(1, newname, &newstat) == 0)
 		&& (Fxattr(1, oldname, &oldstat) == 0)
@@ -73,7 +73,7 @@ const char *_oldname,
 
 	if (rval < 0)
 	{
-		if ((rval == -EPATH) && (xattr != -EINVAL) && (_enoent(Fxattr(1, oldname, &oldstat) ? oldname : newname)))
+		if ((rval == -EPATH) && (xattr != -ENOSYS) && (_enoent(Fxattr(1, oldname, &oldstat) ? oldname : newname)))
 			rval = -ENOENT;
 		errno = -rval;
 		rval = -1;

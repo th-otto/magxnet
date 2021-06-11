@@ -11,7 +11,7 @@ gid_t getegid()
 	if (have_getegid)
 	{
 		r = Pgetegid();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_getegid = 0;
 		else
 			return (gid_t) r;

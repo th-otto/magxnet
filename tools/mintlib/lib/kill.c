@@ -29,7 +29,7 @@ int pid,
 	if (_have_pkill)
 	{
 		r = Pkill(pid, sig);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			_have_pkill = 0;
 		else if (r < 0)
 		{

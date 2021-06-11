@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	ifr.ifr_data = (caddr_t) stats;
 	if (ioctl(sockfd, SIOCGLNKSTATS, &ifr) < 0)
 	{
-		if (errno == EINVAL)
+		if (errno == ENOSYS)
 			fprintf(stderr, "no statistics for %s available\n", argv[1]);
 		else
 			perror("cannot get interface statistics");

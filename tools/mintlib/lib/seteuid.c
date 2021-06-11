@@ -13,7 +13,7 @@ int x;
 	if (have_seteuid)
 	{
 		r = Pseteuid(x);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_seteuid = 0;
 		else if (r < 0)
 		{

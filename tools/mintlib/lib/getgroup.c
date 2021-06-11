@@ -40,7 +40,7 @@ gid_t *grpset;
 
 	r = Pgetgroups(gsetlen, grpset);
 
-	if (r != EINVAL)
+	if (r != ENOSYS)
 	{
 		if (r < 0)
 		{
@@ -51,14 +51,14 @@ gid_t *grpset;
 	}
 
 	currgid = (gid_t) Pgetgid();
-	if (currgid == (gid_t) (-EINVAL))
+	if (currgid == (gid_t) (-ENOSYS))
 		return 0;
 
 	if (gsetlen)
 	{
 		if (gsetlen < 0 || !grpset)
 		{
-			errno = EINVAL;
+			errno = ENOSYS;
 			return -1;
 		}
 		*grpset++ = currgid;
@@ -86,7 +86,7 @@ gid_t *grpset;
 				{
 					if (numgroups > gsetlen)
 					{
-						errno = EINVAL;
+						errno = ENOSYS;
 						return -1;
 					}
 					*grpset++ = gentry->gr_gid;

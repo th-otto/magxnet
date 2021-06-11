@@ -75,14 +75,14 @@ const struct utimbuf *tset;
 	settime.acdate = (unsigned short) (actime & 0xFFFF);
 	settime.modtime = (unsigned short) ((modtime >> 16) & 0xFFFF);
 	settime.moddate = (unsigned short) (modtime & 0xFFFF);
-	res = -EINVAL;
+	res = -ENOSYS;
 
 	if (tset)
 		res = Dcntl(FUTIME, filename, (long) (&settime));
 	else
 		res = Dcntl(FUTIME, filename, (long) 0);
 
-	if (res != -EINVAL)
+	if (res != -ENOSYS)
 	{
 		if (res < 0)
 		{
@@ -100,7 +100,7 @@ const struct utimbuf *tset;
 		/* Kludge:  on dos filesystems return success for dirs
 		   even though we failed */
 		if ((fh == -ENOENT) &&
-			(((ret = Dpathconf(filename, 5)) == 2) || (ret == -EINVAL)) && (Fattrib(filename, 0, 0) == FA_DIR))
+			(((ret = Dpathconf(filename, 5)) == 2) || (ret == -ENOSYS)) && (Fattrib(filename, 0, 0) == FA_DIR))
 			return 0;
 #endif
 		if ((fh == -EPATH) && (_enoent(filename)))
@@ -114,7 +114,7 @@ const struct utimbuf *tset;
 	else
 		res = Fcntl(fh, (long) 0, FUTIME);
 
-	if (res == -EINVAL)
+	if (res == -ENOSYS)
 	{
 		dtime = modtime;
 		(void) Fdatime((_DOSTIME *) & dtime, fh, 1);

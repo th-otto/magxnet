@@ -47,14 +47,14 @@ int whence;
 			fcmd = F_SETLKW;
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	if ((r = Fcntl(fd, &lock, fcmd)) < 0)
 	{
 		/* if the filesystem doesn't understand F_SETLKW, 
 		   retry with F_SETLK */
-		if (r == -EINVAL && fcmd == F_SETLKW)
+		if (r == -ENOSYS && fcmd == F_SETLKW)
 		{
 			while ((r = Fcntl(fd, &lock, F_SETLK)) == -ELOCKED)
 				/* busy-wait...bletch */ ;

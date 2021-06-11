@@ -15,7 +15,7 @@ int x;
 	if (have_setgid)
 	{
 		r = Psetgid(x);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 		{
 			__gid = x;
 			have_setgid = 0;

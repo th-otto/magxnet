@@ -23,7 +23,7 @@ int var;
 {
 	long r;
 
-	if ((r = Sysconf(var)) != -EINVAL)
+	if ((r = Sysconf(var)) != -ENOSYS)
 		return (r);
 
 	switch (var)
@@ -41,7 +41,7 @@ int var;
 	case _SC_CHILD_MAX:
 		return UNLIMITED;				/* good 'ol TOS :-) */
 	default:
-		return EINVAL;
+		return ENOSYS;
 	}
 }
 
@@ -54,7 +54,7 @@ int var;
 
 	_unx2dos(_path, path, sizeof(path));
 
-	if ((r = Dpathconf(path, var)) != -EINVAL)
+	if ((r = Dpathconf(path, var)) != -ENOSYS)
 	{
 		if (var == _PC_NO_TRUNC)
 			return r ? -1 : 0;
@@ -79,6 +79,6 @@ int var;
 		return 1;						/* case-insensitive, changing to upper case
 										   (or lower case) MJK */
 	default:							/* note that _PC_PIPE_BUF is invalid */
-		return EINVAL;
+		return ENOSYS;
 	}
 }

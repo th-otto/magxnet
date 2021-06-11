@@ -37,7 +37,7 @@ char *pattern;
 	/* we need 5 X's for this: up to 3 for the pid, and up to 2 for the
 	   extra number */
 
-	if ((pid != -EINVAL) && nx > 4 && startat < 256)
+	if ((pid != -ENOSYS) && nx > 4 && startat < 256)
 	{
 		(void) _itoa(pid, q, 10);
 		while (*q)

@@ -216,7 +216,7 @@ char *const *envp;
 
 	if (mode != P_WAIT && mode != P_OVERLAY && mode != P_NOWAIT)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	(void) _unx2dos(_path, path, sizeof(path));	/* convert filename, if necessary */

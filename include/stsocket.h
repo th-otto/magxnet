@@ -33,7 +33,11 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <errno.h>
+#define __KERNEL__
+#define POSITIVE_ERROR_CODES
+#include <mint/errno.h>
+extern int errno;
+#undef __KERNEL__
 #include <stdint.h>
 #include <string.h>
 #include <time.h>

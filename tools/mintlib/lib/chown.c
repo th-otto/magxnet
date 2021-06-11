@@ -22,7 +22,7 @@ int uid,
 
 	(void) _unx2dos(_name, name, sizeof(name));
 	r = (int) Fchown(name, uid, gid);
-	if (r && (r != -EINVAL))
+	if (r && (r != -ENOSYS))
 	{
 		errno = -r;
 		return -1;

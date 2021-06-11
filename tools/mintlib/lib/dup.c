@@ -16,7 +16,7 @@ int handle;
 	register int rv;
 	long flags;
 
-	if ((rv = (int) Fcntl(handle, (long) 0, F_DUPFD)) == -EINVAL)
+	if ((rv = (int) Fcntl(handle, (long) 0, F_DUPFD)) == -ENOSYS)
 		rv = (int) Fdup(handle);
 
 	if (rv < (__SMALLEST_VALID_HANDLE))
@@ -30,7 +30,7 @@ int handle;
 			__open_stat[__OPEN_INDEX(rv)] = __open_stat[__OPEN_INDEX(handle)];
 		}
 
-		if ((flags = (long) Fcntl(rv, (long) 0, F_GETFD)) != -EINVAL)
+		if ((flags = (long) Fcntl(rv, (long) 0, F_GETFD)) != -ENOSYS)
 			(void) Fcntl(rv, flags & ~FD_CLOEXEC, F_SETFD);
 	}
 	return (rv);

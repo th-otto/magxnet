@@ -1,7 +1,6 @@
 #include "sockets.h"
 #include "mxkernel.h"
 #include "sockdev.h"
-#include <pcerrno.h>
 #include <fcntl.h>
 
 struct dom_ops *alldomains = NULL;
@@ -160,7 +159,7 @@ long so_connect(struct socket *server, struct socket *client, short backlog, sho
 	if (!(server->flags & SO_ACCEPTCON))
 	{
 		DEBUG(("sockdev: so_connect: server is not listening"));
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	}
 
 	/* Put client on the incomplete connection queue of server. */
@@ -173,7 +172,7 @@ long so_connect(struct socket *server, struct socket *client, short backlog, sho
 		if (clients >= backlog)
 		{
 			DEBUG(("sockdev: so_connect: backlog exeeded"));
-			return -ETIMEDOUT;
+			return ETIMEDOUT;
 		}
 		last->next = client;
 	} else
@@ -181,7 +180,7 @@ long so_connect(struct socket *server, struct socket *client, short backlog, sho
 		if (backlog == 0)
 		{
 			DEBUG(("sockdev: so_connect: backlog exeeded"));
-			return -ETIMEDOUT;
+			return ETIMEDOUT;
 		}
 		server->iconn_q = client;
 	}
@@ -198,20 +197,20 @@ long so_connect(struct socket *server, struct socket *client, short backlog, sho
 	}
 
 	if (nonblock)
-		return -EINPROGRESS;
+		return EINPROGRESS;
 
 	while (client->state == SS_ISCONNECTING)
 	{
 		if (sleep(IO_Q, (long) client))
 		{
 			/* Maybe someone closed the client on us. */
-			return -EINTR;
+			return EINTR;
 		}
 		if (!client->conn)
 		{
 			/* Server rejected us from its queue. */
 			DEBUG(("sockdev: so_connect: connection refused"));
-			return -ECONNREFUSED;
+			return ECONNREFUSED;
 		}
 	}
 
@@ -288,7 +287,11 @@ void so_wakewsel(struct socket *so)
 void so_wakexsel(struct socket *so)
 {
 	if (so->xsel)
+#if 0
 		wakeselect((long)so->xsel);
+#else
+		(void) Cconws("I'll wakexselect you later...\r\n"); /* WTF? */
+#endif
 }
 
 

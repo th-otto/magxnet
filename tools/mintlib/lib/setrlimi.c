@@ -34,7 +34,7 @@ struct rlimit *rl;
 		mode = 3;
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	r = Psetlimit(mode, limit);
@@ -67,7 +67,7 @@ struct rlimit *rl;
 		mode = 3;
 		break;
 	default:
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	limit = Psetlimit(mode, -1L);

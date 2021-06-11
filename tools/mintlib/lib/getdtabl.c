@@ -10,7 +10,7 @@ int getdtablesize()
 
 	r = (int) Sysconf(_SC_OPEN_MAX);
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 		return FOPEN_MAX;
 	return r;
 }

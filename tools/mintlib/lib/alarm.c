@@ -20,7 +20,7 @@ unsigned secs;
 			secs = ((unsigned int) (LONG_MAX / 1000));
 #endif
 		r = Talarm((long) secs);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_talarm = 0;
 		else
 			return (unsigned int) r;

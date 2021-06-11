@@ -15,7 +15,7 @@ int x;
 	if (have_setuid)
 	{
 		r = Psetuid(x);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 		{
 			__uid = x;
 			have_setuid = 0;

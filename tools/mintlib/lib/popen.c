@@ -44,7 +44,7 @@ const char *command,
 
 	if (__mint == 0)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return (FILE *) 0;
 	}
 

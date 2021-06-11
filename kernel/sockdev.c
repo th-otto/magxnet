@@ -2,7 +2,6 @@
 #include "mxkernel.h"
 #include "sockdev.h"
 #include "mintsock.h"
-#include <pcerrno.h>
 #include <fcntl.h>
 
 #define SIOCGDOSFD (('S' << 8) | 101) /* MagiCNet extension: returns dos file descriptor */
@@ -125,7 +124,7 @@ static long socketcall(MX_DOSFD *f, void *buf)
 			return mgx_recvmsg(f, cmd->msg, cmd->flags);
 		}
 	}
-	return -ENOSYS;
+	return ENOSYS;
 }
 
 /******************************************************************************/
@@ -142,7 +141,7 @@ static long cdecl socket_open(MX_DOSFD *f)
 	
 	s = so_alloc();
 	if (s == NULL)
-		return -ENOMEM;
+		return ENOMEM;
 	f->fd_user1 = (long)s;
 	f->fd_mode |= OM_NOCHECK;
 	return 0;
@@ -206,7 +205,7 @@ static long cdecl socket_seek(MX_DOSFD *f, long where, short whence)
 	UNUSED(f);
 	UNUSED(where);
 	UNUSED(whence);
-	return -EACCES; /* FIXME: MiNT return ESPIPE here */
+	return EACCES; /* FIXME: MiNT returns ESPIPE here */
 }
 
 /*** ---------------------------------------------------------------------- ***/
@@ -245,7 +244,7 @@ static long cdecl socket_ioctl(MX_DOSFD *f, short cmd, void *buf)
 		/* fall through to domain ioctl */
 		so = (struct socket *)f->fd_user1;
 		if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-			return -ENOSYS; /* BUG: should be EINVAL */
+			return ENOSYS; /* BUG: should be EINVAL */
 		return so->ops->ioctl(so, cmd, buf);
 	}
 }
@@ -374,14 +373,14 @@ static long mgx_socket(MX_DOSFD *f, short domain, short type, short protocol)
 	long ret;
 
 	if (so->state != SS_VIRGIN)
-		return -ENOSYS;
+		return ENOSYS;
 	for (ops = alldomains; ops != NULL; ops = ops->next)
 		if (ops->domain == domain)
 			break;
 	if (ops == NULL)
 	{
 		DEBUG(("so_create: domain %d not supported", domain));
-		return -EAFNOSUPPORT;
+		return EAFNOSUPPORT;
 	}
 	switch (type)
 	{
@@ -405,7 +404,7 @@ static long mgx_socket(MX_DOSFD *f, short domain, short type, short protocol)
 		break;
 	}
 
-	return -ESOCKTNOSUPPORT;
+	return ESOCKTNOSUPPORT;
 }
 
 /*** ---------------------------------------------------------------------- ***/
@@ -452,7 +451,7 @@ static long mgx_bind(MX_DOSFD *f, void *addr, short addrlen)
 	struct socket *so = (struct socket *)f->fd_user1;
 	
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	
 	return so->ops->bind(so, addr, addrlen);
 }
@@ -465,7 +464,7 @@ static long mgx_listen(MX_DOSFD *f, short backlog)
 	long r;
 	
 	if (so->state != SS_ISUNCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	if (backlog < 0)
 		backlog = 0;
 	r = so->ops->listen(so, backlog);
@@ -512,11 +511,11 @@ static long mgx_accept(MX_DOSFD *f, void *addr, short *addrlen)
 	long ret;
 	
 	if (so->state != SS_ISUNCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	if (!(so->flags & SO_ACCEPTCON))
 	{
 		DEBUG(("accept: socket not listening"));
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	}
 	
 	fd = so_create(&newfp);
@@ -569,7 +568,7 @@ static long mgx_connect(MX_DOSFD *f, void *addr, short addrlen)
 		if (so->flags & SO_ACCEPTCON)
 		{
 			DEBUG(("connect: attempt to connect a listening socket"));
-			return -ENOSYS; /* BUG: should be EINVAL */
+			return ENOSYS; /* BUG: should be EINVAL */
 		}
 		return so->ops->connect(so, addr, addrlen, f->fd_mode & O_NDELAY);
 	case SS_ISCONNECTED:
@@ -578,16 +577,16 @@ static long mgx_connect(MX_DOSFD *f, void *addr, short addrlen)
 		 * SS_ISUNCONNECTED.
 		 */
 		DEBUG(("connect: already connected"));
-		return -EISCONN;
+		return EISCONN;
 	case SS_ISDISCONNECTING:
 	case SS_ISDISCONNECTED:
 	case SS_VIRGIN:
 		DEBUG(("connect: socket cannot connect"));
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	}
 
 	DEBUG(("connect: invalid socket state %d", so->state));
-	return -EINTERNAL;
+	return EINTERNAL;
 }
 
 /*** ---------------------------------------------------------------------- ***/
@@ -597,7 +596,7 @@ static long mgx_getsockname(MX_DOSFD *f, void *addr, short *addrlen)
 	struct socket *so = (struct socket *)f->fd_user1;
 
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	return so->ops->getname(so, addr, addrlen, SOCK_ADDR);
 }
@@ -609,7 +608,7 @@ static long mgx_getpeername(MX_DOSFD *f, void *addr, short *addrlen)
 	struct socket *so = (struct socket *)f->fd_user1;
 
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	return so->ops->getname(so, addr, addrlen, PEER_ADDR);
 }
@@ -622,7 +621,7 @@ static long mgx_send(MX_DOSFD *f, const void *buf, long buflen, short flags)
 	struct iovec iov[1];
 
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	iov[0].iov_base = NO_CONST(buf);
 	iov[0].iov_len = buflen;
@@ -637,7 +636,7 @@ static long mgx_sendto(MX_DOSFD *f, const void *buf, long buflen, short flags, c
 	struct iovec iov[1];
 
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	iov[0].iov_base = NO_CONST(buf);
 	iov[0].iov_len = buflen;
@@ -652,7 +651,7 @@ static long mgx_recv(MX_DOSFD *f, void *buf, long buflen, short flags)
 	struct iovec iov[1];
 
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	iov[0].iov_base = buf;
 	iov[0].iov_len = buflen;
@@ -667,7 +666,7 @@ static long mgx_recvfrom(MX_DOSFD *f, void *buf, long buflen, short flags, void 
 	struct iovec iov[1];
 
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	iov[0].iov_base = buf;
 	iov[0].iov_len = buflen;
@@ -681,7 +680,7 @@ static long mgx_setsockopt(MX_DOSFD *f, short level, short optname, void *optval
 	struct socket *so = (struct socket *)f->fd_user1;
 
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	
 	if (level == (short)SOL_SOCKET)
 	{
@@ -689,7 +688,7 @@ static long mgx_setsockopt(MX_DOSFD *f, short level, short optname, void *optval
 		{
 		case SO_DROPCONN:
 			if (!optval || optlen < sizeof(long))
-				return -ENOSYS; /* BUG: should be EINVAL */
+				return ENOSYS; /* BUG: should be EINVAL */
 
 			if (*(long *) optval)
 				so->flags |= SO_DROP;
@@ -713,7 +712,7 @@ static long mgx_getsockopt(MX_DOSFD *f, short level, short optname, void *optval
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
 	{
 		DEBUG(("so_getsockopt: virgin state -> EINVAL"));
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	}
 	
 	if (level == (short)SOL_SOCKET)
@@ -722,7 +721,7 @@ static long mgx_getsockopt(MX_DOSFD *f, short level, short optname, void *optval
 		{
 		case SO_DROPCONN:
 			if (!optval || !optlen || *optlen < sizeof(long))
-				return -ENOSYS; /* BUG: should be EINVAL */
+				return ENOSYS; /* BUG: should be EINVAL */
 
 			*(long *) optval = (so->flags & SO_DROP) != 0;
 			*optlen = sizeof(long);
@@ -743,7 +742,7 @@ static long mgx_shutdown(MX_DOSFD *f, short how)
 	struct socket *so = (struct socket *)f->fd_user1;
 
 	if (so->state == SS_VIRGIN || so->state == SS_ISDISCONNECTED)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 	
 	switch (how)
 	{
@@ -758,7 +757,7 @@ static long mgx_shutdown(MX_DOSFD *f, short how)
 		break;
 #if 0 /* BUG: missing */
 	default:
-		return -ENOSYS;
+		return ENOSYS;
 #endif
 	}
 	
@@ -772,7 +771,7 @@ static long mgx_sendmsg(MX_DOSFD *f, const struct msghdr *msg, short flags)
 	struct socket *so = (struct socket *)f->fd_user1;
 
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	if (msg->msg_control && msg->msg_controllen)
 	{
@@ -780,7 +779,7 @@ static long mgx_sendmsg(MX_DOSFD *f, const struct msghdr *msg, short flags)
 		msg->msg_control = NULL;
 		msg->msg_controllen = 0;
 #else
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 #endif
 	}
 	
@@ -799,7 +798,7 @@ static long mgx_recvmsg(MX_DOSFD *f, struct msghdr *msg, short flags)
 	
 	addrlen = msg->msg_namelen;
 	if (so->state == SS_VIRGIN)
-		return -ENOSYS; /* BUG: should be EINVAL */
+		return ENOSYS; /* BUG: should be EINVAL */
 
 	if (msg->msg_control && msg->msg_controllen)
 	{

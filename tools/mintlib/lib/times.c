@@ -21,7 +21,7 @@ struct tms *buffer;
 
 	real_time = _clock();
 
-	if ((r = Prusage(usage)) != -EINVAL)
+	if ((r = Prusage(usage)) != -ENOSYS)
 	{
 		if (r >= 0 && buffer)
 		{

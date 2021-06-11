@@ -16,6 +16,8 @@
 # include <mint/ssystem.h>
 # include <mint/cookie.h>
 #endif
+#define __KERNEL__
+#include <mint/errno.h>
 
 
 #ifndef TRUE

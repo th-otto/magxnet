@@ -31,7 +31,7 @@ int options;
 
 	r = Pwaitpid(pid, options, 0L);
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		r = __waitval;
 		__waitval = -ENOENT;

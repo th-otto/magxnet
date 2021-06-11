@@ -21,7 +21,7 @@ int fd,
 		cmd = F_ULOCK;
 	else
 	{
-		errno = -EINVAL;
+		errno = -ENOSYS;
 		return -1;
 	}
 	return _do_lock(fd, cmd, 0L, 0);

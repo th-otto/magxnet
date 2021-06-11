@@ -28,7 +28,7 @@ __WP _status;
 
 	r = Pwaitpid(-1, 0, 0L);
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		r = __waitval;
 		__waitval = -ENOENT;

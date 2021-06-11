@@ -24,13 +24,13 @@ int action;
 		r = Fcntl((short) fd, (long) 0, TIOCSTART);
 		break;
 	case TCIOFF:
-		r = -EINVAL;
+		r = -ENOSYS;
 		break;
 	case TCION:
-		r = -EINVAL;
+		r = -ENOSYS;
 		break;
 	default:
-		r = -EINVAL;
+		r = -ENOSYS;
 		break;
 	}
 	if (r < 0)

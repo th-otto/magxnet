@@ -19,7 +19,7 @@ int fd;
 	short f;
 	int retvalue;
 
-	if ((retvalue = (int) Fgetchar(fd, 0)) != -EINVAL)
+	if ((retvalue = (int) Fgetchar(fd, 0)) != -ENOSYS)
 		return retvalue;
 
 	if (fd == 0)

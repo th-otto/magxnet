@@ -49,11 +49,11 @@ struct rusage *data;
 
 	r = Prusage(usage);
 
-	if (r < 0 && r != -EINVAL)
+	if (r < 0 && r != -ENOSYS)
 	{
 		errno = (int) -r;
 		return -1;
-	} else if (r == -EINVAL)
+	} else if (r == -ENOSYS)
 	{
 		usage[0] = usage[2] = usage[4] = 0;
 		usage[1] = _clock() - _childtime;

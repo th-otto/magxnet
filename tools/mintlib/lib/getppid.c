@@ -13,7 +13,7 @@ int getppid()
 	if (have_getppid)
 	{
 		r = Pgetppid();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_getppid = 0;
 		else
 			return (int) r;

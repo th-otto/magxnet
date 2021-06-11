@@ -71,14 +71,14 @@ int lflag;
 	 */
 
 	/* actually we can't do that, because Fxattr() works for MetaDOS devices
-	 * but returns -EINVAL for other GEMDOS devices. Really unhappy solution.
+	 * but returns -ENOSYS for other GEMDOS devices. Really unhappy solution.
 	 * Since I don't want to patch chdir() and other calls I simply have to
 	 * test the presence of Fxattr() every time the stat() is called.
 	 * PS 970606
 	 */
 
 	r = Fxattr(lflag, path, st);
-	if (r != -EINVAL)
+	if (r != -ENOSYS)
 	{
 		if (r)
 		{

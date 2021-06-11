@@ -23,7 +23,7 @@ const char *_old,
 	_unx2dos(_new, new, sizeof(new));
 
 	r = Flink(old, new);
-	if (r < 0 && r != -EINVAL)
+	if (r < 0 && r != -ENOSYS)
 	{
 		struct stat sb;
 
@@ -35,7 +35,7 @@ const char *_old,
 			r = -EEXIST;
 		errno = (int) -r;
 		return -1;
-	} else if (r == -EINVAL)
+	} else if (r == -ENOSYS)
 	{
 		errno = EXDEV;
 		return -1;

@@ -27,7 +27,7 @@ char *path;
 		if (*s == '\\')
 		{
 			*s = '\0';
-			if ((xattr = Fxattr(0, path, &st)) == -EINVAL)
+			if ((xattr = Fxattr(0, path, &st)) == -ENOSYS)
 			{
 				(void) Psigsetmask(oldmask);
 				return 0;

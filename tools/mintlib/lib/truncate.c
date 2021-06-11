@@ -33,13 +33,13 @@ off_t length;
 	char filename[PATH_MAX];
 
 	(void) _unx2dos(_filename, filename, sizeof(filename));
-	res = -EINVAL;
+	res = -ENOSYS;
 
 	res = (int) Dcntl(FTRUNCATE, filename, (long) &length);
 
 	if (res == 0)
 		return res;
-	if (res != EINVAL)
+	if (res != ENOSYS)
 	{
 		if (res < 0)
 		{
@@ -63,7 +63,7 @@ off_t length;
 	res = (int) Fcntl(fh, (long) &length, FTRUNCATE);
 	Fclose(fh);
 
-	if (res == -EINVAL && length == 0)
+	if (res == -ENOSYS && length == 0)
 	{
 		res = (int) Fcreate(filename, 0);
 		if (res >= 0)

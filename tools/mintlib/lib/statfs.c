@@ -55,7 +55,7 @@ int statfs(const char *path, struct statfs *buf)
 		buf->f_files = usage.inodes.lo;
 		buf->f_ffree = usage.free_inodes.lo;
 		buf->f_fsid.val[0] = buf->f_fsid.val[1] = -1L;
-	} else if (r == -EINVAL)
+	} else if (r == -ENOSYS)
 	{
 		_DISKINFO free;
 

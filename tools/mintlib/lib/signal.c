@@ -64,7 +64,7 @@ __Sigfunc func;
 	if (have_psignal)
 	{
 		old = Psignal((short) sig, (long) func);
-		if (old == -EINVAL)
+		if (old == -ENOSYS)
 			have_psignal = 0;
 		else if (old < 0)
 		{

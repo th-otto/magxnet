@@ -50,7 +50,7 @@ const char *uname;
 	_unx2dos(uname, name, sizeof(name));
 
 	r = Dopendir(name, 0);
-	if (r != -EINVAL)
+	if (r != -ENOSYS)
 	{
 		if ((r & 0xff000000L) == 0xff000000L)
 		{

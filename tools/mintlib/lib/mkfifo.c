@@ -74,9 +74,9 @@ mode_t mode;
 	}
 	*s = 0;
 	r = Fsymlink(linkf, path);
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
-		errno = EINVAL;
+		errno = ENOSYS;
 		return -1;
 	}
 	if (r)

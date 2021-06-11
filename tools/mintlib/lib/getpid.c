@@ -12,7 +12,7 @@ int getpid()
 	if (have_getpid)
 	{
 		r = (int) Pgetpid();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_getpid = 0;
 		else
 			return r;

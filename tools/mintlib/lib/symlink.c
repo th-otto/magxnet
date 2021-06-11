@@ -63,7 +63,7 @@ int siz;
 			/* UNIX gives EINVAL, not EACCES, on non-links */
 			if ((Fxattr(1, filename, &sb) == 0) && ((sb.st_mode & S_IFMT) != S_IFLNK))
 			{
-				r = -EINVAL;
+				r = -ENOSYS;
 			}
 		}
 		if ((r == -EPATH) && _enoent(filename))

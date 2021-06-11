@@ -110,7 +110,7 @@ long arg;
 #endif /* __MBASE__ */
 
 	pid = Pexec(104, 0L, b, 0L);
-	if (pid == -EINVAL)
+	if (pid == -ENOSYS)
 	{
 		/* save the signal masks and signal handlers, the child may change
 		   them */

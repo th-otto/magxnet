@@ -47,7 +47,7 @@ mode_t mode;
 		return -1;
 	}
 
-	if ((umask = Pumask(0)) != -EINVAL)
+	if ((umask = Pumask(0)) != -ENOSYS)
 	{
 		(void) Pumask(umask);
 		(void) Fchmod(path, mode & ~umask);

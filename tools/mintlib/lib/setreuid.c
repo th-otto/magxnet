@@ -14,7 +14,7 @@ int ruid,
 	if (have_setreuid)
 	{
 		r = Psetreuid(ruid, euid);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_setreuid = 0;
 		else if (r < 0)
 		{

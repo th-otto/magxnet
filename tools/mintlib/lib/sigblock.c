@@ -40,7 +40,7 @@ long mask;
 	register long omask;
 	long r;
 
-	if ((r = Psigsetmask(mask)) != -EINVAL)
+	if ((r = Psigsetmask(mask)) != -ENOSYS)
 		return r;
 
 	omask = _sigmask;
@@ -60,7 +60,7 @@ long mask;
 	register long omask;
 	long r;
 
-	if ((r = Psigblock(mask)) != -EINVAL)
+	if ((r = Psigblock(mask)) != -ENOSYS)
 		return r;
 
 	omask = _sigmask;

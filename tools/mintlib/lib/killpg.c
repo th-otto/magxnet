@@ -32,7 +32,7 @@ int pgrp,
 	r = Pkill(-pgrp, sig);
 	/* (void)Syield(); */
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		_have_pkill = 0;
 		if (pgrp == 0 || pgrp == getpgrp())

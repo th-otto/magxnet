@@ -13,7 +13,7 @@ int x;
 	if (have_setegid)
 	{
 		r = Psetegid(x);
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_setegid = 0;
 		else if (r < 0)
 		{

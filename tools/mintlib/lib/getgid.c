@@ -13,7 +13,7 @@ gid_t getgid()
 	if (have_getgid)
 	{
 		r = Pgetgid();
-		if (r == -EINVAL)
+		if (r == -ENOSYS)
 			have_getgid = 0;
 		else
 			return (gid_t) r;

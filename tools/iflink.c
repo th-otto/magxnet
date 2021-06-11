@@ -68,7 +68,7 @@ static void get_device(char *ifname)
 	r = ioctl(sockfd, SIOCGIFNAME, &ifl);
 	if (r < 0)
 	{
-		if (errno == EINVAL)
+		if (errno == ENOSYS)
 			fprintf(stderr, "%s: not linked to any device\n", ifname);
 		else
 			fprintf(stderr, "%s: cannot get the device linked to " "this interface: %s\n", ifname, strerror(errno));

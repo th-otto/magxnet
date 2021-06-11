@@ -50,7 +50,9 @@ extern void bzero (void *__s, size_t __n);
 # include <netdb.h>
 # include <netinet/in.h>
 
-# include "pcerrno.h"
+#define __KERNEL__
+# include <mint/errno.h>
+#undef __KERNEL__
 
 # include "gs_func.h"
 
@@ -64,6 +66,10 @@ extern void bzero (void *__s, size_t __n);
 void _appl_yield(void);
 
 
+/*
+ * Completely buggy.
+ * errno contants have negative values here.
+ */
 int
 gs_xlate_error (int err, const char *funcname)
 {
@@ -72,48 +78,48 @@ gs_xlate_error (int err, const char *funcname)
 	(void)funcname;
 	switch (err)
 	{
-		case -ENOSYS:
-		case -EOPNOTSUPP:
+		case ENOSYS:
+		case EOPNOTSUPP:
 			ret = E_NOROUTINE;
 			break;
 		
 		case 24: /* EMFILE */
-		/* case -EMFILE: */
+		/* case EMFILE: */
 			ret = E_NOCCB;
 			break;
 		
 		case 9: /* EBADF */
-		case -ENOTSOCK:
+		case ENOTSOCK:
 			ret = E_BADHANDLE;
 			break;
 		
 		case 12: /* ENOMEM */
-		case -ESBLOCK:
+		case ESBLOCK:
 			ret = E_NOMEM;
 			break;
 		
-		case -EBADARG:
-		case -EADDRINUSE:
-		case -EADDRNOTAVAIL:
+		case EBADARG:
+		case EADDRINUSE:
+		case EADDRNOTAVAIL:
 			ret = E_PARAMETER;
 			break;
 		
-		case -ECONNRESET:
+		case ECONNRESET:
 			ret = E_RRESET;
 			break;
 		
-		case -ETIMEDOUT:
+		case ETIMEDOUT:
 			ret = E_CNTIMEOUT;
 			break;
 		
-		case -ECONNREFUSED:
+		case ECONNREFUSED:
 			ret = E_REFUSE;
 			break;
 		
-		case -ENETDOWN:
-		case -ENETUNREACH:
-		case -EHOSTDOWN:
-		case -EHOSTUNREACH:
+		case ENETDOWN:
+		case ENETUNREACH:
+		case EHOSTDOWN:
+		case EHOSTUNREACH:
 			ret = E_UNREACHABLE;
 			break;
 		
@@ -243,7 +249,7 @@ gs_accept (int fd)
 	{
 		DEBUG (("gs_accept: accept() returns %i (%i)", in_fd, errno));
 		
-		if (errno == -EWOULDBLOCK)
+		if (errno == EWOULDBLOCK) /* BUG: negative errno */
 		{
 			DEBUG (("gs_accept: no connections arrived; returning E_LISTEN"));
 			return E_LISTEN;

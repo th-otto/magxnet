@@ -30,7 +30,7 @@ struct rusage *rusage;
 
 	r = Pwaitpid(pid, options, rsc);
 
-	if (r == -EINVAL)
+	if (r == -ENOSYS)
 	{
 		r = __waitval;
 		__waitval = -ENOENT;
