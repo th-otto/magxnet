@@ -21,6 +21,7 @@ pcstart.s
 main.c
 sockdev.c
 mxdev.s
+ipcutil.c
 etvtimer.s
 mxkernel.s
 rest.c

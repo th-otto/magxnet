@@ -246,9 +246,10 @@ socket_ioctl:
 
 socket_delete:
  move.l	a1,-(sp)
+ move.l	a0,-(sp)
  move.l	cdecl_socket_dev+ddev_delete,a0
  jsr		(a0)
- addq.l	#4,sp
+ addq.l	#8,sp
  rts
 
 

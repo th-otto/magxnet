@@ -161,6 +161,8 @@ struct dom_ops
 			 	 char *optval, long *optlen);
 };
 
+#define DEBUG(x)
+#define ALERT(x)
 
 
 struct x28 {
@@ -169,6 +171,7 @@ struct x28 {
 	char o6[22];
 };
 
+extern const char *socket_devname;
 extern struct x28 x28_pool[128];
 
 void printstr(const char *str);
@@ -181,11 +184,25 @@ void x1b26e(void);
 void x1c022(void);
 void install_bios_handler(void *, void *) GNU_ASM_NAME("install_bios_handler");
 
+extern struct dom_ops *alldomains;
+
+struct socket *so_alloc(void);
+long so_release(struct socket *so);
+void so_sockpair(struct socket *so1, struct socket *so2);
+long so_connect(struct socket *server, struct socket *client, short backlog, short nonblock, short wakeup);
+long so_free(struct socket *so);
+void so_register(short domain, struct dom_ops *ops);
+
 #define IO_Q 3
 
 void wake(int queue, long cond);
+int sleep(int queue, long cond);
+long so_rselect(struct socket *so, long proc);
+long so_wselect(struct socket *so, long proc);
+long so_xselect(struct socket *so, long proc);
 void so_wakersel(struct socket *so);
 void so_wakewsel(struct socket *so);
 void so_wakexsel(struct socket *so);
+void wakeselect(long proc);
 
 void x114ce(void) GNU_ASM_NAME("x114ce");

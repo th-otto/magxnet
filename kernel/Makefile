@@ -9,11 +9,12 @@ PROGRAMS = sockets.dev
 OBJS = \
 	main.o \
 	sockdev.o \
+	mxdev.o \
+	ipcutil.o \
 	etvtimer.o \
 	mxkernel.o \
-	rest.o \
-	mxdev.o \
 	x28.o \
+	rest.o \
 	$(empty)
 
 all:: $(PROGRAMS)
