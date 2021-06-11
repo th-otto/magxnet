@@ -1,10 +1,14 @@
 /*
+ * MagiCNet
+ * (C) 2002 Vassilis Papathanassiou
+ * (C) 2021 Thorsten Otto
+ *
+ * Assembler part of u:\dev\socket driver
+ *
+ * based on
  *
  * MagiC Device Driver Development Kit
  * ===================================
- *
- * Assembler module
- *
  * (C) Andreas Kromke, 1994
  *
  */
@@ -26,18 +30,18 @@
 *
 
 socket_dev:
- DC.L	socket_open
- DC.L	socket_close
- DC.L	socket_read
- DC.L	socket_write
- DC.L	socket_stat
- DC.L	socket_seek
- DC.L	socket_datime
- DC.L	socket_ioctl
- DC.L	socket_delete
- DC.L	0 /* socket_getc */
- DC.L	0 /* socket_getline */
- DC.L	0 /* socket_putc */
+ .dc.l	socket_open
+ .dc.l	socket_close
+ .dc.l	socket_read
+ .dc.l	socket_write
+ .dc.l	socket_stat
+ .dc.l	socket_seek
+ .dc.l	socket_datime
+ .dc.l	socket_ioctl
+ .dc.l	socket_delete
+ .dc.l	0 /* socket_getc */
+ .dc.l	0 /* socket_getline */
+ .dc.l	0 /* socket_putc */
 
 
 **********************************************************************
@@ -88,7 +92,7 @@ socket_read:
 	movea.l    fd_user1(a2),a3
 	move.w     so_state(a3),d1	/* state == SS_VIRGIN? */
 	bne.s      socket_read1
-	moveq.l    #-32,d0 /* ENOSYS */
+	moveq.l    #-32,d0 /* ENOSYS BUG: should be EINVAL */
 	bra.s      socket_read2
 socket_read1:
 	move.l     a1,(a7)			/* iov[0].iov_base = buf */
@@ -134,7 +138,7 @@ socket_write:
 	movea.l    fd_user1(a2),a3
 	move.w     so_state(a3),d1	/* state == SS_VIRGIN? */
 	bne.s      socket_write1
-	moveq.l    #-32,d0
+	moveq.l    #-32,d0 /* ENOSYS BUG: should be EINVAL */
 	bra.s      socket_write2
 socket_write1:
 	move.l     a1,(a7)

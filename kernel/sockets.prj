@@ -22,6 +22,8 @@ main.c
 sockdev.c
 mxdev.s
 ipcutil.c
+iov.c
+
 etvtimer.s
 mxkernel.s
 rest.c

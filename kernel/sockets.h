@@ -64,6 +64,13 @@ typedef struct { int dummy; } DMD;
 #  endif
 #endif
 
+#undef MAX
+#define MAX(a,b) ((a)>(b)?(a):(b))
+
+#undef MIN
+#define MIN(a,b) ((a)<(b)?(a):(b))
+
+
 #include "mgx_xfs.h"
 #include "mgx_dfs.h"
 
@@ -165,6 +172,21 @@ struct dom_ops
 
 #define DEBUG(x)
 #define ALERT(x)
+
+/* FIXME: unneeded for MagiC */
+struct dev_descr
+{
+	MX_DDEV	*driver;
+	short	dinfo;
+	short	flags;
+	void *tty;
+	long	drvsize;		/* size of DEVDRV struct */
+	long	fmode;
+	void	*bdevmap;
+	short	bdev;
+	short	reserved;
+};
+
 
 
 struct x28 {

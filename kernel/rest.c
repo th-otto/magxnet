@@ -1,4 +1,5 @@
 #include "sockets.h"
+#include "iov.h"
 
 void x12306(void)
 {
@@ -17,6 +18,8 @@ void x1c022(void)
 	so_rselect(0, 0);
 	so_wselect(0, 0);
 	so_xselect(0, 0);
+	iov2buf_cpy(0, 0, 0, 0, 0);
+	buf2iov_cpy(0, 0, 0, 0, 0);
 }
 
 
