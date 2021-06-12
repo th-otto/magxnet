@@ -11,11 +11,46 @@ OBJS = \
 	sockdev.o \
 	mxdev.o \
 	ipcutil.o \
+	iov.o \
+	dummydev.o \
+	dummyasm.o \
 	etvtimer.o \
 	mxkernel.o \
+	arpdev.o \
+	inet.o \
+	arp.o \
+	ip.o \
+	masquera.o \
+	masqdev.o \
+	udp.o \
+	tcp.o \
+	tcpin.o \
+	tcpout.o \
+	tcpsig.o \
+	tcputil.o \
+	timer.o \
+	buf.o \
+	inetutil.o \
+	route.o \
+	routeasm.o \
+	routedev.o \
+	if.o \
+	loopback.o \
+	icmp.o \
+	igmp.o \
+	bpf.o \
+	bpfasm.o \
+	bpf_filt.o \
+	inetasm.o \
+	inetdev.o \
+	port.o \
+	ifload.o \
+	ifeth.o \
 	x28.o \
 	rest.o \
 	$(empty)
+
+# OBJS += masqasm.o
 
 all:: $(PROGRAMS)
 

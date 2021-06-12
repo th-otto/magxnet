@@ -13,7 +13,7 @@ struct socket *so_alloc(void)
 {
 	struct socket *s;
 	
-	s = p_kernel->mxalloc(sizeof(*s), MX_PREFTTRAM, _BasPag);
+	s = kmalloc(sizeof(*s));
 	if (s == NULL)
 		return NULL;
 	s->type = SOCK_NONE;
@@ -159,7 +159,7 @@ long so_connect(struct socket *server, struct socket *client, short backlog, sho
 	if (!(server->flags & SO_ACCEPTCON))
 	{
 		DEBUG(("sockdev: so_connect: server is not listening"));
-		return ENOSYS; /* BUG: should be EINVAL */
+		return EINVAL;
 	}
 
 	/* Put client on the incomplete connection queue of server. */

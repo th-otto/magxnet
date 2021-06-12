@@ -1,6 +1,7 @@
 #include "sockets.h"
 #include "mxkernel.h"
 #include "sockdev.h"
+#include "bpf.h"
 
 #ifndef SuperToUser
 #define SuperToUser(sp) Super((void *)(sp))
@@ -16,7 +17,7 @@ struct magxnet_cookie cookie;
 struct x28 x28_pool[128];
 const char *socket_devname = "u:\\dev\\socket";
 typedef void (*init_func)(void);
-static init_func init_funcs[] = { x12306, x1b26e, 0 };
+static init_func init_funcs[] = { inet4_init, bpf_init, 0 };
 
 void *x1e714 GNU_ASM_NAME("x1e714");
 void *x1ef60 GNU_ASM_NAME("x1ef60");

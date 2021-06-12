@@ -19,6 +19,9 @@
 #define __KERNEL__
 #include <mint/errno.h>
 
+/* BUG: throughout this code, EINVAL was used as synonym for ENOSYS */
+#undef EINVAL
+#define EINVAL ENOSYS
 
 #ifndef TRUE
 #define TRUE 1
@@ -70,6 +73,7 @@ typedef struct { int dummy; } DMD;
 #undef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
+#include "config.h"
 
 #include "mgx_xfs.h"
 #include "mgx_dfs.h"
@@ -171,22 +175,11 @@ struct dom_ops
 };
 
 #define DEBUG(x)
+#define KAYDEBUG(x)
 #define ALERT(x)
-
-/* FIXME: unneeded for MagiC */
-struct dev_descr
-{
-	MX_DDEV	*driver;
-	short	dinfo;
-	short	flags;
-	void *tty;
-	long	drvsize;		/* size of DEVDRV struct */
-	long	fmode;
-	void	*bdevmap;
-	short	bdev;
-	short	reserved;
-};
-
+#define TRACE(x)
+#define FATAL(x)
+#define FORCE(x)
 
 
 struct x28 {
@@ -203,8 +196,7 @@ extern MX_DDEV cdecl_socket_dev GNU_ASM_NAME("cdecl_socket_dev");
 extern MX_DDEV socket_dev GNU_ASM_NAME("socket_dev");
 
 void x28_init(struct x28 *pool, size_t size, size_t elemsize) GNU_ASM_NAME("x28_init");
-void x12306(void);
-void x1b26e(void);
+void inet4_init(void);
 void x1c022(void);
 void install_bios_handler(void *, void *) GNU_ASM_NAME("install_bios_handler");
 
@@ -228,5 +220,6 @@ void so_wakersel(struct socket *so);
 void so_wakewsel(struct socket *so);
 void so_wakexsel(struct socket *so);
 void wakeselect(long proc);
+long unixtime(unsigned short time, unsigned short date);
 
-void x114ce(void) GNU_ASM_NAME("x114ce");
+void uninstall_xbra(void) GNU_ASM_NAME("uninstall_xbra");

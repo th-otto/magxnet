@@ -95,6 +95,10 @@ ker_sprintf:
 	move.l     4(a7),d0
 	.ENDC
 	save_regs
+	/*
+	 * In the kernel, that functions expects arguments on the stack.
+	 * We call it in a way that works in both cases.
+	 */
 	move.l     d0,-(a7)
 	move.l     a1,-(a7)
 	move.l     a0,-(a7)

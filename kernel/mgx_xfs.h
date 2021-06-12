@@ -128,7 +128,9 @@ typedef struct {
      WORD version;
      void (*fast_clrmem)      ( void *from, void *to );
      char (*toupper)          ( char c );
-     void cdecl (*_sprintf)   ( char *dest, const char *source, LONG *p );
+     /* Note: in the kernel, that function is cdecl,
+        but our wrapper expects arguments in registers */
+     void (*_sprintf)   ( char *dest, const char *source, LONG *p );
      PD	**act_pd;
      APPL **act_appl;
      APPL **keyb_app;
@@ -176,7 +178,7 @@ typedef struct {
 
 #ifndef S_IFMT
 
-#if !defined(__XATTR) && !defined(__KERNEL__) && !defined(__KERNEL_MODULE__)
+#if !defined(__XATTR)
 #define __XATTR
 typedef struct xattr {
      unsigned short mode;

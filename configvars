@@ -4,7 +4,7 @@ AS = $(CROSS)gcc
 AR = $(CROSS)ar
 RANLIB = $(CROSS)ranlib
 WARN = -Wall -W -Wshadow -Werror
-OPTS = -O2 -fomit-frame-pointer
+OPTS = -O2 -fomit-frame-pointer -mshort
 CFLAGS = $(OPTS) $(WARN) -I../include
 LDFLAGS = -s -Wl,--mprg-flags,0x7
 

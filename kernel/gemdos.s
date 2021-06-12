@@ -344,3 +344,13 @@
 				rts
 				ENDMOD
 
+				.globl Pgeteuid
+				MODULE	Pgeteuid
+				pea		(a2)
+				move.w	#$138,-(a7)
+				trap #1
+				addq.w	#2,a7
+				move.l	(a7)+,a2
+				rts
+				ENDMOD
+				

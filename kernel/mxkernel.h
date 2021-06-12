@@ -35,3 +35,7 @@ void *ker_mxalloc(LONG amount, WORD mode, PD *pd);
 LONG ker_mfree(void *block);
 void *ker_mshrink(void *block, LONG newlen);
 #endif
+
+#define kmalloc(size) p_kernel->mxalloc(size, MX_PREFTTRAM, _BasPag)
+#define kfree(ptr) p_kernel->mfree(ptr)
+#define bzero(ptr, size) p_kernel->fast_clrmem(ptr, (char *)(ptr) + size)

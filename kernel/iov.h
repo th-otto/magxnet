@@ -11,6 +11,7 @@
 
 long iov2buf_cpy (char *, long, const struct iovec *, short, long);
 long buf2iov_cpy (char *, long, const struct iovec *, short, long);
+long iov_size (const struct iovec *iov, long n);
 
 
 # endif /* _sockets_iov_h */

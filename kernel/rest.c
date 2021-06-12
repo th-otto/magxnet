@@ -1,12 +1,10 @@
 #include "sockets.h"
 #include "iov.h"
+#include "dummydev.h"
+#include "timeout.h"
+#include "iov.h"
 
-void x12306(void)
-{
-}
-
-
-void x1b26e(void)
+void inet4_init(void)
 {
 }
 
@@ -20,6 +18,7 @@ void x1c022(void)
 	so_xselect(0, 0);
 	iov2buf_cpy(0, 0, 0, 0, 0);
 	buf2iov_cpy(0, 0, 0, 0, 0);
+	dummydev_init(0, 0);
 }
 
 
@@ -42,4 +41,41 @@ void wakeselect(long proc)
 {
 	/* NOT IMPLEMENTED YET */
 	UNUSED(proc);
+}
+
+
+TIMEOUT *addroottimeout(long delta, void (*func)(struct proc *, long), ushort flags)
+{
+	(void)delta;
+	(void)func;
+	(void)flags;
+	return 0;
+}
+
+
+void cancelroottimeout(TIMEOUT *which)
+{
+	(void)which;
+}
+
+
+long iov_size (const struct iovec *iov, long n)
+{
+	(void)iov;
+	return n;
+}
+
+
+long unixtime(unsigned short time, unsigned short date)
+{
+	(void)time;
+	(void)date;
+	return 0;
+}
+
+
+long so_free(struct socket *so)
+{
+	(void)so;
+	return 0;
 }

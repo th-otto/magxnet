@@ -179,7 +179,11 @@ socket_stat:
  move.l	a0,-(sp)
  move.l	cdecl_socket_dev+ddev_stat,a0
  jsr		(a0)
+ .IFEQ MSHORT
+ lea		16(sp),sp
+ .ELSE
  lea		14(sp),sp
+ .ENDC
  rts
 
 
@@ -199,7 +203,11 @@ socket_seek:
  move.l	a0,-(sp)
  move.l	cdecl_socket_dev+ddev_seek,a0
  jsr		(a0)
+ .IFEQ MSHORT
+ lea		12(sp),sp
+ .ELSE
  lea		10(sp),sp
+ .ENDC
  rts
 
 
@@ -219,7 +227,11 @@ socket_datime:
  move.l	a0,-(sp)
  move.l	cdecl_socket_dev+ddev_datime,a0
  jsr		(a0)
+ .IFEQ MSHORT
+ lea		12(sp),sp
+ .ELSE
  lea		10(sp),sp
+ .ENDC
  rts
 
 
@@ -239,7 +251,11 @@ socket_ioctl:
  move.l   a0,-(sp)                 /* MX_DOSFD */
  move.l	cdecl_socket_dev+ddev_ioctl,a0
  jsr      (a0)
+ .IFEQ MSHORT
+ lea	  12(sp),sp
+ .ELSE
  lea      10(sp),sp
+ .ENDC
  rts
 
 
@@ -277,7 +293,11 @@ socket_getc:
  move.l   a0,-(sp)                 /* MX_DOSFD */
  move.l	cdecl_socket_dev+ddev_getc,a0
  jsr      (a0)
+ .IFEQ MSHORT
+ addq.l   #8,sp
+ .ELSE
  addq.l   #6,sp
+ .ENDC
  rts
 
 
@@ -303,7 +323,11 @@ socket_getline:
  move.l   a0,-(sp)                 /* MX_DOSFD */
  move.l	cdecl_socket_dev+ddev_getline,a0
  jsr      (a0)
+ .IFEQ MSHORT
+ lea	  16(sp),sp
+ .ELSE
  lea      14(sp),sp
+ .ENDC
  rts
 
 
@@ -327,5 +351,9 @@ socket_putc:
  move.l   a0,-(sp)                 /* MX_DOSFD */
  move.l	cdecl_socket_dev+ddev_putc,a0
  jsr      (a0)
+ .IFEQ MSHORT
+ lea	  12(sp),sp
+ .ELSE
  lea      10(sp),sp
+ .ENDC
  rts
