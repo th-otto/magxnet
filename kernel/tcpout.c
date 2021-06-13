@@ -559,7 +559,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 		}
 	}
 
-	tcph->chksum = tcp_checksum(tcph, nb->dend - nb->dstart, tcb->data->src.addr, tcb->data->dst.addr);
+	tcph->chksum = tcp_checksum(tcph, tcb->data->src.addr, tcb->data->dst.addr, nb->dend - nb->dstart);
 
 	/*
 	 * Everything acked now
@@ -841,7 +841,7 @@ static short tcp_probe(struct tcb *tcb)
 				tcph->urgptr = (ushort) (SEQ1ST(buf) + DATLEN(buf) - tcph->seq);
 			}
 		}
-		tcph->chksum = tcp_checksum(tcph, TCP_MINLEN + 1, tcb->data->src.addr, tcb->data->dst.addr);
+		tcph->chksum = tcp_checksum(tcph, tcb->data->src.addr, tcb->data->dst.addr, TCP_MINLEN + 1);
 
 		ip_send(tcb->data->src.addr, tcb->data->dst.addr, b, IPPROTO_TCP, 0, &tcb->data->opts);
 	} else
@@ -999,7 +999,7 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 		tcph->flags = TCPF_ACK | (flags & TCPF_PSH);
 		tcph->window = tcp_rcvwnd(tcb, 1);
 
-		tcph->chksum = tcp_checksum(tcph, TCP_MINLEN, tcb->data->src.addr, tcb->data->dst.addr);
+		tcph->chksum = tcp_checksum(tcph, tcb->data->src.addr, tcb->data->dst.addr, TCP_MINLEN);
 
 		/*
 		 * Everything acked now

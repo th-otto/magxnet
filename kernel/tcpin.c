@@ -117,7 +117,7 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 	/*
 	 * Init the socket
 	 */
-	bzero(so, sizeof(*so));
+	mint_bzero(so, sizeof(*so));
 	so->state = SS_ISUNCONNECTED;
 	so->data = data;
 	so->ops = tcb->data->sock->ops;

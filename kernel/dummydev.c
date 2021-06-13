@@ -9,10 +9,6 @@
 #include "arpdev.h"
 #include "mxkernel.h"
 
-#ifndef UNLIMITED
-#define UNLIMITED (0x7fffffffL)
-#endif
-
 MX_DDEV cdecl_dummydev GNU_ASM_NAME("cdecl_dummydev") = {
 	dummydev_open,
 	dummydev_close,

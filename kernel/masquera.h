@@ -12,9 +12,9 @@
 
 
 # define MASQ_NUM_PORTS 	4096
-# define MASQ_BASE_PORT 	60000
+# define MASQ_BASE_PORT 	60000L
 
-# define MASQ_MAGIC		0x4D415351
+# define MASQ_MAGIC		0x4D415351UL
 # define MASQ_VERSION		0x00000001
 
 # define MASQ_TIME		(*((ulong * volatile) 0x4BA))

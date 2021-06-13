@@ -89,6 +89,7 @@ Steve Reynolds
 #include "mxkernel.h"
 #include "timeout.h"
 
+#ifdef IGMP_SUPPORT
 
 static long igmp_input(struct netif *, BUF *, ulong, ulong);
 static long igmp_error(short, short, BUF *, ulong, ulong);
@@ -574,3 +575,5 @@ void igmp_init(void)
 
 	addroottimeout(IGMP_TMR_INTERVAL, igmp_tmr, 0);
 }
+
+#endif /* IGMP_SUPPORT */

@@ -61,7 +61,7 @@ struct icmp_dgram
 };
 
 long	icmp_errno (short, short);
-long	icmp_send (short, short, ulong, BUF *, BUF *);
+long	icmp_send (short, short, in_addr_t, BUF *, BUF *);
 void	icmp_init (void);
 short	icmp_dontsend (short, BUF *);
 

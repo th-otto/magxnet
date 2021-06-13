@@ -6,6 +6,7 @@
  */
 
 #include "sockets.h"
+#include "mxkernel.h"
 #include "ip.h"
 
 #include "icmp.h"
@@ -18,7 +19,7 @@
 
 #include "timer.h"
 
-#define INADDR_MULTICAST        ((ulong) 0xe0000000UL)
+#define INADDR_MULTICAST        ((in_addr_t) 0xe0000000UL)
 
 static long ip_frag(BUF *, struct netif *, ulong, short);
 
@@ -30,7 +31,7 @@ struct in_ip_ops *allipprotos = NULL;
  * that one machine can have several IP addresses on several networks,
  * so this routine must know `dstaddr'.
  */
-ulong ip_local_addr(ulong dstaddr)
+in_addr_t ip_local_addr(in_addr_t dstaddr)
 {
 	struct kernel_ifaddr *ifa = NULL;
 	struct route *rt;
@@ -51,7 +52,7 @@ ulong ip_local_addr(ulong dstaddr)
 	return ifa ? ifa->adr.in.sin_addr.s_addr : INADDR_ANY;
 }
 
-short ip_is_brdcst_addr(ulong addr)
+short ip_is_brdcst_addr(in_addr_t addr)
 {
 	struct netif *nif;
 	struct kernel_ifaddr *ifa;
@@ -68,14 +69,14 @@ short ip_is_brdcst_addr(ulong addr)
 		if (addr == ifa->net || addr == ifa->subnet || addr == ifa->net_broadaddr)
 			return 1;
 
-		if (nif->flags & IFF_BROADCAST && addr == ifa->ifu.broadadr.in.sin_addr.s_addr)
+		if ((nif->flags & IFF_BROADCAST) && addr == ifa->ifu.broadadr.in.sin_addr.s_addr)
 			return 1;
 	}
 
 	return 0;
 }
 
-short ip_is_local_addr(ulong addr)
+short ip_is_local_addr(in_addr_t addr)
 {
 	struct netif *nif;
 	struct kernel_ifaddr *ifa;
@@ -93,7 +94,7 @@ short ip_is_local_addr(ulong addr)
 	return 0;
 }
 
-short ip_chk_addr(ulong addr, struct route *rt)
+short ip_chk_addr(in_addr_t addr, struct route *rt)
 {
 	struct kernel_ifaddr *ifa;
 
@@ -119,8 +120,10 @@ short ip_chk_addr(ulong addr, struct route *rt)
 			return IPADDR_BRDCST;
 	}
 
+#ifdef IGMP_SUPPORT
 	if ((addr & 0xf0000000ul) == INADDR_MULTICAST)
 		return IPADDR_MULTICST;
+#endif
 
 	if (!IN_CLASSA(addr) && !IN_CLASSB(addr) && !IN_CLASSC(addr))
 		return IPADDR_BADCLASS;
@@ -135,9 +138,9 @@ short ip_chk_addr(ulong addr, struct route *rt)
  * This routine requires the subnet portion to be a multiple of 8 bits to
  * recognice subnet broadcasts.
  */
-short ip_same_addr(ulong local, ulong foreign)
+short ip_same_addr(in_addr_t local, in_addr_t foreign)
 {
-	ulong mask;
+	in_addr_t mask;
 
 	if (local == foreign || !local || !foreign || !~foreign)
 		return 1;
@@ -153,7 +156,7 @@ short ip_same_addr(ulong local, ulong foreign)
 	return 0;
 }
 
-ulong ip_dst_addr(ulong addr)
+in_addr_t ip_dst_addr(in_addr_t addr)
 {
 	struct kernel_ifaddr *ifa = NULL;
 
@@ -183,10 +186,10 @@ ulong ip_dst_addr(ulong addr)
 	return addr;
 }
 
-ulong ip_netmask(ulong addr)
+in_addr_t ip_netmask(in_addr_t addr)
 {
 	struct netif *nif;
-	ulong netmask;
+	in_addr_t netmask;
 
 	if (IN_CLASSA(addr))
 		netmask = IN_CLASSA_NET;
@@ -229,15 +232,6 @@ static BUF *ip_brdcst_copy(BUF *buf, struct netif *nif, struct route *rt, short 
 		return 0;
 
 	return buf_clone(buf, BUF_NORMAL);
-}
-
-/*
- * Process the IP options in `iph'. For now, do nothing.
- */
-static long ip_do_opts(struct ip_dgram *iph)
-{
-	UNUSED(iph);
-	return 0;
 }
 
 /*
@@ -293,14 +287,26 @@ long ip_output(BUF *buf)
 
 	nbuf2 = ip_brdcst_copy(buf, rt->nif, rt, addrtype);
 
-	r = ip_frag(buf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : iph->daddr, addrtype);
+	r = ip_frag(buf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : iph->daddr,
+#ifdef IGMP_SUPPORT
+		addrtype
+#else
+		addrtype == IPADDR_BRDCST
+#endif
+		);
 
 	if (nbuf2)
 	{
 		route_deref(rt);
 		rt = route_get(((struct ip_dgram *) (nbuf2->dstart))->daddr =
 					   ip_local_addr(((struct ip_dgram *) (nbuf2->dstart))->daddr));
-		ip_frag(nbuf2, rt->nif, ((struct ip_dgram *) (nbuf2->dstart))->daddr, IPADDR_LOCAL);
+		ip_frag(nbuf2, rt->nif, ((struct ip_dgram *) (nbuf2->dstart))->daddr,
+#ifdef IGMP_SUPPORT
+			IPADDR_LOCAL
+#else
+			0
+#endif
+			);
 	}
 
 	route_deref(rt);
@@ -308,9 +314,13 @@ long ip_output(BUF *buf)
 }
 
 short ip_dgramid = 0;
-static struct ip_options def_opts = { 0, IP_DEFAULT_TTL, IP_DEFAULT_TOS, 0, 0, 0 };
+static struct ip_options def_opts = { 0, IP_DEFAULT_TTL, IP_DEFAULT_TOS, 0,
+#ifdef IGM_SUPPORT
+	0, 0,
+#endif
+	};
 
-long ip_send(ulong saddr, ulong daddr, BUF *buf, short proto, short flags, struct ip_options *_opts)
+long ip_send(in_addr_t saddr, in_addr_t daddr, BUF *buf, short proto, short flags, struct ip_options *_opts)
 {
 	BUF *nbuf;
 	BUF *nbuf2;
@@ -333,9 +343,14 @@ long ip_send(ulong saddr, ulong daddr, BUF *buf, short proto, short flags, struc
 
 	nbuf->dstart -= sizeof(*iph);
 	iph = (struct ip_dgram *) nbuf->dstart;
+#ifdef __GNUC__
 	iph->version = IP_VERSION;
 	iph->hdrlen = (unsigned int)(sizeof(*iph) / sizeof(long));
 	iph->tos = opts->tos;
+#else
+	/* hmpf; Pure-C is not smart enough to combine the 3 stores into one */
+	*((unsigned short *)iph) = (IP_VERSION << 12) | ((unsigned int)(sizeof(*iph) / sizeof(long)) << 8) | opts->tos;
+#endif
 	iph->length = (short) ((long) nbuf->dend - (long) nbuf->dstart);
 	iph->id = ip_dgramid++;
 	iph->fragoff = 0;
@@ -345,7 +360,7 @@ long ip_send(ulong saddr, ulong daddr, BUF *buf, short proto, short flags, struc
 	iph->daddr = daddr;
 	iph->chksum = 0;
 
-	nbuf->info = ip_priority(opts->pri, iph->tos);
+	nbuf->info = ip_priority(opts->pri, IPH_TOS(iph));
 
 	/*
 	 * Route datagram to next interface
@@ -398,17 +413,31 @@ long ip_send(ulong saddr, ulong daddr, BUF *buf, short proto, short flags, struc
 	}
 
 	nbuf2 = ip_brdcst_copy(nbuf, rt->nif, rt, addrtype);
+#ifdef IGMP_SUPPORT
 	if (!nbuf2 && addrtype == IPADDR_MULTICST && _opts->multicast_loop)
 		nbuf2 = buf_clone(buf, BUF_NORMAL);
+#endif
 
-	r = ip_frag(nbuf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : daddr, addrtype);
+	r = ip_frag(nbuf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : daddr,
+#ifdef IGMP_SUPPORT
+		addrtype
+#else
+		addrtype == IPADDR_BRDCST
+#endif
+		);
 
 	if (nbuf2)
 	{
 		route_deref(rt);
 		rt = route_get(((struct ip_dgram *) (nbuf2->dstart))->daddr =
 					   ip_local_addr(((struct ip_dgram *) (nbuf2->dstart))->daddr));
-		ip_frag(nbuf2, rt->nif, ((struct ip_dgram *) (nbuf2->dstart))->daddr, IPADDR_LOCAL);
+		ip_frag(nbuf2, rt->nif, ((struct ip_dgram *) (nbuf2->dstart))->daddr,
+#ifdef IGMP_SUPPORT
+			IPADDR_LOCAL
+#else
+			0
+#endif
+			);
 	}
 
 	route_deref(rt);
@@ -416,31 +445,44 @@ long ip_send(ulong saddr, ulong daddr, BUF *buf, short proto, short flags, struc
 }
 
 
+/*
+ * Process the IP options in `iph'. For now, do nothing.
+ */
+/* Pure-C isn't smart enough to remove this dead code */
+#ifndef __PUREC__
+static long ip_do_opts(struct ip_dgram *iph)
+{
+	UNUSED(iph);
+	return 0;
+}
+#endif
+
+
 void ip_input(struct netif *nif, BUF *buf)
 {
 	struct ip_dgram *iph = (struct ip_dgram *) buf->dstart;
 	struct route *rt;
 	short addrtype;
-	unsigned short pktlen;
+	short pktlen;
 
 	/*
 	 * Validate incoming datagram
 	 */
 	pktlen = (long) buf->dend - (long) buf->dstart;
 
-	if (pktlen < IP_MINLEN || pktlen != iph->length)
+	if ((unsigned short)pktlen < IP_MINLEN || pktlen != (short)iph->length)
 	{
 		DEBUG(("ip_input: invalid packet length"));
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
-	if (chksum(iph, iph->hdrlen * sizeof(short)))
+	if (chksum(iph, IPH_HDRLEN(iph) * sizeof(short)))
 	{
 		DEBUG(("ip_input: bad checksum"));
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
-	if (iph->version != IP_VERSION)
+	if (IPH_VERSION(iph) != IP_VERSION)
 	{
 		DEBUG(("ip_input: %d: unsupp. IP version", iph->version));
 		buf_deref(buf, BUF_NORMAL);
@@ -450,19 +492,22 @@ void ip_input(struct netif *nif, BUF *buf)
 	/*
 	 * Process IP options
 	 */
+#ifndef __PUREC__
 	if (ip_do_opts(iph))
 	{
 		DEBUG(("ip_input: bad IP options"));
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
-
-#ifdef USE_MASQUERADE
-	/* 07/01/99 MB */
-	buf = masq_ip_input(nif, buf);
-	if (!buf)
-		return;
 #endif
+
+	/* 07/01/99 MB */
+	if (masq.flags & MASQ_ENABLED)
+	{
+		buf = masq_ip_input(nif, buf);
+		if (!buf)
+			return;
+	}
 
 	/*
 	 * Route datagram to next interface
@@ -488,7 +533,11 @@ void ip_input(struct netif *nif, BUF *buf)
 	 * Check if the datagram is destined to this interface. If so send
 	 * the datagram to the local software.
 	 */
-	if (addrtype == IPADDR_LOCAL || addrtype == IPADDR_BRDCST || addrtype == IPADDR_MULTICST)
+	if (addrtype == IPADDR_LOCAL || addrtype == IPADDR_BRDCST
+#ifdef IGMP_SUPPORT
+		|| addrtype == IPADDR_MULTICST
+#endif
+		)
 	{
 		struct in_ip_ops *p;
 		BUF *buf2;
@@ -532,7 +581,7 @@ void ip_input(struct netif *nif, BUF *buf)
 	}
 #ifdef DONT_FORWARD
 	buf_deref(buf, BUF_NORMAL);
-	route_deref(buf, BUF_NORMAL);
+	route_deref(rt);
 #else
 	KAYDEBUG(("ip_input: forwarding to dst 0x%lx from 0x%lx", iph->daddr, iph->saddr));
 	/*
@@ -560,11 +609,13 @@ void ip_input(struct netif *nif, BUF *buf)
 			 * gwbuf holds the new gateway. both buf and
 			 * gwbuf must not be touched after icmp_send ()
 			 */
-			memcpy(gwbuf->dstart, &rt->gway, sizeof(long));
-			gwbuf->dend += sizeof(long);
+			*((in_addr_t *)gwbuf->dstart) = rt->gway;
+			gwbuf->dend += sizeof(in_addr_t);
 			icmp_send(ICMPT_REDIR, (rt->flags & RTF_HOST) ? ICMPC_HOSTRD : ICMPC_NETRD, iph->saddr, buf, gwbuf);
 		} else
+		{
 			buf_deref(buf, BUF_NORMAL);
+		}
 		route_deref(rt);
 		return;
 	}
@@ -572,9 +623,15 @@ void ip_input(struct netif *nif, BUF *buf)
 	/*
 	 * Set output priority
 	 */
-	buf->info = ip_priority(0, iph->tos);
+	buf->info = ip_priority(0, IPH_TOS(iph));
 
-	ip_frag(buf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : iph->daddr, addrtype);
+	ip_frag(buf, rt->nif, rt->flags & RTF_GATEWAY ? rt->gway : iph->daddr,
+#ifdef IGMP_SUPPORT
+		addrtype
+#else
+		addrtype == IPADDR_BRDCST
+#endif
+		);
 
 	route_deref(rt);
 #endif /* DONT_FORWARD */
@@ -627,6 +684,7 @@ static long frag_opts(struct ip_dgram *iph, long optlen)
 	return i;
 }
 
+
 static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 {
 	struct ip_dgram *fragiph;
@@ -635,7 +693,7 @@ static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 	long datalen;
 	long offset;
 	long fragoff;
-	unsigned long hdrlen;
+	long hdrlen;
 	long todo;
 	long r;
 	BUF *fragbuf;
@@ -644,16 +702,16 @@ static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 	if (iph->length <= nif->mtu)
 	{
 		iph->chksum = 0;
-		iph->chksum = chksum(iph, iph->hdrlen * sizeof(short));
+		iph->chksum = chksum(iph, IPH_HDRLEN(iph) * sizeof(short));
 		DEBUG(("ip_frag: short enough -> if_send()"));
 		return if_send(nif, buf, nexthop, addrtype);
 	}
 
 	fragoff = iph->fragoff;
-	hdrlen = iph->hdrlen * sizeof(long);
+	hdrlen = IPH_HDRLEN(iph) * sizeof(long);
 	fraglen = (nif->mtu - hdrlen) & ~7;
 	datalen = iph->length - hdrlen;
-	data = IP_DATA(buf);
+	data = buf->dstart + hdrlen;
 	offset = 0;
 
 	if (fragoff & IP_DF)
@@ -663,7 +721,7 @@ static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 		return EOPNOTSUPP;
 	}
 
-	if ((fragoff & IP_FRAGOFF) + datalen / 8 > IP_FRAGOFF)
+	if ((fragoff & IP_FRAGOFF) + (datalen >> 3) > IP_FRAGOFF)
 	{
 		DEBUG(("ip_frag: datagram to long"));
 		buf_deref(buf, BUF_NORMAL);
@@ -696,14 +754,14 @@ static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 
 		fragiph = (struct ip_dgram *) fragbuf->dstart;
 		fragiph->length = hdrlen + todo;
-		fragiph->fragoff += offset / 8;
+		fragiph->fragoff += offset >> 3;
 
 		datalen -= todo;
 		if (datalen > 0)
 			fragiph->fragoff |= IP_MF;
 
 		fragiph->chksum = 0;
-		fragiph->chksum = chksum(fragiph, hdrlen / 2);
+		fragiph->chksum = chksum(fragiph, hdrlen >> 1);
 		r = if_send(nif, fragbuf, nexthop, addrtype);
 		if (r != 0)
 		{
@@ -713,7 +771,7 @@ static long ip_frag(BUF *buf, struct netif *nif, ulong nexthop, short addrtype)
 			return r;
 		}
 
-		if (offset == 0 && hdrlen > IP_MINLEN)
+		if (offset == 0 && (unsigned long)hdrlen > IP_MINLEN)
 		{
 			/*
 			 * after the first fragment has been sent,
@@ -733,7 +791,7 @@ struct fragment
 {
 	BUF *buf;							/* chain of fragments */
 	short id;							/* IP datagram id */
-	ulong saddr;						/* IP source address */
+	in_addr_t saddr;					/* IP source address */
 	long totlen;						/* total datagram length */
 	long curlen;						/* current datagram length */
 	struct event tmout;					/* timeout event */
@@ -785,7 +843,7 @@ static BUF *frag_pullup(struct fragment *frag)
 	TRACE(("frag_pullup: reassembling datagram from id %x saddr 0x%lx", frag->id, frag->saddr));
 
 	iph = (struct ip_dgram *) frag->buf->dstart;
-	length = iph->hdrlen * sizeof(long);
+	length = IPH_HDRLEN(iph) * sizeof(long);
 
 	nbuf = buf_alloc(length + frag->totlen, 0, BUF_NORMAL);
 	if (!nbuf)
@@ -806,7 +864,7 @@ static BUF *frag_pullup(struct fragment *frag)
 			frag_delete(frag);
 			return 0;
 		}
-		length = iph->length - iph->hdrlen * sizeof(long);
+		length = iph->length - IPH_HDRLEN(iph) * sizeof(long);
 		memcpy(nbuf->dend, IP_DATA(oldbuf), length);
 		nbuf->dend += length;
 		offset += length;
@@ -847,7 +905,7 @@ static void frag_insert(struct fragment *frag, BUF *buf)
 	buf->link3 = curr;
 	*prev = buf;
 
-	datalen = iph->length - iph->hdrlen * sizeof(long);
+	datalen = iph->length - IPH_HDRLEN(iph) * sizeof(long);
 	frag->curlen += datalen;
 	if (!curr && !(iph->fragoff & IP_MF))
 		frag->totlen = offset * 8 + datalen;
@@ -969,6 +1027,7 @@ long ip_setsockopt(struct ip_options *opts, short level, short optname, char *op
 	case IP_RETOPTS:
 		break;
 
+#ifdef IGMP_SUPPORT
 	case IP_MULTICAST_TTL:
 		if (optlen != sizeof (long) || !optval)
 			return EINVAL;
@@ -993,8 +1052,8 @@ long ip_setsockopt(struct ip_options *opts, short level, short optname, char *op
 	case IP_DROP_MEMBERSHIP:
 		{
 			struct ip_mreq *imr = (struct ip_mreq *) optval;
-			ulong if_addr;
-			ulong multi_addr;
+			in_addr_t if_addr;
+			in_addr_t multi_addr;
 
 			if_addr = ip_dst_addr(imr->imr_interface.s_addr);
 			multi_addr = ip_dst_addr(imr->imr_multiaddr.s_addr);
@@ -1003,6 +1062,8 @@ long ip_setsockopt(struct ip_options *opts, short level, short optname, char *op
 			else
 				return igmp_leavegroup(if_addr, multi_addr);
 		}
+#endif
+
 	}
 
 	return EOPNOTSUPP;
@@ -1036,6 +1097,7 @@ long ip_getsockopt(struct ip_options *opts, short level, short optname, char *op
 		*optlen = sizeof (long);
 		return 0;
 
+#ifdef IGMP_SUPPORT
 	case IP_MULTICAST_TTL:
 		if (!optval || !optlen || (unsigned long)*optlen < sizeof (long))
 			return EINVAL;
@@ -1046,7 +1108,7 @@ long ip_getsockopt(struct ip_options *opts, short level, short optname, char *op
 	case IP_MULTICAST_IF:
 		if (!optval || !optlen || (unsigned long)*optlen < sizeof (long))
 			return EINVAL;
-		*(long *) optval = (ulong) opts->multicast_ip;
+		*(long *) optval = opts->multicast_ip;
 		*optlen = sizeof (long);
 		return 0;
 
@@ -1056,6 +1118,7 @@ long ip_getsockopt(struct ip_options *opts, short level, short optname, char *op
 		*(char *) optval = opts->multicast_loop;
 		*optlen = sizeof (char);
 		return 0;
+#endif
 
 	case IP_RECVOPTS:
 	case IP_RECVRETOPTS:

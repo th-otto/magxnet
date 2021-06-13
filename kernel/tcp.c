@@ -20,10 +20,6 @@
 #include "tcputil.h"
 #include "mxkernel.h"
 
-#ifndef UNLIMITED
-#define UNLIMITED (0x7fffffffL)
-#endif
-
 #define SIGPIPE 13
 
 
@@ -81,12 +77,6 @@ struct in_proto tcp_proto = {
 	},
 	NULL
 };
-
-
-void tcp_init(void)
-{
-	in_proto_register(IPPROTO_TCP, &tcp_proto);
-}
 
 
 static long tcp_attach(struct in_data *data)
@@ -328,8 +318,9 @@ static long tcp_ioctl(struct in_data *data, short cmd, void *buf)
 
 	case FIONREAD:
 		if (data->err || so->flags & SO_CANTRCVMORE)
+		{
 			space = UNLIMITED;
-		else if (tcb->state == TCBS_LISTEN)
+		} else if (tcb->state == TCBS_LISTEN)
 		{
 			*(long *) buf = tcp_canaccept(data);
 			return EINVAL;
@@ -344,8 +335,10 @@ static long tcp_ioctl(struct in_data *data, short cmd, void *buf)
 
 	case FIONWRITE:
 		if (data->err || so->flags & SO_CANTSNDMORE)
+		{
 			space = UNLIMITED;
-		else
+		} else
+		{
 			switch (tcb->state)
 			{
 			case TCBS_LISTEN:
@@ -361,6 +354,7 @@ static long tcp_ioctl(struct in_data *data, short cmd, void *buf)
 				space = UNLIMITED;
 				break;
 			}
+		}
 		*(long *) buf = space;
 		return 0;
 
@@ -498,9 +492,8 @@ static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, 
 
 			if (data->sock && data->sock->flags & SO_CANTSNDMORE)
 			{
-				short pid = Pgetpid();
 				DEBUG(("tcp_send: shut down"));
-				(void) Pkill(pid, SIGPIPE);
+				p_kill(p_getpid(), SIGPIPE);
 				return EPIPE;
 			}
 
@@ -509,9 +502,8 @@ static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, 
 
 		if (!CONNECTED(tcb))
 		{
-			short pid = Pgetpid();
 			DEBUG(("tcp_send: broken connection"));
-			(void )Pkill(pid, SIGPIPE);
+			p_kill(p_getpid(), SIGPIPE);
 			return EPIPE;
 		}
 		avail = MIN(avail, size - offset);
@@ -795,37 +787,17 @@ static long tcp_shutdown(struct in_data *data, short how)
 static long tcp_setsockopt(struct in_data *data, short level, short optname, char *optval, long optlen)
 {
 	struct tcb *tcb = data->pcb;
-	long val = 0;
 
 	if (level != IPPROTO_TCP)
 		return EOPNOTSUPP;
 
-	if (!optval)
-		return EFAULT;
+	if (optlen != sizeof(long) || !optval)
+		return EINVAL;
 
 	switch (optname)
 	{
 	case TCP_NODELAY:
-		if ((unsigned long) optlen >= sizeof(long))
-		{
-			val = *((long *) optval);
-		} else if ((unsigned long) optlen >= sizeof(short))
-		{
-			val = *((short *) optval);
-		} else if ((unsigned long) optlen >= sizeof(char))
-		{
-			val = *((unsigned char *) optval);
-		} else
-		{
-			return EINVAL;
-		}
-		break;
-	}
-
-	switch (optname)
-	{
-	case TCP_NODELAY:
-		if (val)
+		if (*(long *)optval)
 			tcb->flags |= TCBF_NDELAY;
 		else
 			tcb->flags &= ~TCBF_NDELAY;
@@ -838,50 +810,34 @@ static long tcp_setsockopt(struct in_data *data, short level, short optname, cha
 static long tcp_getsockopt(struct in_data *data, short level, short optname, char *optval, long *optlen)
 {
 	struct tcb *tcb = data->pcb;
-	long val;
-	long len;
 
-	if (!optlen || !optval)
-		return EFAULT;
-	len = *optlen;
-
+#ifdef IGMP_SUPPORT
 	if ((level == (short) SOL_SOCKET) && (optname == SO_ACCEPTCONN))
 	{
-		val = (tcb->state == TCBS_LISTEN);
-	} else
-	{
-		if (level != IPPROTO_TCP)
-			return EOPNOTSUPP;
-
-		switch (optname)
-		{
-		case TCP_NODELAY:
-			val = !!(tcb->flags & TCBF_NDELAY);
-			break;
-
-		default:
-			return EOPNOTSUPP;
-		}
+		*(long *)optval = tcb->state == TCBS_LISTEN;
+		*optlen = sizeof(long);
+		return 0;
 	}
+#endif
 
-	if (len == sizeof(short))
-	{
-		*((short *) optval) = val;
-	} else if (len == sizeof(char))
-	{
-		*((unsigned char *) optval) = val;
-	} else if (len == sizeof(long))
-	{
-		*((long *) optval) = val;
-	} else
-	{
+	if (level != IPPROTO_TCP)
+		return EOPNOTSUPP;
+
+	if (!optval || !optlen || (unsigned long)*optlen < sizeof (long))
 		return EINVAL;
+
+	switch (optname)
+	{
+	case TCP_NODELAY:
+		*(long *)optval = !!(tcb->flags & TCBF_NDELAY);
+		*optlen = sizeof(long);
+		return 0;
 	}
 
-	return 0;
+	return EOPNOTSUPP;
 }
 
-static long tcp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
+static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	struct in_data *data;
@@ -897,7 +853,7 @@ static long tcp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
 		return 0;
 	}
 
-	if (tcp_checksum(tcph, pktlen, saddr, daddr))
+	if (tcp_checksum(tcph, saddr, daddr, pktlen))
 	{
 		DEBUG(("tcp_input: bad checksum"));
 		buf_deref(buf, BUF_NORMAL);
@@ -945,7 +901,7 @@ static long tcp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
 }
 
 
-static long tcp_error(short type, short code, BUF * buf, ulong saddr, ulong daddr)
+static long tcp_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	struct in_data *data;
@@ -1009,6 +965,12 @@ static long tcp_error(short type, short code, BUF * buf, ulong saddr, ulong dadd
 }
 
 
+void tcp_init(void)
+{
+	in_proto_register(IPPROTO_TCP, &tcp_proto);
+}
+
+
 /*
  * Some helper routines for ioctl(), select(), read() and write().
  */
@@ -1025,29 +987,6 @@ static long tcp_canreadurg(struct in_data *data, long *urgseq)
 
 	*urgseq = SEQ1ST(b);
 	return 1;
-}
-
-
-/*
- * Return nonzero if there is a client waiting to be accepted
- */
-static long tcp_canaccept(struct in_data *data)
-{
-	struct tcb *tcb = data->pcb;
-	struct socket *so;
-
-	if (tcb->state != TCBS_LISTEN)
-		return 0;
-
-	for (so = data->sock->iconn_q; so; so = so->next)
-	{
-		struct tcb *ntcb = ((struct in_data *) so->data)->pcb;
-
-		if (ntcb->state != TCBS_SYNRCVD)
-			return 1;
-	}
-
-	return 0;
 }
 
 
@@ -1107,6 +1046,30 @@ long tcp_canread(struct in_data *data)
 
 	return nbytes;
 }
+
+
+/*
+ * Return nonzero if there is a client waiting to be accepted
+ */
+static long tcp_canaccept(struct in_data *data)
+{
+	struct tcb *tcb = data->pcb;
+	struct socket *so;
+
+	if (tcb->state != TCBS_LISTEN)
+		return 0;
+
+	for (so = data->sock->iconn_q; so; so = so->next)
+	{
+		struct tcb *ntcb = ((struct in_data *) so->data)->pcb;
+
+		if (ntcb->state != TCBS_SYNRCVD)
+			return 1;
+	}
+
+	return 0;
+}
+
 
 /*
  * Return the number of bytes that can be written

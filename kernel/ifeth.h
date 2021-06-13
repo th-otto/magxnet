@@ -32,8 +32,8 @@ struct eth_dgram
 	unsigned char	data[0];
 };
 
-BUF *	eth_build_hdr (BUF *, struct netif *, const char *, short);
-short	eth_remove_hdr (BUF *);
+BUF *cdecl eth_build_hdr(BUF *, struct netif *, const char *, short);
+short cdecl eth_remove_hdr(BUF *);
 
 
 # endif /* _ifeth_h */

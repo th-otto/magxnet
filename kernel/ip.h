@@ -21,20 +21,30 @@
 # define IP_DEFAULT_TOS	0
 
 /* Some macros to access data in the ip header for higher level protocols */
-# define IP_HDRLEN(buf)	(((struct ip_dgram *)(buf)->dstart)->hdrlen * 4)
+# define IP_HDRLEN(buf)	(IPH_HDRLEN((struct ip_dgram *)(buf)->dstart) * 4)
 # define IP_DADDR(buf)	(((struct ip_dgram *)(buf)->dstart)->daddr)
 # define IP_SADDR(buf)	(((struct ip_dgram *)(buf)->dstart)->saddr)
 # define IP_PROTO(buf)	(((struct ip_dgram *)(buf)->dstart)->proto)
-# define IP_DATA(buf)	((buf)->dstart + ((struct ip_dgram *)(buf)->dstart)->hdrlen * sizeof (long))
+# define IP_DATA(buf)	((buf)->dstart + IPH_HDRLEN((struct ip_dgram *)(buf)->dstart) * sizeof(long))
 
 /* IP datagramm */
 struct ip_dgram
 {
-	unsigned int version:4;	/* version number */
 # define IP_VERSION	4		/* current IP version */
-	
+#if defined(__GNUC__) || 1
+	unsigned int version:4;	/* version number */
 	unsigned int hdrlen:4;	/* header len */
 	unsigned int tos:8;		/* type of service and precedence */
+#define IPH_VERSION(iph) ((iph)->version)
+#define IPH_HDRLEN(iph) ((iph)->hdrlen)
+#define IPH_TOS(iph) ((iph)->tos)
+#else
+	/* Pure-C generates better without bitfields */
+	unsigned short version_len;
+#define IPH_VERSION(iph) (((iph)->version_len >> 12) & 0x0f)
+#define IPH_HDRLEN(iph) (((iph)->version_len >> 8) & 0x0f)
+#define IPH_TOS(iph) ((iph)->version_len & 0xff)
+#endif
 	ushort		length;		/* datagram length */
 	ushort		id;		/* datagram id */
 	ushort		fragoff;	/* fragment offset */
@@ -56,8 +66,10 @@ struct ip_options
 	unsigned char ttl;
 	unsigned char tos;
 	unsigned int hdrincl:1;
+#ifdef IGMP_SUPPORT
 	ulong		multicast_ip;
 	unsigned char multicast_loop;
+#endif
 };
 
 /* IP Type Of Service */
@@ -100,19 +112,19 @@ struct ip_options
 extern struct in_ip_ops *allipprotos;
 extern short ip_dgramid;
 
-short	ip_is_brdcst_addr (ulong);
-short	ip_is_local_addr (ulong);
+short	ip_is_brdcst_addr (in_addr_t);
+short	ip_is_local_addr (in_addr_t);
 
-ulong	ip_local_addr (ulong);
-short	ip_same_addr (ulong, ulong);
-ulong	ip_dst_addr (ulong);
-short	ip_chk_addr (ulong, struct route *);
+in_addr_t ip_local_addr (in_addr_t);
+short	ip_same_addr(in_addr_t, in_addr_t);
+in_addr_t ip_dst_addr(in_addr_t);
+short	ip_chk_addr (in_addr_t, struct route *);
 short	ip_priority (short, unsigned char);
 
 struct in_ip_ops;
 
 void	ip_register (struct in_ip_ops *);
-ulong	ip_netmask (ulong);
+in_addr_t	ip_netmask (in_addr_t);
 void	ip_input (struct netif *, BUF *);
 long	ip_send (ulong, ulong, BUF *, short, short, struct ip_options *);
 long	ip_output (BUF *);

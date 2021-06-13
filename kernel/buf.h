@@ -31,13 +31,13 @@ struct buf
 };
 
 
-long	buf_init (void);
+long buf_init(void);
 
-BUF *	buf_alloc (ulong, ulong, short);
-void	buf_free (BUF *, short);
-BUF *	buf_reserve (BUF *, long, short);
-void	buf_deref (BUF *, short);
-BUF *	buf_clone (BUF *, short);
+BUF *cdecl buf_alloc (ulong, ulong, short);
+void cdecl buf_free (BUF *, short);
+BUF *cdecl buf_reserve (BUF *, long, short);
+void cdecl buf_deref (BUF *, short);
+BUF *buf_clone (BUF *, short);
 
 void buf_ref(BUF *buf);
 

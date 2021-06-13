@@ -21,10 +21,6 @@
 
 #define INADDR_MULTICAST  ((ulong) 0xe0000000UL)
 
-#ifndef UNLIMITED
-#define UNLIMITED (0x7fffffffL)
-#endif
-
 static long udp_attach(struct in_data *);
 static long udp_abort(struct in_data *, short);
 static long udp_detach(struct in_data *, short);
@@ -248,10 +244,12 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 		srcaddr = data->src.addr;
 		if (srcaddr == INADDR_ANY)
 			srcaddr = ip_local_addr(dstaddr);
+#ifdef IGMP_SUPPORT
 		if ((dstaddr & 0xf0000000ul) == INADDR_MULTICAST)
 		{
 			srcaddr = data->opts.multicast_ip;
 		}
+#endif
 		uh->chksum = udp_checksum(uh, srcaddr, dstaddr);
 		if (!uh->chksum)
 			uh->chksum = ~0;

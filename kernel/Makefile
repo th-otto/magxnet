@@ -46,6 +46,7 @@ OBJS = \
 	port.o \
 	ifload.o \
 	ifeth.o \
+	rawip.o \
 	x28.o \
 	rest.o \
 	$(empty)

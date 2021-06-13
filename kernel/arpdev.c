@@ -90,7 +90,7 @@ long arpdev_read(MX_DOSFD *fp, long nbytes, void *buf)
 		if (j >= ARP_HASHSIZE)
 			break;
 
-		bzero(&info, sizeof(info));
+		mint_bzero(&info, sizeof(info));
 
 		/*
 		 * Protocoll address

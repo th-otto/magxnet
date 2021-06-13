@@ -37,7 +37,7 @@ ker_getinfo:
 	lea.l      12(a7),a7
 	tst.l      d0
 	bmi.s      ker_getinfo1
-	move.l     d0,p_kernel
+	move.l     d0,real_p_kernel
 	movea.l    d0,a0
 	lea.l      my_kernel,a1
 	move.w     mxk_version(a0),mxk_version(a1)
@@ -61,7 +61,7 @@ ker_fast_clrmem:
 	move.l     8(a7),a1
 	.ENDC
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_fast_clrmem(a2),a2
 	jsr        (a2)
 	movea.l    (a7)+,a2
@@ -78,7 +78,7 @@ ker_toupper:
 	.ENDC
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_toupper(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -102,7 +102,7 @@ ker_sprintf:
 	move.l     d0,-(a7)
 	move.l     a1,-(a7)
 	move.l     a0,-(a7)
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk__sprintf(a6),a6
 	jsr        (a6)
 	lea.l      12(a7),a7
@@ -113,7 +113,7 @@ ker_sprintf:
 	.globl ker_appl_yield
 ker_appl_yield:
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_appl_yield(a2),a2
 	jsr        (a2)
 	movea.l    (a7)+,a2
@@ -123,7 +123,7 @@ ker_appl_yield:
 	.globl ker_appl_suspend
 ker_appl_suspend:
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_appl_suspend(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -133,7 +133,7 @@ ker_appl_suspend:
 	.globl ker_appl_begcritic
 ker_appl_begcritic:
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_appl_begcritic(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -143,7 +143,7 @@ ker_appl_begcritic:
 	.globl ker_appl_endcritic
 ker_appl_endcritic:
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_appl_endcritic(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -157,7 +157,7 @@ ker_evnt_IO:
 	move.l     8(a7),a0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_evnt_IO(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -176,7 +176,7 @@ ker_evnt_mIO:
 	.ENDC
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_evnt_mIO(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -189,7 +189,7 @@ ker_evnt_emIO:
 	move.l     4(a7),a0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_evnt_emIO(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -202,7 +202,7 @@ ker_appl_IOcomplete:
 	move.l     4(a7),a0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_appl_IOcomplete(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -223,7 +223,7 @@ ker_evnt_sem:
 	.ENDC
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_evnt_sem(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -236,7 +236,7 @@ ker_Pfree:
 	move.l 4(a7),a0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_Pfree(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -249,7 +249,7 @@ ker_int_malloc:
 	move.l 4(a7),a0
 	.ENDC
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_int_malloc(a2),a2
 	jsr        (a2)
 	/* note: return value from kernel in D0, not A0 */
@@ -264,7 +264,7 @@ ker_int_mfree:
 	move.l 4(a7),a0
 	.ENDC
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_int_mfree(a2),a2
 	jsr        (a2)
 	movea.l    (a7)+,a2
@@ -278,7 +278,7 @@ ker_resv_intmem:
 	move.l 8(a7),d0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_resv_intmem(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -295,7 +295,7 @@ ker_diskchange:
 	.ENDC
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_diskchange(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -308,7 +308,7 @@ ker_DMD_rdevinit:
 	move.l     4(a7),a0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_DMD_rdevinit(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -327,7 +327,7 @@ ker_proc_info:
 	.ENDC
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_ker_proc_info(a6),a6
 	jsr        (a6)
 	rest_regs
@@ -348,7 +348,7 @@ ker_mxalloc:
 	.ENDC
 	.ENDC
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_ker_mxalloc(a2),a2
 	jsr        (a2)
 	movea.l    (a7)+,a2
@@ -363,7 +363,7 @@ ker_mfree:
 	move.l     4(a7),a0
 	.ENDC
 	move.l     a2,-(a7)
-	movea.l    p_kernel,a2
+	movea.l    real_p_kernel,a2
 	movea.l    mxk_ker_mfree(a2),a2
 	jsr        (a2)
 	movea.l    (a7)+,a2
@@ -377,7 +377,7 @@ ker_mshrink:
 	move.l     8(a7),d0
 	.ENDC
 	save_regs
-	movea.l    p_kernel,a6
+	movea.l    real_p_kernel,a6
 	movea.l    mxk_ker_mshrink(a6),a6
 	jsr        (a6)
 	/* note: return value from kernel in D0, not A0 */
@@ -437,7 +437,7 @@ new_bios_longframe:
 	btst       #2,(a7)
 	bne.s      new_bios_l1
 	move.l     a0,-(a7)
-	movea.l    p_kernel,a0
+	movea.l    real_p_kernel,a0
 	movea.l    mxk_pe_slice(a0),a0
 	move.w     (a0),save_slice
 	move.w     #-1,(a0)
@@ -466,7 +466,7 @@ new_bios_shortframe:
 	btst       #2,(a7)
 	bne.s      new_bios_s1
 	move.l     a0,-(a7)
-	movea.l    p_kernel,a0
+	movea.l    real_p_kernel,a0
 	movea.l    mxk_pe_slice(a0),a0
 	move.w     (a0),save_slice
 	move.w     #-1,(a0)
@@ -553,7 +553,7 @@ ret_b8:
 ret_b9:
 	move.w     d4,sr
 ret_b10:
-	movea.l    p_kernel,a0
+	movea.l    real_p_kernel,a0
 	movea.l    mxk_pe_slice(a0),a0
 	move.w     save_slice,(a0)
 	movem.l    (a7)+,d0-d7/a0-a6
@@ -611,5 +611,6 @@ my_kernel:
 	.dc.l ker_mfree
 	.dc.l ker_mshrink
 
-p_kernel:
+	.globl real_p_kernel
+real_p_kernel:
 	.dc.l 0

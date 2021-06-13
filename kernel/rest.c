@@ -3,8 +3,16 @@
 #include "dummydev.h"
 #include "timeout.h"
 #include "iov.h"
+#include "bpf.h"
+#include "rawip.h"
+#include "route.h"
+#include "icmp.h"
+#include "igmp.h"
+#include "tcp.h"
+#include "udp.h"
+#include "masquera.h"
 
-void inet4_init(void)
+void x1c39c(void)
 {
 }
 
@@ -19,6 +27,8 @@ void x1c022(void)
 	iov2buf_cpy(0, 0, 0, 0, 0);
 	buf2iov_cpy(0, 0, 0, 0, 0);
 	dummydev_init(0, 0);
+	/* install packetfilter */
+	bpf_init();
 }
 
 
@@ -44,7 +54,7 @@ void wakeselect(long proc)
 }
 
 
-TIMEOUT *addroottimeout(long delta, void (*func)(struct proc *, long), ushort flags)
+TIMEOUT *cdecl addroottimeout(long delta, void cdecl (*func)(struct proc *, long), ushort flags)
 {
 	(void)delta;
 	(void)func;
@@ -53,20 +63,20 @@ TIMEOUT *addroottimeout(long delta, void (*func)(struct proc *, long), ushort fl
 }
 
 
-void cancelroottimeout(TIMEOUT *which)
+void cdecl cancelroottimeout(TIMEOUT *which)
 {
 	(void)which;
 }
 
 
-long iov_size (const struct iovec *iov, long n)
+long iov_size(const struct iovec *iov, short n)
 {
 	(void)iov;
 	return n;
 }
 
 
-long unixtime(unsigned short time, unsigned short date)
+long cdecl unixtime(unsigned short time, unsigned short date)
 {
 	(void)time;
 	(void)date;
@@ -74,8 +84,15 @@ long unixtime(unsigned short time, unsigned short date)
 }
 
 
-long so_free(struct socket *so)
+
+#ifndef __GNUC__
+short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 {
-	(void)so;
+	(void)nif;
+	(void)buf;
+	(void)delay;
+	(void)type;
+	ip_input(nif,buf);
 	return 0;
 }
+#endif

@@ -208,7 +208,8 @@ struct tcb
 
 	long		last_recv;	/* time of last receive */
 	long		last_ack;	/* time of last ack */
-	long		artt, arttdev;
+	long		artt;
+	long		arttdev;
 };
 
 extern struct in_proto tcp_proto;

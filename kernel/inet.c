@@ -13,6 +13,13 @@
 #include "inetutil.h"
 #include "port.h"
 #include "timer.h"
+#include "mxkernel.h"
+#include "icmp.h"
+#include "igmp.h"
+#include "tcp.h"
+#include "udp.h"
+#include "masquera.h"
+#include "rawip.h"
 
 #define SIGPIPE 13
 
@@ -114,11 +121,13 @@ static long inet_abort(struct socket *so, enum so_state ostate)
 
 	r = (*data->proto->soops.abort) (data, ostate);
 
+#ifdef NOTYET
 	/* wake anyone waiting on the socket */
 	wake(IO_Q, (long) so);
 	so_wakersel(so);
 	so_wakewsel(so);
 	so_wakexsel(so);
+#endif
 
 	return r;
 }
@@ -139,8 +148,8 @@ static long inet_bind(struct socket *so, struct sockaddr *addr, short addrlen)
 {
 	struct in_data *data = so->data;
 	struct sockaddr_in *inaddr = (struct sockaddr_in *) addr;
-	ulong saddr;
-	ushort port;
+	in_addr_t saddr;
+	in_port_t port;
 
 	if (!addr)
 		return EDESTADDRREQ;
@@ -167,7 +176,11 @@ static long inet_bind(struct socket *so, struct sockaddr *addr, short addrlen)
 	if (saddr != INADDR_ANY)
 	{
 		/* Allow bind to local broadcast address. Fixes samba's nmbd. */
-		if (!ip_is_local_addr(saddr) && !ip_is_brdcst_addr(saddr))
+		if (!ip_is_local_addr(saddr) 
+#ifdef NOTYET
+			&& !ip_is_brdcst_addr(saddr)
+#endif
+			)
 		{
 			DEBUG(("inet_bind: %lx: no such local IP address", saddr));
 			return EADDRNOTAVAIL;
@@ -176,14 +189,16 @@ static long inet_bind(struct socket *so, struct sockaddr *addr, short addrlen)
 
 	port = inaddr->sin_port;
 	if (so->type == SOCK_RAW)
+	{
 		port = 0;
-	else if (port == 0)
+	} else if (port == 0)
+	{
 		port = port_alloc(data);
-	else
+	} else
 	{
 		struct in_data *data2;
 
-		if (port < IPPORT_RESERVED && Pgeteuid())
+		if (port < IPPORT_RESERVED && p_geteuid() != 0)
 		{
 			DEBUG(("inet_bind: Permission denied"));
 			return EACCES;
@@ -260,8 +275,8 @@ static long inet_socketpair(struct socket *so1, struct socket *so2)
 
 static long inet_accept(struct socket *server, struct socket *newso, short nonblock)
 {
-	struct in_data *sdata = server->data,
-		*cdata = newso->data;
+	struct in_data *sdata = server->data;
+	struct in_data *cdata = newso->data;
 
 	return (*sdata->proto->soops.accept) (sdata, cdata, nonblock);
 }
@@ -296,8 +311,8 @@ static long inet_getname(struct socket *so, struct sockaddr *addr, short *addrle
 			? data->src.addr : ip_local_addr((data->flags & IN_ISCONNECTED) ? data->dst.addr : INADDR_ANY);
 	}
 
-	todo = MIN((unsigned short)*addrlen, sizeof(in));
-	bzero(in.sin_zero, sizeof(in.sin_zero));
+	todo = MIN(*addrlen, (long)sizeof(in));
+	mint_bzero(in.sin_zero, sizeof(in.sin_zero));
 	memcpy(addr, &in, todo);
 	*addrlen = todo;
 
@@ -340,7 +355,9 @@ static long inet_ioctl(struct socket *so, short cmd, void *buf)
 	case SIOCGIFSTATS:
 	case SIOCGLNKFLAGS:
 	case SIOCSLNKFLAGS:
+#ifdef NOTYET
 	case SIOCSIFHWADDR:
+#endif
 	case SIOCGIFHWADDR:
 	case SIOCGLNKSTATS:
 	case SIOCSIFOPT:
@@ -382,9 +399,8 @@ inet_send(struct socket *so, const struct iovec *iov, short niov, short nonblock
 
 	if (so->state == SS_ISDISCONNECTING || so->state == SS_ISDISCONNECTED)
 	{
-		short pid = Pgetpid();
 		DEBUG(("inet_send: Socket shut down"));
-		(void) Pkill(pid, SIGPIPE);
+		p_kill(p_getpid(), SIGPIPE);
 		return EPIPE;
 	}
 
@@ -397,9 +413,8 @@ inet_send(struct socket *so, const struct iovec *iov, short niov, short nonblock
 
 	if (so->flags & SO_CANTSNDMORE)
 	{
-		short pid = Pgetpid();
 		DEBUG(("inet_send: shut down"));
-		(void) Pkill(pid, SIGPIPE);
+		p_kill(p_getpid(), SIGPIPE);
 		return EPIPE;
 	}
 
@@ -710,8 +725,10 @@ static long inet_getsockopt(struct socket *so, short level, short optname, char 
 		val = (data->flags & IN_CHECKSUM) ? 1 : 0;
 		break;
 
+#ifdef IGMP_SUPPORT
 	case SO_ACCEPTCONN:
 		return (*data->proto->soops.getsockopt) (data, level, optname, optval, optlen);
+#endif
 
 	default:
 		return EOPNOTSUPP;
@@ -733,7 +750,7 @@ static long inet_getsockopt(struct socket *so, short level, short optname, char 
 		return EINVAL;
 	}
 #else
-	if ((unsigned long)*optlen == sizeof(short))
+	if ((unsigned long)*optlen < sizeof(long))
 	{
 		DEBUG(("inet_getsockopt: optlen < sizeof long"));
 		return EINVAL;
@@ -769,8 +786,37 @@ static struct dom_ops inet_ops = {
 };
 
 
-void inet_init(void)
+void inet4_init(void)
 {
-	inetdev_init();
+	/* initialize buf allocator */
+	buf_init();
+
+	/* load all interfaces */
+	if_init();
+	
+	/* initialize IP router & control device */
+	route_init();
+	
+	/* initialize raw IP driver; must be first */
+	rip_init();
+	
+	/* initialize ICMP protocol */
+	icmp_init();
+
+	/* initialize UDP protocol */
+	udp_init();
+
+	/* initialize TCP protocol */
+	tcp_init();
+#ifdef IGMP_SUPPORT
+	/* initialize IGMP protocol */
+	igmp_init();
+#endif
+
+	/* register our domain */
 	so_register(AF_INET, &inet_ops);
+	inetdev_init();
+
+	/* initialize masquerade support */
+	masq_init();
 }

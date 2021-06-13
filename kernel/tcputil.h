@@ -49,7 +49,7 @@ long		tcp_sndack	(struct tcb *, BUF *);
 short		tcp_valid	(struct tcb *, BUF *);
 long		tcp_options	(struct tcb *, struct tcp_dgram *);
 long		tcp_mss		(struct tcb *, ulong faddr, long);
-ushort		tcp_checksum	(struct tcp_dgram *, ushort, ulong, ulong);
+ushort		tcp_checksum	(struct tcp_dgram *, ulong, ulong, ushort);
 void		tcp_dump	(BUF *);
 
 short tcp_finished (struct tcb *tcb);

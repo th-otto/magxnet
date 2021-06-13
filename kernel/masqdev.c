@@ -17,7 +17,7 @@
 #include "dummydev.h"
 #include "mxkernel.h"
 
-#ifdef USE_MASQUERADE
+#ifdef MASQUERADE_SUPPORT
 
 static long cdecl masqdev_read(MX_DOSFD *, long, void *);
 static long cdecl masqdev_write(MX_DOSFD *, long, void *);
@@ -281,4 +281,4 @@ static long masqdev_write(MX_DOSFD *fp, long nbytes, void *buf)
 	return 0;
 }
 
-#endif /* USE_MASQUERADE */
+#endif /* MASQUERADE_SUPPORT */

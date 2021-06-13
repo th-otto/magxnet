@@ -9,16 +9,15 @@
 #include "masquera.h"
 #include <stdlib.h>
 
+#include "mxkernel.h"
 #include "icmp.h"
 #include "inetutil.h"
 #include "ip.h"
 #include "masqdev.h"
 #include "tcputil.h"
 #include "udp.h"
-#include "mxkernel.h"
 #include "bpf.h"
 
-#ifdef USE_MASQUERADE
 
 
 #define MBDEBUG TRACE
@@ -28,18 +27,18 @@
 
 
 MASQ_GLOBAL_INFO masq = {
-  MASQ_MAGIC,
-  MASQ_VERSION,
-  0,
-  0,
-  MASQ_DEFRAG_ALL,
-  200UL * 60 * 1,
-  200UL * 60 * 60,
-  200UL * 255 * 2,
-  200UL * 60 * 1,
-  200UL * 60 * 1,
-  { 0 },
-  NULL
+	MASQ_MAGIC,
+	MASQ_VERSION,
+	0,
+	0,
+	MASQ_DEFRAG_ALL,
+	200UL * 60 * 1,
+	200UL * 60 * 60,
+	200UL * 255 * 2,
+	200UL * 60 * 1,
+	200UL * 60 * 1,
+	{ 0 },
+	NULL
 };
 
 static int ftp_modifier(BUF **buf, ulong localaddr);
@@ -59,7 +58,9 @@ void masq_init(void)
 {
 	int i;
 
+#ifdef MASQUERADE_SUPPORT
 	masqdev_init();
+#endif
 
 	for (i = 0; i < MASQ_NUM_PORTS; i++)
 		masq.port_db[i] = NULL;
@@ -109,7 +110,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 	} else
 	{
 		addrtype = 0;
-		localaddr = 0x7F000001;			/* If no route found, use local address */
+		localaddr = INADDR_LOOPBACK;			/* If no route found, use local address */
 	}
 	MBDEBUG(("masq_ip_input: got route"));
 
@@ -152,7 +153,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 
 	MBDEBUG(("masq_ip_input: port is %u", src_port));
 	if (addrtype == IPADDR_LOCAL
-		&& ((db_record = find_redirection(src_port))
+		&& ((db_record = find_redirection(src_port)) != NULL
 			|| (src_port >= MASQ_BASE_PORT && src_port < MASQ_BASE_PORT + MASQ_NUM_PORTS)))
 	{
 		/* This is an incoming packet for a masqueraded machine */
@@ -186,7 +187,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			tcph->dstport = db_record->masq_port;
 			tcph->ack -= offset(tcph->ack - db_record->offs);
 			tcph->chksum = 0;
-			tcph->chksum = tcp_checksum(tcph, (long) buf->dend - (long) tcph, iph->saddr, db_record->masq_addr);
+			tcph->chksum = tcp_checksum(tcph, iph->saddr, db_record->masq_addr, (long) buf->dend - (long) tcph);
 
 			if (tcph->flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
@@ -224,10 +225,10 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 					tcph->srcport = db_record->masq_port;
 					tcph->seq -= offset(tcph->seq - db_record->offs);
 					tcph->chksum = 0;
-					/*tcph->chksum = tcp_checksum( tcph, (long)buf->dend-(long)tcph, orig_iph->saddr, orig_iph->daddr ); */
+					/*tcph->chksum = tcp_checksum(tcph, orig_iph->saddr, orig_iph->daddr, (long)buf->dend - (long)tcph); */
 					orig_iph->saddr = db_record->masq_addr;
 					orig_iph->chksum = 0;
-					orig_iph->chksum = chksum(orig_iph, orig_iph->hdrlen * sizeof(short));
+					orig_iph->chksum = chksum(orig_iph, IPH_HDRLEN(orig_iph) * sizeof(short));
 					icmph->chksum = 0;
 					datalen = (long) buf->dend - (long) icmph;
 					if (datalen & 1)
@@ -240,7 +241,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 					uh->chksum = udp_checksum(uh, db_record->masq_addr, orig_iph->daddr);
 					orig_iph->saddr = db_record->masq_addr;
 					orig_iph->chksum = 0;
-					orig_iph->chksum = chksum(orig_iph, orig_iph->hdrlen * sizeof(short));
+					orig_iph->chksum = chksum(orig_iph, IPH_HDRLEN(orig_iph) * sizeof(short));
 					icmph->chksum = 0;
 					datalen = (long) buf->dend - (long) icmph;
 					if (datalen & 1)
@@ -256,7 +257,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 
 		/* Recalculate IP header checksum */
 		iph->chksum = 0;
-		iph->chksum = chksum(iph, iph->hdrlen * sizeof(short));
+		iph->chksum = chksum(iph, IPH_HDRLEN(iph) * sizeof(short));
 	} else if (masq.addr == (iph->saddr & masq.mask))
 	{
 		ushort lport = 0;				/* To keep gcc happy */
@@ -381,7 +382,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			tcph->srcport = lport;
 			tcph->seq += offset(tcph->seq);
 			tcph->chksum = 0;
-			tcph->chksum = tcp_checksum(tcph, (long) buf->dend - (long) tcph, localaddr, iph->daddr);
+			tcph->chksum = tcp_checksum(tcph, localaddr, iph->daddr, (long) buf->dend - (long) tcph);
 
 			if (tcph->flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
@@ -419,7 +420,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 
 		/* Recalculate IP header checksum */
 		iph->chksum = 0;
-		iph->chksum = chksum(iph, iph->hdrlen * sizeof(short));
+		iph->chksum = chksum(iph, IPH_HDRLEN(iph) * sizeof(short));
 	}
 
 	MBDEBUG(("masq_ip_input: successfully exited"));
@@ -458,7 +459,7 @@ PORT_DB_RECORD *new_port_record(void)
 			record = kmalloc(sizeof(*record));
 			if (record)
 			{
-				bzero(record, sizeof(*record));
+				mint_bzero(record, sizeof(*record));
 				record->num = i;
 
 				masq.port_db[i] = record;
@@ -500,7 +501,7 @@ PORT_DB_RECORD *new_redirection(void)
 	record = kmalloc(sizeof(*record));
 	if (record)
 	{
-		bzero(record, sizeof(*record));
+		mint_bzero(record, sizeof(*record));
 
 		record->next_port = masq.redirection_db;
 		masq.redirection_db = record;
@@ -652,7 +653,7 @@ static int ftp_modifier(BUF **buf, ulong localaddr)
 			new_db_record->seq = 0;
 			local_port = MASQ_BASE_PORT + new_db_record->num;
 			new_db_record->modified = MASQ_TIME;
-		} else if ((new_db_record = find_port_record(iph->saddr, ftp_port, 0, iph->proto)))
+		} else if ((new_db_record = find_port_record(iph->saddr, ftp_port, 0, iph->proto)) != NULL)
 			/* This was a retry, so find the previously created entry */
 			local_port = MASQ_BASE_PORT + new_db_record->num;
 		else
@@ -718,9 +719,7 @@ static int ftp_modifier(BUF **buf, ulong localaddr)
 		break;
 	}
 
-	return delta;
+	return (int)delta;
 }
 
 /* 07/01/99 TL end ftp support */
-
-#endif /* USE_MASQUERADE */

@@ -15,7 +15,7 @@
 
 #include "buf.h"
 #include "timer.h"
-#include "inet.H"
+#include "inet.h"
 #include "mxkernel.h"
 #include "asm_spl.h"
 #include "timeout.h"
@@ -65,7 +65,6 @@ static void bpf_release(struct bpf *);
 static long bpf_attach(struct bpf *, struct ifreq *);
 static void bpf_reset(struct bpf *);
 static long bpf_sfilter(struct bpf *, struct bpf_program *);
-static void bpf_handler(PROC *, long arg);
 
 extern MX_DDEV bpf_dev GNU_ASM_NAME("bpf_dev");
 
@@ -116,7 +115,7 @@ static struct bpf *bpf_create(void)
 	if (!bpf)
 		return NULL;
 
-	bzero(bpf, sizeof(*bpf));
+	mint_bzero(bpf, sizeof(*bpf));
 
 	bpf->recvq.maxqlen = BPF_MAXPACKETS;
 	bpf->link = allbpfs;
@@ -132,8 +131,8 @@ static struct bpf *bpf_create(void)
  */
 static void bpf_release(struct bpf *bpf)
 {
-	struct bpf *bpf2,
-	**prev;
+	struct bpf *bpf2;
+	struct bpf **prev;
 	ushort sr;
 
 	sr = spl7();
@@ -197,8 +196,8 @@ static long bpf_attach(struct bpf *bpf, struct ifreq *ifr)
 	sr = spl7();
 	if (bpf->flags & BPF_OPEN)
 	{
-		struct bpf *bpf2,
-		**prev;
+		struct bpf *bpf2;
+		struct bpf **prev;
 
 		prev = &bpf->nif->bpf;
 		bpf2 = *prev;
@@ -285,8 +284,8 @@ static void bpf_reset(struct bpf *bpf)
  */
 static long bpf_sfilter(struct bpf *bpf, struct bpf_program *prog)
 {
-	struct bpf_insn *oprog,
-	*nprog;
+	struct bpf_insn *oprog;
+	struct bpf_insn *nprog;
 	long size;
 	ushort sr;
 
@@ -337,7 +336,7 @@ static volatile short have_tmout;
 /*
  * top half input handler.
  */
-static void bpf_handler(PROC *proc, long arg)
+static void cdecl bpf_handler(PROC *proc, long arg)
 {
 	struct bpf *bpf;
 
@@ -366,14 +365,14 @@ static void bpf_handler(PROC *proc, long arg)
  * bottom half input handler, called from interface input routine.
  * packet contains MAC header.
  */
-long bpf_input(struct netif *nif, BUF *buf)
+long cdecl bpf_input(struct netif *nif, BUF *buf)
 {
 	struct bpf *bpf;
-	ulong caplen,
-	 pktlen,
-	 snaplen,
-	 ticks,
-	 align;
+	ulong caplen;
+	ulong pktlen;
+	ulong snaplen;
+	ulong ticks;
+	ulong align;
 	struct bpf_hdr *hp;
 	BUF *buf2;
 	ushort sr;
@@ -464,6 +463,10 @@ long bpf_input(struct netif *nif, BUF *buf)
 /*** ---------------------------------------------------------------------- ***/
 /******************************************************************************/
 
+#ifdef __PUREC__
+#pragma warn -rch /* for p_geteuid */
+#endif
+
 /*
  * /dev/bpf device driver
  */
@@ -471,7 +474,7 @@ static long cdecl bpf_open(MX_DOSFD *fp)
 {
 	struct bpf *bpf;
 
-	if (Pgeteuid() != 0)
+	if (p_geteuid() != 0)
 		return EACCES;
 
 	bpf = bpf_create();
@@ -493,8 +496,8 @@ static long cdecl bpf_open(MX_DOSFD *fp)
 static long bpf_write(MX_DOSFD *fp, long nbytes, void *buf)
 {
 	struct bpf *bpf = (struct bpf *) fp->fd_user1;
-	short daddrlen,
-	 pktype;
+	short daddrlen;
+	short pktype;
 	const void *daddr;
 	BUF *b;
 

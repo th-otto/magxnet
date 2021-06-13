@@ -38,8 +38,13 @@
 # define USE_DROPPED_SEGMENT_DETECTION
 
 /*
- * Define this to enable the masquerade driver
+ * Define this to enable the masquerade device
  */
-/* # define USE_MASQUERADE */
+/* #define MASQUERADE_SUPPORT */
+
+/*
+ * define this to enable IGMP support
+ */
+/* #define IGMP_SUPPORT */
 
 # endif /* _sockets_config_h */

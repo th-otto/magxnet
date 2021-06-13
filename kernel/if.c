@@ -19,6 +19,13 @@
 #include "asm_spl.h"
 #include "mxkernel.h"
 
+#ifdef __PUREC__
+#pragma warn -rch /* for p_geteuid */
+#endif
+
+#define GET_QUEUE(q)    (((q)->curr >> IF_PRIORITY_BITS) & (IF_PRIORITIES-1))
+#define SET_QUEUE(q, n) ((q)->curr = (n) << IF_PRIORITY_BITS)
+#define INC_QUEUE(q, n) ((q)->curr += (IF_PRIORITIES - (n)))
 
 
 /*
@@ -55,7 +62,7 @@ static void *setstack(void *sp)
 #endif
 
 
-short if_enqueue(struct ifq *q, BUF * buf, short pri)
+short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 {
 	ushort sr;
 
@@ -68,7 +75,7 @@ short if_enqueue(struct ifq *q, BUF * buf, short pri)
 		 */
 		buf_deref(buf, BUF_ATOMIC);
 
-		spl(sr);
+		/* spl(sr); */
 		return ENOMEM;
 	} else
 	{
@@ -91,54 +98,17 @@ short if_enqueue(struct ifq *q, BUF * buf, short pri)
 	return 0;
 }
 
-short if_putback(struct ifq *q, BUF * buf, short pri)
+BUF *cdecl if_dequeue(struct ifq *q)
 {
-	register ushort sr;
-
-	sr = spl7();
-
-	if (q->qlen >= q->maxqlen)
-	{
-		/*
-		 * queue full, dropping packet
-		 */
-		buf_deref(buf, BUF_ATOMIC);
-
-		spl(sr);
-		return ENOMEM;
-	} else
-	{
-		if ((ushort) pri >= IF_PRIORITIES)
-			pri = IF_PRIORITIES - 1;
-
-		buf->link3 = q->qfirst[pri];
-		q->qfirst[pri] = buf;
-		if (!q->qlast[pri])
-			q->qlast[pri] = buf;
-
-		q->qlen++;
-	}
-
-	spl(sr);
-
-	return 0;
-}
-
-#define GET_QUEUE(q)    (((q)->curr >> IF_PRIORITY_BITS) & (IF_PRIORITIES-1))
-#define SET_QUEUE(q, n) ((q)->curr = (n) << IF_PRIORITY_BITS)
-#define INC_QUEUE(q, n) ((q)->curr += (IF_PRIORITIES - (n)))
-
-BUF *if_dequeue(struct ifq *q)
-{
-	register BUF *buf = NULL;
-	register ushort sr;
-	register short i;
+	BUF *buf = NULL;
+	ushort sr;
+	short i;
 
 	sr = spl7();
 
 	if (q->qlen > 0)
 	{
-		register short que;
+		short que;
 
 		que = GET_QUEUE(q);
 		for (i = IF_PRIORITIES; i > 0; --i)
@@ -166,7 +136,50 @@ BUF *if_dequeue(struct ifq *q)
 	return buf;
 }
 
-void if_flushq(struct ifq *q)
+short cdecl if_putback(struct ifq *q, BUF *buf, short pri)
+{
+#ifdef __GNUC__
+	ushort sr;
+
+	sr = spl7();
+#else
+	pushsr();
+#endif
+
+	if (q->qlen >= q->maxqlen)
+	{
+		/*
+		 * queue full, dropping packet
+		 */
+		buf_deref(buf, BUF_ATOMIC);
+
+#ifdef __GNUC__
+		spl(sr);
+#endif
+		return ENOMEM;
+	} else
+	{
+		if ((ushort) pri >= IF_PRIORITIES)
+			pri = IF_PRIORITIES - 1;
+
+		buf->link3 = q->qfirst[pri];
+		q->qfirst[pri] = buf;
+		if (!q->qlast[pri])
+			q->qlast[pri] = buf;
+
+		q->qlen++;
+	}
+
+#ifdef __GNUC__
+	spl(sr);
+#else
+	popsr();
+#endif
+
+	return 0;
+}
+
+void cdecl if_flushq(struct ifq *q)
 {
 	register ushort sr;
 	register short i;
@@ -190,7 +203,8 @@ void if_flushq(struct ifq *q)
 	spl(sr);
 }
 
-static void if_doinput(PROC * proc, long arg)
+
+static void if_doinput(PROC *proc, long arg)
 {
 	struct netif *nif;
 	char *sp;
@@ -254,7 +268,9 @@ static void if_doinput(PROC * proc, long arg)
 	(void) setstack(sp);
 }
 
-short if_input(struct netif *nif, BUF * buf, long delay, short type)
+
+#ifdef __GNUC__
+short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 {
 	register ushort sr;
 	register short r = 0;
@@ -274,8 +290,9 @@ short if_input(struct netif *nif, BUF * buf, long delay, short type)
 
 	return r;
 }
+#endif
 
-static void if_slowtimeout(PROC * proc, long arg)
+static void cdecl if_slowtimeout(PROC *proc, long arg)
 {
 	struct netif *nif;
 
@@ -290,7 +307,7 @@ static void if_slowtimeout(PROC * proc, long arg)
 	addroottimeout(IF_SLOWTIMEOUT, if_slowtimeout, 0);
 }
 
-long if_deregister(struct netif *nif)
+long cdecl if_deregister(struct netif *nif)
 {
 	struct netif *ifp;
 	struct netif *ifpb = NULL;
@@ -315,7 +332,7 @@ long if_deregister(struct netif *nif)
 	return 0;							/* not removed */
 }
 
-long if_register(struct netif *nif)
+long cdecl if_register(struct netif *nif)
 {
 	static short have_timeout = 0;
 	short i;
@@ -358,7 +375,7 @@ long if_register(struct netif *nif)
 /*
  * Get an unused unit number for interface name 'name'
  */
-short if_getfreeunit(char *name)
+short cdecl if_getfreeunit(char *name)
 {
 	struct netif *ifp;
 	short max = -1;
@@ -420,14 +437,17 @@ long if_open(struct netif *nif)
 	 */
 	rt_primary.nif = nif;
 
+#ifdef IGMP_SUPPORT
 	igmp_start(nif);
 	igmp_report_groups(nif);
-	nif->flags |= (IFF_IGMP);
+	nif->flags |= IFF_IGMP;
+#endif
 
 	DEBUG(("if_open: primary_nif = %s", rt_primary.nif->name));
 
 	return 0;
 }
+
 
 long if_close(struct netif *nif)
 {
@@ -444,7 +464,9 @@ long if_close(struct netif *nif)
 	if_flushq(&nif->snd);
 	if_flushq(&nif->rcv);
 
+#ifdef IGMP_SUPPORT
 	igmp_stop(nif);
+#endif
 	route_flush(nif);
 	arp_flush(nif);
 
@@ -455,7 +477,11 @@ long if_close(struct netif *nif)
 	if (nif->flags & IFF_LOOPBACK)
 		route_del(0x7f000000L, IN_CLASSA_NET);
 
-	nif->flags &= ~(IFF_UP | IFF_IGMP | IFF_RUNNING);
+	nif->flags &= ~(IFF_UP |
+#ifdef IGMP_SUPPORT
+		IFF_IGMP |
+#endif
+		IFF_RUNNING);
 
 	/*
 	 * Want a running primary interface
@@ -477,7 +503,12 @@ long if_close(struct netif *nif)
 	return 0;
 }
 
-long if_send(struct netif *nif, BUF * buf, ulong nexthop, short addrtype)
+
+#ifdef IGMP_SUPPORT
+long if_send(struct netif *nif, BUF *buf, ulong nexthop, short addrtype)
+#else
+long if_send(struct netif *nif, BUF *buf, ulong nexthop, short isbrcst)
+#endif
 {
 	struct arp_entry *are;
 	long ret;
@@ -501,60 +532,65 @@ long if_send(struct netif *nif, BUF * buf, ulong nexthop, short addrtype)
 		 */
 		return (*nif->output) (nif, buf, (char *) &nexthop, sizeof(nexthop), PKTYPE_IP);
 	} else
+	{
 		switch (nif->hwtype)
 		{
 		case HWTYPE_ETH:
+			DEBUG(("if_send(%s): HWTYPE_ETH (addrtype=%d)", nif->name, addrtype));
+
+			/*
+			 * When broadcast then use interface's broadcast address
+			 */
+#ifdef IGMP_SUPPORT
+			if (addrtype == IPADDR_BRDCST)
 			{
-				DEBUG(("if_send(%s): HWTYPE_ETH (addrtype=%d)", nif->name, addrtype));
+				return (*nif->output) (nif, buf, (char *) nif->hwbrcst.adr.bytes, nif->hwbrcst.len, PKTYPE_IP);
+			} else if (addrtype == IPADDR_MULTICST)
+			{
+				struct ip_dgram *iph = (struct ip_dgram *) buf->dstart;
+				struct hwaddr hwmcast;
 
-				/*
-				 * When broadcast then use interface's broadcast address
-				 */
-				if (addrtype == IPADDR_BRDCST)
-					return (*nif->output) (nif, buf, (char *) nif->hwbrcst.adr.bytes, nif->hwbrcst.len, PKTYPE_IP);
-				else if (addrtype == IPADDR_MULTICST)
-				{
-					struct ip_dgram *iph = (struct ip_dgram *) buf->dstart;
-					struct hwaddr hwmcast;
+				hwmcast.adr.bytes[0] = 0x01;
+				hwmcast.adr.bytes[1] = 0x00;
+				hwmcast.adr.bytes[2] = 0x5e;
+				hwmcast.adr.bytes[3] = (iph->daddr & 0xFF0000UL) >> 16;
+				hwmcast.adr.bytes[4] = (iph->daddr & 0x00FF00UL) >> 8;
+				hwmcast.adr.bytes[5] = (iph->daddr & 0x0000FFUL) >> 0;
+				hwmcast.len = ETH_ALEN;
 
-					hwmcast.adr.bytes[0] = 0x01;
-					hwmcast.adr.bytes[1] = 0x00;
-					hwmcast.adr.bytes[2] = 0x5e;
-					hwmcast.adr.bytes[3] = (iph->daddr & 0xFF0000UL) >> 16;
-					hwmcast.adr.bytes[4] = (iph->daddr & 0x00FF00UL) >> 8;
-					hwmcast.adr.bytes[5] = (iph->daddr & 0x0000FFUL) >> 0;
-					hwmcast.len = ETH_ALEN;
-
-					return (*nif->output) (nif, buf, (char *) hwmcast.adr.bytes, hwmcast.len, PKTYPE_IP);
-				}
-
-				/*
-				 * Here we must first resolve the IP address into a hardware
-				 * address using ARP.
-				 */
-				are = arp_lookup(0, nif, ARPRTYPE_IP, 4, (char *) &nexthop);
-				if (are == 0)
-				{
-					buf_deref(buf, BUF_NORMAL);
-					return ENOMEM;
-				}
-
-				if (ATF_ISCOM(are))
-				{
-					ret = (*nif->output) (nif, buf, (char *) are->hwaddr.adr.bytes, are->hwaddr.len, PKTYPE_IP);
-				} else
-					ret = if_enqueue(&are->outq, buf, IF_PRIORITIES - 1);
-
-				arp_deref(are);
-				return ret;
+				return (*nif->output) (nif, buf, (char *) hwmcast.adr.bytes, hwmcast.len, PKTYPE_IP);
 			}
-		default:
+#else
+			if (isbrcst)
+				return (*nif->output) (nif, buf, (char *) nif->hwbrcst.adr.bytes, nif->hwbrcst.len, PKTYPE_IP);
+#endif
+
+			/*
+			 * Here we must first resolve the IP address into a hardware
+			 * address using ARP.
+			 */
+			are = arp_lookup(0, nif, ARPRTYPE_IP, 4, (char *) &nexthop);
+			if (are == 0)
 			{
-				DEBUG(("if_send: %d: Invalid hardware type", nif->hwtype));
 				buf_deref(buf, BUF_NORMAL);
-				return EINVAL;
+				return ENOMEM;
 			}
+
+			if (ATF_ISCOM(are))
+			{
+				ret = (*nif->output) (nif, buf, (char *) are->hwaddr.adr.bytes, are->hwaddr.len, PKTYPE_IP);
+			} else
+				ret = if_enqueue(&are->outq, buf, IF_PRIORITIES - 1);
+
+			arp_deref(are);
+			return ret;
+
+		default:
+			DEBUG(("if_send: %d: Invalid hardware type", nif->hwtype));
+			buf_deref(buf, BUF_NORMAL);
+			return EINVAL;
 		}
+	}
 }
 
 long if_ioctl(short cmd, long arg)
@@ -566,7 +602,7 @@ long if_ioctl(short cmd, long arg)
 	{
 	case SIOCSIFLINK:
 		{
-			if (Pgeteuid() != 0)
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: SIFLINK: permission denied"));
 				return EACCES;
@@ -625,7 +661,7 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCSLNKFLAGS:
 	case SIOCSIFOPT:
-		if (Pgeteuid() != 0)
+		if (p_geteuid() != 0)
 			return EACCES;
 		/* fall through */
 	case SIOCGLNKFLAGS:
@@ -649,7 +685,7 @@ long if_ioctl(short cmd, long arg)
 			short nflags = ifr->ifru.flags & IFF_MASK;
 			long error;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
 				return EACCES;
@@ -678,7 +714,7 @@ long if_ioctl(short cmd, long arg)
 		return 0;
 
 	case SIOCSIFMETRIC:
-		if (Pgeteuid())
+		if (p_geteuid() != 0)
 		{
 			DEBUG(("if_ioctl: permission denied"));
 			return EACCES;
@@ -687,7 +723,7 @@ long if_ioctl(short cmd, long arg)
 		return 0;
 
 	case SIOCSIFMTU:
-		if (Pgeteuid())
+		if (p_geteuid() != 0)
 		{
 			DEBUG(("if_ioctl: permission denied"));
 			return EACCES;
@@ -705,7 +741,7 @@ long if_ioctl(short cmd, long arg)
 		{
 			struct kernel_ifaddr *ifa;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
 				return EACCES;
@@ -753,7 +789,7 @@ long if_ioctl(short cmd, long arg)
 		{
 			long error;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
 				return EACCES;
@@ -785,7 +821,7 @@ long if_ioctl(short cmd, long arg)
 		{
 			struct kernel_ifaddr *ifa;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
 				return EACCES;
@@ -833,7 +869,7 @@ long if_ioctl(short cmd, long arg)
 		{
 			struct kernel_ifaddr *ifa;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
 				return EACCES;
@@ -1157,7 +1193,9 @@ long if_init(void)
 			if_lo = rt_primary.nif = nif;
 			break;
 		}
+#ifdef IGMP_SUPPORT
 		nif->igmp_mac_filter = NULL;
+#endif
 	}
 
 	if (!if_lo)

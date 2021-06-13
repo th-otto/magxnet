@@ -29,7 +29,7 @@ struct netinfo netinfo = {
 	if_input,
 	if_flushq,
 
-	chksum,
+	(short cdecl (*)(void *, short))chksum, /* BUG: function is not cdecl */
 	if_getfreeunit,
 
 	eth_build_hdr,

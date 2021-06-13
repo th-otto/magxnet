@@ -28,9 +28,9 @@ struct timeout
 
 TIMEOUT *addtimeout(struct proc *p, long delta, void (*func)(struct proc *, long));
 TIMEOUT *addtimeout_curproc(long delta, void (*func)(struct proc *, long));
-TIMEOUT *addroottimeout(long delta, void (*func)(struct proc *, long), ushort flags);
+TIMEOUT *cdecl addroottimeout(long delta, void cdecl (*func)(struct proc *, long), ushort flags);
 void cancelalltimeouts (void);
 void canceltimeout(TIMEOUT *which);
-void cancelroottimeout(TIMEOUT *which);
+void cdecl cancelroottimeout(TIMEOUT *which);
 
 

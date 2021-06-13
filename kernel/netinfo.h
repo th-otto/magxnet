@@ -5,31 +5,37 @@
 # include "if.h"
 
 
+/*
+ * callbacks exported to device drivers.
+ * When calling this, take into account that the sockets
+ * module is part of the kernel, and thus was compiled
+ * with 16bit integers.
+ */
 struct netinfo
 {
-	BUF *	(*_buf_alloc) (ulong, ulong, short);
-	void	(*_buf_free) (BUF *, short);
-	BUF *	(*_buf_reserve) (BUF *, long, short);
-	void	(*_buf_deref) (BUF *, short);
+	BUF *	cdecl (*_buf_alloc) (ulong, ulong, short);
+	void	cdecl (*_buf_free) (BUF *, short);
+	BUF *	cdecl (*_buf_reserve) (BUF *, long, short);
+	void	cdecl (*_buf_deref) (BUF *, short);
 	
-	short	(*_if_enqueue) (struct ifq *, BUF *, short);
-	BUF *	(*_if_dequeue) (struct ifq *);
-	long	(*_if_register) (struct netif *);
-	short	(*_if_input) (struct netif *, BUF *, long, short);
-	void	(*_if_flushq) (struct ifq *);
+	short	cdecl (*_if_enqueue) (struct ifq *, BUF *, short);
+	BUF *	cdecl (*_if_dequeue) (struct ifq *);
+	long	cdecl (*_if_register) (struct netif *);
+	short	cdecl (*_if_input) (struct netif *, BUF *, long, short);
+	void	cdecl (*_if_flushq) (struct ifq *);
 	
-	short	(*_in_chksum) (void *, short);
-	short	(*_if_getfreeunit) (char *);
+	short	cdecl (*_in_chksum) (void *, short);
+	short	cdecl (*_if_getfreeunit) (char *);
 	
-	BUF *	(*_eth_build_hdr) (BUF *, struct netif *, const char *, short);
-	short	(*_eth_remove_hdr) (BUF *);
+	BUF *	cdecl (*_eth_build_hdr) (BUF *, struct netif *, const char *, short);
+	short	cdecl (*_eth_remove_hdr) (BUF *);
 	
 	const char *fname;
 	
-	long	(*_bpf_input) (struct netif *, BUF *);
+	long	cdecl (*_bpf_input) (struct netif *, BUF *);
 
 	/* added for hotplug, i.e. USB */
-	long	(*_if_deregister) (struct netif *);
+	long	cdecl (*_if_deregister) (struct netif *);
 
 	long	reserved[4];
 };

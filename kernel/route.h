@@ -22,7 +22,17 @@ struct route
 	short		refcnt;
 };
 
-void route_deref (struct route *rt);
+#ifdef __GNUC__
+#ifdef _mx_kernel_h
+static __inline__ void route_deref(struct route *rt)
+{
+	if (rt && --rt->refcnt <= 0)
+		kfree(rt);
+}
+#endif
+#else
+#define route_deref(rt) if (rt && --rt->refcnt <= 0) kfree(rt)
+#endif
 
 # define RTF_UP			0x0001	/* Route usable.  */
 # define RTF_GATEWAY	0x0002	/* Destination is a gateway.  */

@@ -22,11 +22,12 @@
 # define IFF_MASK		(IFF_UP|IFF_DEBUG|IFF_NOTRAILERS|IFF_NOARP)
 
 # define IF_NAMSIZ		16	/* maximum if name len */
-# define IF_MAXQ		60	/* maximum if queue len */
-# define IF_SLOWTIMEOUT		1000	/* one second */
-# define IF_PRIORITY_BITS	1
-# define IF_PRIORITIES		(1 << IF_PRIORITY_BITS)
 #endif
+
+#define IF_MAXQ		60	/* maximum if queue len */
+#define IF_SLOWTIMEOUT		1000	/* one second */
+#define IF_PRIORITY_BITS	1
+#define IF_PRIORITIES		(1 << IF_PRIORITY_BITS)
 
 struct netif;
 
@@ -179,14 +180,14 @@ struct kernel_ifreq
 
 extern struct netif *allinterfaces, *if_lo;
 
-short		if_enqueue	(struct ifq *, BUF *, short pri);
-short		if_putback	(struct ifq *, BUF *, short pri);
-BUF *		if_dequeue	(struct ifq *);
-void		if_flushq	(struct ifq *);
-long		if_register	(struct netif *);
-long		if_deregister	(struct netif *);
+short cdecl if_enqueue	(struct ifq *, BUF *, short pri);
+short cdecl if_putback	(struct ifq *, BUF *, short pri); /* FIXME: no need for cdecl */
+BUF *cdecl if_dequeue	(struct ifq *);
+void cdecl if_flushq	(struct ifq *);
+long cdecl if_register	(struct netif *);
+long cdecl if_deregister	(struct netif *);
 long		if_init		(void);
-short		if_input	(struct netif *, BUF *, long, short);
+short cdecl if_input	(struct netif *, BUF *, long, short);
 
 /*
  * These must match ethernet protcol types
@@ -203,7 +204,7 @@ struct netif *	if_name2if	(char *);
 struct netif *	if_net2if	(ulong);
 long		if_setifaddr	(struct netif *, struct sockaddr *);
 struct kernel_ifaddr *	if_af2ifaddr	(struct netif *, short fam);
-short		if_getfreeunit	(char *);
+short cdecl if_getfreeunit	(char *);
 
 long		if_open		(struct netif *);
 long		if_close	(struct netif *);

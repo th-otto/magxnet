@@ -28,11 +28,11 @@ dummyasm.s
 
 etvtimer.s
 mxkernel.s
+inet.c
+ip.c
 
 arpdev.c
-inet.c
 arp.c
-ip.c
 masquera.c
 udp.c
 tcp.c
@@ -57,6 +57,8 @@ port.c
 ifload.c
 ifeth.c
 timer.c
+rawip.c
+tcputil.c
 
 rest.c
 x28.s

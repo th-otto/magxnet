@@ -241,7 +241,7 @@ struct bpf_insn
 
 void	bpf_init	(void);
 ulong	bpf_filter	(struct bpf_insn *, unsigned char *, ulong, ulong);
-long	bpf_input	(struct netif *, BUF *);
+long cdecl bpf_input	(struct netif *, BUF *);
 long	bpf_validate	(struct bpf_insn *, long);
 
 /*

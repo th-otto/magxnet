@@ -6,12 +6,13 @@
  */
 
 #include "sockets.h"
+#include "mxkernel.h"
 #include "tcputil.h"
 
 #include "inetutil.h"
 #include "route.h"
 #include "tcpout.h"
-#include "mxkernel.h"
+#include "bpf.h"
 
 
 long tcp_isn(void)
@@ -36,7 +37,7 @@ struct tcb *tcb_alloc(void)
 		DEBUG(("tcb_alloc: out of kernel memory"));
 		return NULL;
 	}
-	bzero(tcb, sizeof(*tcb));
+	mint_bzero(tcb, sizeof(*tcb));
 
 	tcb->state = TCBS_CLOSED;
 	tcb->ostate = TCBOS_IDLE;
@@ -60,7 +61,7 @@ struct tcb *tcb_alloc(void)
 	 * segment size option.
 	 */
 	tcb->snd_cwnd = tcb->snd_mss;
-	tcb->snd_thresh = 65536;
+	tcb->snd_thresh = 65536L;
 
 	return tcb;
 }
@@ -98,7 +99,6 @@ static void deleteme(long arg)
 	struct tcb *tcb = (struct tcb *) arg;
 	struct in_data *data = tcb->data;
 
-	UNUSED(arg);
 	tcb->state = TCBS_CLOSED;
 	if (data->sock == 0)
 	{
@@ -124,6 +124,7 @@ void tcb_wait(struct tcb *tcb)
 
 	default:
 		DEBUG(("tcb_wait: called on tcb != FINWAIT2,TIMEWAIT"));
+		/* fall through */
 
 	case TCBS_TIMEWAIT:
 		tcb_deltimers(tcb);
@@ -172,7 +173,7 @@ void tcb_error(struct tcb *tcb, long err)
  * Send a reset to the sender of the segment in `buf'.
  * NOTE: `buf' holds the IP+TCP dgram.
  */
-long tcp_sndrst(BUF * ibuf)
+long tcp_sndrst(BUF *ibuf)
 {
 	struct tcp_dgram *otcph;
 	struct tcp_dgram *itcph;
@@ -204,11 +205,11 @@ long tcp_sndrst(BUF * ibuf)
 	}
 
 	otcph->ack = itcph->seq + tcp_seglen(ibuf, itcph);
-	otcph->hdrlen = TCP_MINLEN / 4;
+	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
 	otcph->window = 0;
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
-	otcph->chksum = tcp_checksum(otcph, TCP_MINLEN, IP_DADDR(ibuf), IP_SADDR(ibuf));
+	otcph->chksum = tcp_checksum(otcph, IP_DADDR(ibuf), IP_SADDR(ibuf), TCP_MINLEN);
 
 	obuf->dend += TCP_MINLEN;
 	return ip_send(IP_DADDR(ibuf), IP_SADDR(ibuf), obuf, IPPROTO_TCP, 0, 0);
@@ -218,7 +219,7 @@ long tcp_sndrst(BUF * ibuf)
  * Send an ack to the sender of the segment in `buf'.
  * NOTE: `buf' holds the IP+TCP dgram.
  */
-long tcp_sndack(struct tcb *tcb, BUF * ibuf)
+long tcp_sndack(struct tcb *tcb, BUF *ibuf)
 {
 	struct tcp_dgram *otcph;
 	struct tcp_dgram *itcph = (struct tcp_dgram *) IP_DATA(ibuf);
@@ -244,12 +245,12 @@ long tcp_sndack(struct tcb *tcb, BUF * ibuf)
 	otcph->dstport = itcph->srcport;
 	otcph->seq = SEQLE(tcb->snd_nxt, wndlast) ? tcb->snd_nxt : wndlast;
 	otcph->ack = tcb->rcv_nxt;
-	otcph->hdrlen = TCP_MINLEN / 4;
+	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
 	otcph->flags = TCPF_ACK;
 	otcph->window = tcp_rcvwnd(tcb, 1);
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
-	otcph->chksum = tcp_checksum(otcph, TCP_MINLEN, IP_DADDR(ibuf), IP_SADDR(ibuf));
+	otcph->chksum = tcp_checksum(otcph, IP_DADDR(ibuf), IP_SADDR(ibuf), TCP_MINLEN);
 
 	obuf->dend += TCP_MINLEN;
 
@@ -264,7 +265,7 @@ long tcp_sndack(struct tcb *tcb, BUF * ibuf)
  * Return nonzero if the TCP segment in `buf' contains anything that must be
  * processed further.
  */
-short tcp_valid(struct tcb *tcb, BUF * buf)
+short tcp_valid(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	long window;
@@ -391,7 +392,8 @@ long tcp_mss(struct tcb *tcb, ulong faddr, long maxmss)
 }
 
 
-ushort tcp_checksum(struct tcp_dgram *dgram, ushort len, ulong srcadr, ulong dstadr)
+#ifdef __GNUC__
+ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort len)
 {
 	ulong sum = 0;
 
@@ -546,7 +548,21 @@ ushort tcp_checksum(struct tcp_dgram *dgram, ushort len, ulong srcadr, ulong dst
 	return (short) (~sum & 0xffff);
 }
 
-void tcp_dump(BUF * buf)
+#else
+
+ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort len)
+{
+	/* TODO */
+	(void)dgram;
+	(void)len;
+	(void)srcadr;
+	(void)dstadr;
+	return 0;
+}
+
+#endif
+
+void tcp_dump(BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) buf->dstart;
 	long datalen;

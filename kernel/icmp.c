@@ -6,6 +6,7 @@
  */
 
 #include "sockets.h"
+#include "mxkernel.h"
 #include "icmp.h"
 
 #include "if.h"
@@ -15,8 +16,8 @@
 #include "bpf.h"
 
 
-static long icmp_input(struct netif *, BUF *, ulong, ulong);
-static long icmp_error(short, short, BUF *, ulong, ulong);
+static long icmp_input(struct netif *, BUF *, in_addr_t, in_addr_t);
+static long icmp_error(short, short, BUF *, in_addr_t, in_addr_t);
 
 struct in_ip_ops icmp_ops = {
 	IPPROTO_ICMP,
@@ -36,7 +37,7 @@ static long do_time(BUF *, struct netif *, long);
 static long do_mask(BUF *, struct netif *, long);
 
 
-static long icmp_input(struct netif *nif, BUF *buf, ulong saddr, ulong daddr)
+static long icmp_input(struct netif *nif, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	struct icmp_dgram *icmph;
 	short datalen;
@@ -128,7 +129,7 @@ static long icmp_input(struct netif *nif, BUF *buf, ulong saddr, ulong daddr)
 	return -1;
 }
 
-static long icmp_error(short type, short code, BUF *buf, ulong saddr, ulong daddr)
+static long icmp_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	UNUSED(type);
 	UNUSED(code);
@@ -198,11 +199,11 @@ short icmp_dontsend(short type, BUF *buf)
  *	buf1 holds the original IP datagram that caused the ICMP request.
  *	buf2 holds optional data specific for ICMP type/code, 0 if none.
  */
-long icmp_send(short type, short code, ulong daddr, BUF *buf1, BUF *buf2)
+long icmp_send(short type, short code, in_addr_t daddr, BUF *buf1, BUF *buf2)
 {
 	BUF *nbuf;
 	struct icmp_dgram *icmph;
-	ulong saddr;
+	in_addr_t saddr;
 	short datalen;
 
 	/* T. Lang:
@@ -394,7 +395,9 @@ static long do_redir(BUF *b, struct netif *nif, long len)
 	{
 		DEBUG(("do_redir: bad new gway 0x%lx", icmph->u.redir_gw));
 		if (rt)
+		{
 			route_deref(rt);
+		}
 		return 0;
 	}
 	route_deref(rt);
@@ -407,7 +410,9 @@ static long do_redir(BUF *b, struct netif *nif, long len)
 	{
 		DEBUG(("do_redir: bad sending gway 0x%lx", IP_SADDR(b)));
 		if (rt)
+		{
 			route_deref(rt);
+		}
 		return 0;
 	}
 	route_deref(rt);

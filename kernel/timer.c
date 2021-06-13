@@ -53,7 +53,7 @@ static void *setstack(void *sp)
 #endif
 
 
-static void check_events(PROC *proc, long arg2)
+static void cdecl check_events(PROC *proc, long arg2)
 {
 	struct event *ep;
 	void (*func)(long);
@@ -165,7 +165,7 @@ static short event_remove(struct event *ep)
 
 void event_add(struct event *ep, long delta, void (*func)(long), long arg)
 {
-	if(ep->func)
+	if (ep->func)
 		event_remove(ep);
 
 	ep->func = func;

@@ -113,7 +113,7 @@ struct in_data
 };
 
 
-void inet_init (void);
+void inet_init(void);
 
 
 # endif /* _inet_h */

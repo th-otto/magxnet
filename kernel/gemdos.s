@@ -354,3 +354,13 @@
 				rts
 				ENDMOD
 				
+				.globl Pgetpid
+				MODULE	Pgetpid
+				pea		(a2)
+				move.w	#$10b,-(a7)
+				trap #1
+				addq.w	#2,a7
+				move.l	(a7)+,a2
+				rts
+				ENDMOD
+				

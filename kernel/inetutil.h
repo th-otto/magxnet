@@ -55,7 +55,7 @@ struct in_data *	in_data_lookup_next (struct in_data *,
 				ulong, ushort,
 				ulong, ushort, short);
 
-short			chksum (void *, short);
+short chksum (void *, short);
 void			sa_copy (struct sockaddr *, struct sockaddr *);
 
 

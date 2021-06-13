@@ -56,7 +56,7 @@ struct in_data *in_data_create(void)
 		DEBUG(("in_data_create: Out of mem"));
 		return 0;
 	}
-	bzero(data, sizeof(*data));
+	mint_bzero(data, sizeof(*data));
 
 	data->opts.ttl = IP_DEFAULT_TTL;
 	data->opts.tos = IP_DEFAULT_TOS;
@@ -169,7 +169,7 @@ short in_data_find(short proto, struct in_data *data)
 	return 0;
 }
 
-struct in_data *in_data_lookup(struct in_data *datas, ulong srcaddr, ushort srcport, ulong dstaddr, ushort dstport)
+struct in_data *in_data_lookup(struct in_data *datas, in_addr_t srcaddr, in_port_t srcport, in_addr_t dstaddr, in_port_t dstport)
 {
 	struct in_data *deflt;
 	struct in_data *dead;
@@ -232,7 +232,7 @@ struct in_data *in_data_lookup_next(struct in_data *datas, ulong srcaddr, ushort
  * the `nwords' words starting at `buf'.
  */
 #ifdef __GNUC__
-short chksum(void *buf, short nwords)
+short cdecl chksum(void *buf, short nwords)
 {
 	ulong sum = 0;
 

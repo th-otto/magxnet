@@ -78,6 +78,11 @@ typedef struct { int dummy; } DMD;
 #include "mgx_xfs.h"
 #include "mgx_dfs.h"
 
+#ifndef UNLIMITED
+#define UNLIMITED (0x7fffffffL)
+#endif
+
+
 /* no matter what the library says, we need the MiNT definition here */
 #undef O_NDELAY
 #define O_NDELAY 0x0100
@@ -198,6 +203,7 @@ extern MX_DDEV socket_dev GNU_ASM_NAME("socket_dev");
 void x28_init(struct x28 *pool, size_t size, size_t elemsize) GNU_ASM_NAME("x28_init");
 void inet4_init(void);
 void x1c022(void);
+void x1c39c(void);
 void install_bios_handler(void *, void *) GNU_ASM_NAME("install_bios_handler");
 
 extern struct dom_ops *alldomains;
@@ -208,6 +214,7 @@ void so_sockpair(struct socket *so1, struct socket *so2);
 long so_connect(struct socket *server, struct socket *client, short backlog, short nonblock, short wakeup);
 long so_free(struct socket *so);
 void so_register(short domain, struct dom_ops *ops);
+#define so_free(sock) so_release(sock)
 
 #define IO_Q 3
 
@@ -220,6 +227,6 @@ void so_wakersel(struct socket *so);
 void so_wakewsel(struct socket *so);
 void so_wakexsel(struct socket *so);
 void wakeselect(long proc);
-long unixtime(unsigned short time, unsigned short date);
+long cdecl unixtime(unsigned short time, unsigned short date);
 
 void uninstall_xbra(void) GNU_ASM_NAME("uninstall_xbra");

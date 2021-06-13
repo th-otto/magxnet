@@ -5,6 +5,7 @@
  */
 
 #include "sockets.h"
+#include "mxkernel.h"
 #include "route.h"
 
 #include <netinet/in.h>
@@ -13,8 +14,10 @@
 #include "bpf.h"
 #include "route.h"
 #include "routedev.h"
-#include "mxkernel.h"
 
+#ifdef __PUREC__
+#pragma warn -rch /* for p_geteuid */
+#endif
 
 
 struct route *allroutes[RT_HASH_SIZE];
@@ -176,7 +179,8 @@ long route_add(struct netif *nif, ulong net, ulong mask, ulong gway, short flags
 	if (net == INADDR_ANY)
 	{
 		DEBUG(("route_add: updating default route"));
-		route_deref(defroute);
+		if (defroute)
+			route_deref(defroute);
 		defroute = newrt;
 		return 0;
 	}
@@ -228,8 +232,9 @@ long route_del(ulong net, ulong mask)
 			*prevrt = nextrt;
 			route_deref(rt);
 		} else
+		{
 			prevrt = &rt->next;
-
+		}
 	}
 
 	DEBUG(("route_del: no matching route found"));
@@ -263,7 +268,9 @@ void route_flush(struct netif *nif)
 				*prevrt = nextrt;
 				route_deref(rt);
 			} else
+			{
 				prevrt = &rt->next;
+			}
 		}
 	}
 }
@@ -285,7 +292,7 @@ long route_ioctl(short cmd, long arg)
 	if (cmd != SIOCADDRT && cmd != SIOCDELRT)
 		return ENOSYS;
 
-	if (Pgeteuid() != 0)
+	if (p_geteuid() != 0)
 		return EACCES;
 
 	if (rte->dst.sa.sa_family != AF_INET)
@@ -348,11 +355,4 @@ long route_ioctl(short cmd, long arg)
 	default:
 		return ENOSYS;
 	}
-}
-
-
-void route_deref(struct route *rt)
-{
-	if (rt && --rt->refcnt <= 0)
-		kfree(rt);
 }

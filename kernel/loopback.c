@@ -15,7 +15,11 @@ static long loop_ioctl(struct netif *, short, long);
 static struct netif if_loopback = {
 	"lo",
 	0,
-	IFF_LOOPBACK | IFF_BROADCAST | IFF_IGMP,
+	IFF_LOOPBACK | IFF_BROADCAST
+#ifdef IGMP_SUPPORT
+		| IFF_IGMP
+#endif
+		,
 	0,
 	2 * 8192,
 	0,
@@ -101,7 +105,11 @@ static long loop_ioctl(struct netif *nif, short cmd, long arg)
 		return 0;
 
 	case SIOCSIFADDR:
-		nif->flags |= (IFF_UP | IFF_RUNNING | IFF_IGMP);
+		nif->flags |= IFF_UP | IFF_RUNNING
+#ifdef IGMP_SUPPORT
+			| IFF_IGMP
+#endif
+			;
 		return 0;
 
 	case SIOCSIFNETMASK:

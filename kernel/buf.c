@@ -8,6 +8,10 @@
  *	01/12/93, kay roemer.
  */
 
+/*
+ * several fixes to this module in commit 7f7d4a320a7929b99a020dbeef477a25ddede4c4
+ */
+ 
 #include "sockets.h"
 #include "buf.h"
 #include "timeout.h"
@@ -34,7 +38,7 @@ static BUF pool[BUF_NSPLIT + 1];
 static TIMEOUT *tmout = NULL;
 
 
-static void gc(PROC *proc, long arg)
+static void cdecl gc(PROC *proc, long arg)
 {
 	long mem = mem_used;
 
@@ -53,7 +57,7 @@ static void gc(PROC *proc, long arg)
 }
 
 
-static void addmem(PROC *proc, long arg)
+static void cdecl addmem(PROC *proc, long arg)
 {
 	UNUSED(proc);
 	UNUSED(arg);
@@ -203,7 +207,7 @@ static void sanity_check(BUF *buf)
 #define SANITY_CHECK(b)
 #endif
 
-BUF *buf_reserve(BUF *buf, long reserve, short mode)
+BUF *cdecl buf_reserve(BUF *buf, long reserve, short mode)
 {
 	BUF *nbuf;
 	ulong nspace;
@@ -267,7 +271,7 @@ BUF *buf_reserve(BUF *buf, long reserve, short mode)
 	return 0;
 }
 
-BUF *buf_alloc(ulong size, ulong reserve, short mode)
+BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 {
 	short idx;
 	short i;
@@ -379,11 +383,15 @@ BUF *buf_alloc(ulong size, ulong reserve, short mode)
 	return newbuf;
 }
 
-static void _buf_free(BUF *buf, ushort sr)
+
+void cdecl buf_free(BUF *buf, short mode)
 {
+	ushort sr;
 	BUF *b;
 	short i;
 
+	UNUSED(mode);
+	sr = splhigh();
 	b = buf->_p;
 	if (b && !b->links)
 	{
@@ -431,16 +439,20 @@ static void _buf_free(BUF *buf, ushort sr)
 }
 
 
-void buf_free(BUF *buf, short mode)
+#if 0
+void cdecl buf_free(BUF *buf, short mode)
 {
 	UNUSED(mode);
 	FORCE(("Warning, buf_free called directly, update your xif!"));
 
 	_buf_free(buf, splhigh());
 }
+#endif
 
-void buf_deref(BUF *buf, short mode)
+
+void cdecl buf_deref(BUF *buf, short mode)
 {
+#if 0
 	ushort sr = splhigh();
 
 	UNUSED(mode);
@@ -456,6 +468,11 @@ void buf_deref(BUF *buf, short mode)
 		spl(sr);
 	else
 		_buf_free(buf, sr);
+#else
+	buf->links--;
+	if (buf->links <= 0)
+		buf_free(buf, mode);
+#endif
 }
 
 BUF *buf_clone(BUF *buf, short mode)

@@ -94,7 +94,7 @@ static long routedev_read(MX_DOSFD *f, long nbytes, void *buf)
 		if (rt == NULL)
 			break;
 
-		bzero(&info, sizeof(info));
+		mint_bzero(&info, sizeof(info));
 
 		info.rt.dst.in.sin_family = AF_INET;
 		info.rt.dst.in.sin_addr.s_addr = rt->net;

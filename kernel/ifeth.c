@@ -14,7 +14,7 @@
 #include "bpf.h"
 
 
-BUF *eth_build_hdr(BUF *buf, struct netif *nif, const char *addr, short type)
+BUF *cdecl eth_build_hdr(BUF *buf, struct netif *nif, const char *addr, short type)
 {
 	struct eth_dgram *ep;
 	BUF *nbuf;
@@ -46,7 +46,7 @@ BUF *eth_build_hdr(BUF *buf, struct netif *nif, const char *addr, short type)
 }
 
 
-short eth_remove_hdr(BUF *buf)
+short cdecl eth_remove_hdr(BUF *buf)
 {
 	struct eth_dgram *ep = (struct eth_dgram *) buf->dstart;
 	long len;

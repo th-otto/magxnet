@@ -9,10 +9,10 @@
 
 #include "arpdev.h"
 #include <netinet/in.h>
+#include "mxkernel.h"
 #include "route.h"
 #include "if.h"
 #include "bpf.h"
-#include "mxkernel.h"
 
 static struct arp_entry *arp_alloc(void);
 static short arp_hash(unsigned char *, short);
@@ -33,6 +33,10 @@ static long put_hwaddr(struct hwaddr *, struct sockaddr *, short);
 static void arp_put(struct arp_entry *);
 static void arp_dump(struct arp_entry *);
 static long put_praddr(struct hwaddr *, struct sockaddr *, short);
+#endif
+
+#ifdef __PUREC__
+#pragma warn -rch /* for p_geteuid */
 #endif
 
 /*
@@ -177,7 +181,7 @@ static struct arp_entry *arp_alloc(void)
 	are = kmalloc(sizeof(*are));
 	if (are)
 	{
-		bzero(are, sizeof(*are));
+		mint_bzero(are, sizeof(*are));
 		are->outq.maxqlen = IF_MAXQ;
 	} else
 	{
@@ -680,7 +684,7 @@ long arp_ioctl(short cmd, void *arg)
 			short prtype;
 			short hwtype;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 				return EACCES;
 
 			if (get_praddr(&praddr, &areq->praddr, &prtype) || get_hwaddr(&hwaddr, &areq->hwaddr, &hwtype))
@@ -695,7 +699,9 @@ long arp_ioctl(short cmd, void *arg)
 			if (rt == 0 || rt->flags & RTF_GATEWAY)
 			{
 				if (rt)
+				{
 					route_deref(rt);
+				}
 				return ENETUNREACH;
 			}
 			nif = rt->nif;
@@ -732,7 +738,7 @@ long arp_ioctl(short cmd, void *arg)
 			struct hwaddr praddr;
 			short prtype;
 
-			if (Pgeteuid())
+			if (p_geteuid() != 0)
 				return EACCES;
 
 			if (get_praddr(&praddr, &areq->praddr, &prtype))

@@ -49,13 +49,13 @@ struct in_data *port_find(struct in_data *sock, ushort port)
 /*
  * Find the first socket with local port `port'.
  */
-struct in_data *port_find_with_addr(struct in_data *sock, ushort port, ulong addr)
+struct in_data *port_find_with_addr(struct in_data *sock, in_port_t port, in_addr_t addr)
 {
 	struct in_data *data;
 
 	for (data = sock->proto->datas; data; data = data->next)
 	{
-		if (data->flags & IN_ISBOUND && data->src.port == port && data->src.addr == addr)
+		if ((data->flags & IN_ISBOUND) && data->src.port == port && data->src.addr == addr)
 		{
 			break;
 		}
@@ -68,9 +68,9 @@ struct in_data *port_find_with_addr(struct in_data *sock, ushort port, ulong add
  * Allocate an unused port number in the range IPPORT_RESERVED <= port
  * <= IPPORT_USERRESERVED for the protocol `sock' belongs to.
  */
-ushort port_alloc(struct in_data *sock)
+in_port_t port_alloc(struct in_data *sock)
 {
-	static ushort lastport = IPPORT_RESERVED - 1;
+	static in_port_t lastport = IPPORT_RESERVED - 1;
 	struct in_data *data;
 
 	do

@@ -7,7 +7,17 @@
  * For other compilers, this has to be done.
  */
 
+#ifndef _mx_kernel_h
+#define _mx_kernel_h 1
+
+/*
+ * points to our wrapper interfcae
+ */
 extern MX_KERNEL *p_kernel;
+/*
+ * points to the structure obtained from Dcntl(KER_GETINFO)
+ */
+extern MX_KERNEL *real_p_kernel GNU_ASM_NAME("real_p_kernel");
 
 MX_KERNEL *ker_getinfo(void) GNU_ASM_NAME("ker_getinfo");
 
@@ -38,4 +48,10 @@ void *ker_mshrink(void *block, LONG newlen);
 
 #define kmalloc(size) p_kernel->mxalloc(size, MX_PREFTTRAM, _BasPag)
 #define kfree(ptr) p_kernel->mfree(ptr)
-#define bzero(ptr, size) p_kernel->fast_clrmem(ptr, (char *)(ptr) + size)
+#define mint_bzero(ptr, size) p_kernel->fast_clrmem(ptr, (char *)(ptr) + size)
+#define p_geteuid() 0L
+#define p_kill(pid, sig) (void) Pkill(pid, sig)
+#define p_getpid() p_kernel->proc_info(2, *(real_p_kernel->act_pd))
+
+#endif /* _mx_kernel_h */
+

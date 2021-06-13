@@ -47,9 +47,14 @@ static void __stop2(short) 0x2000;
 static short __lpstop1(void) 0xf800;
 static short __lpstop2(short) 0x01c0;
 static void __lpstop3(short) 0x2000;
-static unsigned short __splhigh1(void) 0x40c0;
-static unsigned short __splhigh2(unsigned short) 0x0040;
+static unsigned short __splhigh1(void) 0x40c0; /* move.w sr,d0 */
+static unsigned short __splhigh2(unsigned short) 0x007c; /* ori.w #0x700,sr */
 static unsigned short __splhigh3(unsigned short) 0x0700;
+
+/* dangerous code: modifies stack without compilers knowledge */
+static unsigned short __pushsr1(void) 0x40e7; /* move.w sr,-(a7) */
+#define pushsr() __splhigh3(__splhigh2(__pushsr1()))
+static void popsr(void) 0x46df; /* move.w (a7)+,sr */
 
 #define cpu_stop() __stop2(__stop1());
 #define cpu_lpstop() __lpstop3(__lpstop2(__lpstop1()))
