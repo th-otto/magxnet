@@ -62,8 +62,12 @@ struct in_data *in_data_create(void)
 	data->opts.tos = IP_DEFAULT_TOS;
 
 	data->snd.maxdatalen = IN_DEFAULT_WSPACE;
+	data->snd.qfirst = NULL;
+	data->snd.qlast = NULL;
 
 	data->rcv.maxdatalen = IN_DEFAULT_RSPACE;
+	data->rcv.qfirst = NULL;
+	data->rcv.qlast = NULL;
 
 	data->flags = IN_BROADCAST | IN_CHECKSUM;
 
@@ -302,14 +306,7 @@ short cdecl chksum(void *buf, short nwords)
 
 #else
 
-/* BUG: is exported via netinfo and must be cdecl */
-short chksum(void *buf, short nwords)
-{
-	/* TODO */
-	(void)buf;
-	(void)nwords;
-	return 0;
-}
+/* implemenented in chksum.s */
 
 #endif
 

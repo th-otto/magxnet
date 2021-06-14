@@ -394,10 +394,16 @@ static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	return copied;
 }
 
+#ifdef __PUREC__
+#pragma warn -par /* using UNUSED here generates slightly different code */
+#endif
+
 static long udp_shutdown(struct in_data *data, short how)
 {
+#ifndef __PUREC__
 	UNUSED(data);
 	UNUSED(how);
+#endif
 	return 0;
 }
 
@@ -406,11 +412,13 @@ static long udp_setsockopt(struct in_data *data, short level, short optname, cha
 	/*
 	 * No special UDP socket options
 	 */
+#ifndef __PUREC__
 	UNUSED(data);
 	UNUSED(level);
 	UNUSED(optname);
 	UNUSED(optval);
 	UNUSED(optlen);
+#endif
 	return EOPNOTSUPP;
 }
 
@@ -419,11 +427,13 @@ static long udp_getsockopt(struct in_data *data, short level, short optname, cha
 	/*
 	 * No special UDP socket options
 	 */
+#ifndef __PUREC__
 	UNUSED(data);
 	UNUSED(level);
 	UNUSED(optname);
 	UNUSED(optval);
 	UNUSED(optlen);
+#endif
 	return EOPNOTSUPP;
 }
 
@@ -435,11 +445,13 @@ static long udp_input(struct netif *iface, BUF *buf, in_addr_t saddr, in_addr_t 
 {
 	struct udp_dgram *uh = (struct udp_dgram *) IP_DATA(buf);
 	struct in_data *data;
-	ulong pktlen;
+	long pktlen;
 
+#ifndef __PUREC__
 	UNUSED(iface);
+#endif
 	pktlen = (long) buf->dend - (long) uh;
-	if (pktlen < UDP_MINLEN || pktlen != uh->length)
+	if ((ulong)pktlen < UDP_MINLEN || pktlen != uh->length)
 	{
 		DEBUG(("udp_input: invalid packet length"));
 		buf_deref(buf, BUF_NORMAL);
@@ -475,7 +487,7 @@ static long udp_input(struct netif *iface, BUF *buf, in_addr_t saddr, in_addr_t 
 		return -1;
 	}
 	pktlen -= sizeof(struct udp_dgram);
-	if (pktlen + data->rcv.curdatalen > (ulong)data->rcv.maxdatalen)
+	if (pktlen + data->rcv.curdatalen > data->rcv.maxdatalen)
 	{
 		DEBUG(("udp_input: Input queue full"));
 		buf_deref(buf, BUF_NORMAL);

@@ -34,6 +34,9 @@ port.c
 buf.c
 udp.c
 inetutil.c
+icmp.c
+igmp.c
+if.c
 
 arpdev.c
 arp.c
@@ -45,10 +48,7 @@ tcpsig.c
 route.c
 routeasm.s
 routedev.c
-if.c
 loopback.c
-icmp.c
-igmp.c
 bpf.c
 bpfasm.s
 bpf_filt.c

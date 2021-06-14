@@ -50,7 +50,7 @@ static long icmp_input(struct netif *nif, BUF *buf, in_addr_t saddr, in_addr_t d
 	if (datalen & 1)
 		*buf->dend = 0;
 
-	if (chksum(icmph, (datalen + 1) / 2))
+	if (chksum(icmph, (datalen + 1) >> 1))
 	{
 		DEBUG(("icmp_input: bad checksum from 0x%lx", saddr));
 		buf_deref(buf, BUF_NORMAL);
@@ -259,7 +259,7 @@ long icmp_send(short type, short code, in_addr_t daddr, BUF *buf1, BUF *buf2)
 	datalen = (long) nbuf->dend - (long) nbuf->dstart;
 	if (datalen & 1)
 		*nbuf->dend = 0;
-	icmph->chksum = chksum(icmph, (datalen + 1) / 2);
+	icmph->chksum = chksum(icmph, (datalen + 1) >> 1);
 
 	ip_send(saddr, daddr, nbuf, IPPROTO_ICMP, 0, 0);
 	if (buf2)
@@ -446,7 +446,6 @@ static long do_time(BUF *b, struct netif *nif, long len)
 {
 	struct icmp_dgram *icmph;
 	long tm;
-	int32_t *longs;
 	
 	UNUSED(nif);
 	if ((ulong) len < sizeof(*icmph) + 3 * sizeof(long))
@@ -463,8 +462,14 @@ static long do_time(BUF *b, struct netif *nif, long len)
 	 * time as RFC 792 says?
 	 */
 	tm = (unixtime(Tgettime(), Tgetdate()) % (60 * 60 * 24L)) * 1000L;
-	longs = (int32_t *)icmph->data;
-	longs[1] = longs[2] = tm;
+#ifdef __GNUC__
+	{
+		int32_t *longs = (int32_t *)icmph->data;
+		longs[1] = longs[2] = tm;
+	}
+#else
+	((int32_t *)icmph->data)[1] = ((int32_t *)icmph->data)[2] = tm;
+#endif
 	icmp_send(ICMPT_TIMERP, 0, IP_SADDR(b), b, 0);
 
 	return 0;
@@ -494,9 +499,8 @@ static long do_mask(BUF *b, struct netif *nif, long len)
 {
 	struct icmp_dgram *icmph;
 	struct kernel_ifaddr *ifa;
-	int32_t *longs;
 
-	if ((ulong) len < sizeof(*icmph) + sizeof(long))
+	if ((ulong)len < sizeof(*icmph) + sizeof(long))
 	{
 		DEBUG(("do_mask: packet too short"));
 		return -1;
@@ -504,14 +508,22 @@ static long do_mask(BUF *b, struct netif *nif, long len)
 	icmph = (struct icmp_dgram *) IP_DATA(b);
 
 	ifa = if_af2ifaddr(nif, AF_INET);
+#ifdef NOTYET
 	if (!ifa)
 	{
 		DEBUG(("do_mask: if_af2ifaddr returned NULL"));
 		return -1;
 	}
+#endif
 
-	longs = (int32_t *)icmph->data;
-	longs[0] = ifa->subnetmask;
+#ifdef __GNUC__
+	{
+		int32_t *longs = (int32_t *)icmph->data;
+		longs[0] = ifa->subnetmask;
+	}
+#else
+	((int32_t *)icmph->data)[0] = ifa->subnetmask;
+#endif
 	icmp_send(ICMPT_MASKRP, 0, IP_SADDR(b), b, 0);
 
 	return 0;
@@ -544,7 +556,11 @@ static long do_erreport(BUF *b, struct netif *nif, long len)
 	struct ip_dgram *iph;
 	BUF *buf;
 
+#ifdef __PUREC__
+#pragma warn -par /* using UNUSED here generates slightly different code */
+#else
 	UNUSED(nif);
+#endif
 	if ((ulong) len < sizeof(*icmph) + sizeof(*iph) + 2 * sizeof(long))
 	{
 		DEBUG(("do_erreport: packet too short"));

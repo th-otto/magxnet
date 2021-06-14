@@ -100,3 +100,14 @@ ushort udp_checksum(struct udp_dgram *dgram, in_addr_t srcadr, in_addr_t dstadr)
 	return 0;
 }
 #endif
+
+#ifndef __GNUC__
+/* BUG: is exported via netinfo and must be cdecl */
+short chksum(void *buf, short nwords)
+{
+	/* TODO */
+	(void)buf;
+	(void)nwords;
+	return 0;
+}
+#endif
