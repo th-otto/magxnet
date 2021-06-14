@@ -57,11 +57,11 @@ struct in_data *port_find_with_addr(struct in_data *sock, in_port_t port, in_add
 	{
 		if ((data->flags & IN_ISBOUND) && data->src.port == port && data->src.addr == addr)
 		{
-			break;
+			return data;
 		}
 	}
 
-	return data;
+	return NULL;
 }
 
 /*

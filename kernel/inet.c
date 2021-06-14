@@ -390,9 +390,9 @@ static long inet_listen(struct socket *so, short backlog)
 	return (*data->proto->soops.listen) (data);
 }
 
-static long
-inet_send(struct socket *so, const struct iovec *iov, short niov, short nonblock,
-		  short flags, const struct sockaddr *addr, short addrlen)
+
+static long inet_send(struct socket *so, const struct iovec *iov, short niov, short nonblock,
+	short flags, const struct sockaddr *addr, short addrlen)
 {
 	struct in_data *data = so->data;
 	long r;
@@ -436,9 +436,9 @@ inet_send(struct socket *so, const struct iovec *iov, short niov, short nonblock
 	return (*data->proto->soops.send) (data, iov, niov, nonblock, flags, (const struct sockaddr_in *) addr, addrlen);
 }
 
-static long
-inet_recv(struct socket *so, const struct iovec *iov, short niov, short nonblock,
-		  short flags, struct sockaddr *addr, short *addrlen)
+
+static long inet_recv(struct socket *so, const struct iovec *iov, short niov, short nonblock,
+	short flags, struct sockaddr *addr, short *addrlen)
 {
 	struct in_data *data = so->data;
 	long r;
@@ -808,6 +808,7 @@ void inet4_init(void)
 
 	/* initialize TCP protocol */
 	tcp_init();
+
 #ifdef IGMP_SUPPORT
 	/* initialize IGMP protocol */
 	igmp_init();

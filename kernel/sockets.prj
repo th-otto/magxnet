@@ -30,17 +30,18 @@ etvtimer.s
 mxkernel.s
 inet.c
 ip.c
+port.c
+buf.c
+udp.c
+inetutil.c
 
 arpdev.c
 arp.c
 masquera.c
-udp.c
 tcp.c
 tcpin.c
 tcpout.c
 tcpsig.c
-buf.c
-inetutil.c
 route.c
 routeasm.s
 routedev.c
@@ -53,7 +54,6 @@ bpfasm.s
 bpf_filt.c
 inetasm.s
 inetdev.c
-port.c
 ifload.c
 ifeth.c
 timer.c

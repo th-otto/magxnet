@@ -66,7 +66,7 @@ short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 {
 	ushort sr;
 
-	sr = spl7();
+	sr = splhigh();
 
 	if (q->qlen >= q->maxqlen)
 	{
@@ -104,7 +104,7 @@ BUF *cdecl if_dequeue(struct ifq *q)
 	ushort sr;
 	short i;
 
-	sr = spl7();
+	sr = splhigh();
 
 	if (q->qlen > 0)
 	{
@@ -141,7 +141,7 @@ short cdecl if_putback(struct ifq *q, BUF *buf, short pri)
 #ifdef __GNUC__
 	ushort sr;
 
-	sr = spl7();
+	sr = splhigh();
 #else
 	pushsr();
 #endif
@@ -184,7 +184,7 @@ void cdecl if_flushq(struct ifq *q)
 	register ushort sr;
 	register short i;
 
-	sr = spl7();
+	sr = splhigh();
 
 	for (i = 0; i < IF_PRIORITIES; ++i)
 	{
@@ -275,7 +275,7 @@ short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 	register ushort sr;
 	register short r = 0;
 
-	sr = spl7();
+	sr = splhigh();
 
 	if (buf)
 	{

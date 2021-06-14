@@ -69,13 +69,6 @@ void cdecl cancelroottimeout(TIMEOUT *which)
 }
 
 
-long iov_size(const struct iovec *iov, short n)
-{
-	(void)iov;
-	return n;
-}
-
-
 long cdecl unixtime(unsigned short time, unsigned short date)
 {
 	(void)time;
@@ -93,6 +86,17 @@ short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 	(void)delay;
 	(void)type;
 	ip_input(nif,buf);
+	return 0;
+}
+#endif
+
+#ifndef __GNUC__
+ushort udp_checksum(struct udp_dgram *dgram, in_addr_t srcadr, in_addr_t dstadr)
+{
+	/* TODO */
+	(void)dgram;
+	(void)srcadr;
+	(void)dstadr;
 	return 0;
 }
 #endif

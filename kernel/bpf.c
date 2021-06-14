@@ -135,7 +135,7 @@ static void bpf_release(struct bpf *bpf)
 	struct bpf **prev;
 	ushort sr;
 
-	sr = spl7();
+	sr = splhigh();
 	if_flushq(&bpf->recvq);
 	if (bpf->flags & BPF_OPEN)
 	{
@@ -193,7 +193,7 @@ static long bpf_attach(struct bpf *bpf, struct ifreq *ifr)
 {
 	ushort sr;
 
-	sr = spl7();
+	sr = splhigh();
 	if (bpf->flags & BPF_OPEN)
 	{
 		struct bpf *bpf2;
@@ -294,7 +294,7 @@ static long bpf_sfilter(struct bpf *bpf, struct bpf_program *prog)
 	{
 		if (prog->bf_len != 0)
 			return EINVAL;
-		sr = spl7();
+		sr = splhigh();
 		bpf->prog = 0;
 		bpf->proglen = 0;
 		bpf_reset(bpf);
@@ -315,7 +315,7 @@ static long bpf_sfilter(struct bpf *bpf, struct bpf_program *prog)
 
 	if (bpf_validate(nprog, prog->bf_len))
 	{
-		sr = spl7();
+		sr = splhigh();
 		bpf->prog = nprog;
 		bpf->proglen = prog->bf_len;
 		bpf_reset(bpf);
@@ -345,7 +345,7 @@ static void cdecl bpf_handler(PROC *proc, long arg)
 	have_tmout = 0;
 	for (bpf = allbpfs; bpf; bpf = bpf->link)
 	{
-		ushort sr = spl7();
+		ushort sr = splhigh();
 
 		if (bpf->flags & BPF_WAKE)
 		{
@@ -396,7 +396,7 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 		 * priority may grap the buffer and manipulate the dend
 		 * and dstart pointer while we are on them.
 		 */
-		sr = spl7();
+		sr = splhigh();
 		if ((buf2 = bpf->recvq.qlast[IF_PRIORITIES - 1]) != NULL &&
 			BUF_TRAIL_SPACE(buf2) >= caplen + BPF_ALIGNMENT + BPF_RESERVE / 2)
 		{
@@ -422,7 +422,7 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 				++bpf->in_drop;
 				continue;
 			}
-			sr = spl7();
+			sr = splhigh();
 			if (if_enqueue(&bpf->recvq, buf2, IF_PRIORITIES - 1))
 			{
 				spl(sr);
@@ -664,7 +664,7 @@ static long cdecl bpf_ioctl(MX_DOSFD *fp, short cmd, void *arg)
 		/*
 		 * flush in-queue
 		 */
-		sr = spl7();
+		sr = splhigh();
 		bpf_reset(bpf);
 		spl(sr);
 		return 0;

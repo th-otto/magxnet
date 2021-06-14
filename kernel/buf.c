@@ -18,7 +18,7 @@
 #include "asm_spl.h"
 #include "mxkernel.h"
 
-#define BUF_BLOCK_SIZE		(1024 * 32UL)
+#define BUF_BLOCK_SIZE		(1024 * 32L)
 #define BUF_NSPLIT		7
 #define BUF_MAGIC		0x73ec5a13ul
 
@@ -38,34 +38,6 @@ static BUF pool[BUF_NSPLIT + 1];
 static TIMEOUT *tmout = NULL;
 
 
-static void cdecl gc(PROC *proc, long arg)
-{
-	long mem = mem_used;
-
-	UNUSED(proc);
-	UNUSED(arg);
-	while (buf_free_block())
-		;
-
-	if (mem_used < mem)
-	{
-		DEBUG(("NET: failed allocs: %ld", failed_allocs));
-		DEBUG(("NET: mem used: %ldk before, %ldk after garbage coll.", mem / 1024, mem_used / 1024));
-	}
-
-	addroottimeout(GC_TIMEOUT, gc, 0);
-}
-
-
-static void cdecl addmem(PROC *proc, long arg)
-{
-	UNUSED(proc);
-	UNUSED(arg);
-	tmout = 0;
-	buf_add_block();
-}
-
-
 static short buf_add_block(void)
 {
 	BUF *new;
@@ -79,7 +51,13 @@ static short buf_add_block(void)
 	new->links = 0;
 	new->_n = new->_p = NULL;
 
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
+#endif
 	new->_nfree = pool[0]._nfree;
 	new->_pfree = &pool[0];
 	new->_nfree->_pfree = new;
@@ -96,12 +74,29 @@ static short buf_add_block(void)
 	return 0;
 }
 
+
+/* BUG: not declared cdecl; clobbers D2 */
+static void addmem(PROC *proc, long arg)
+{
+	UNUSED(proc);
+	UNUSED(arg);
+	tmout = 0;
+	buf_add_block();
+}
+
+
 static short buf_free_block(void)
 {
 	BUF *buf;
 	ushort sr;
 
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
+#endif
 	buf = pool[0]._nfree;
 	if (buf == &pool[0] || buf->_nfree == &pool[0])
 	{
@@ -117,6 +112,27 @@ static short buf_free_block(void)
 
 	return 1;
 }
+
+
+/* BUG: not declared cdecl; clobbers D2 */
+static void gc(PROC *proc, long arg)
+{
+	long mem = mem_used;
+
+	UNUSED(proc);
+	UNUSED(arg);
+	while (buf_free_block())
+		;
+
+	if (mem_used < mem)
+	{
+		DEBUG(("NET: failed allocs: %ld", failed_allocs));
+		DEBUG(("NET: mem used: %ldk before, %ldk after garbage coll.", mem / 1024, mem_used / 1024));
+	}
+
+	addroottimeout(GC_TIMEOUT, (void cdecl (*)(struct proc *, long))gc, 0);
+}
+
 
 long buf_init(void)
 {
@@ -144,7 +160,7 @@ long buf_init(void)
 		return -1;
 	}
 
-	addroottimeout(GC_TIMEOUT, gc, 0);
+	addroottimeout(GC_TIMEOUT, (void cdecl (*)(struct proc *, long))gc, 0);
 	return 0;
 }
 
@@ -210,9 +226,9 @@ static void sanity_check(BUF *buf)
 BUF *cdecl buf_reserve(BUF *buf, long reserve, short mode)
 {
 	BUF *nbuf;
-	ulong nspace;
-	ulong ospace;
-	ulong used;
+	long nspace;
+	long ospace;
+	long used;
 
 	reserve = (reserve + 1) & ~1;
 
@@ -226,6 +242,7 @@ BUF *cdecl buf_reserve(BUF *buf, long reserve, short mode)
 				return buf;
 
 			DEBUG(("buf_reserve: allocating new buf"));
+			(void) Cconws("1: allocating new buf\r\n"); /* BUG: leftover debug */
 
 			used = (long) buf->dend - (long) buf->dstart;
 			nbuf = buf_alloc(nspace, reserve, BUF_NORMAL);
@@ -271,6 +288,7 @@ BUF *cdecl buf_reserve(BUF *buf, long reserve, short mode)
 	return 0;
 }
 
+
 BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 {
 	short idx;
@@ -289,7 +307,7 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		size = BUF_SIZE(BUF_NSPLIT);
 
 	for (idx = BUF_NSPLIT; idx >= 0; idx--)
-		if (size <= BUF_SIZE(idx))
+		if (size <= (ulong)BUF_SIZE(idx))
 			break;
 
 	if (idx < 0)
@@ -302,7 +320,13 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 	}
 
   try_again:
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
+#endif
 	for (i = idx; i >= 0 && BUF_EMPTY(i); i--)
 		;
 
@@ -311,7 +335,7 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		if (mode == BUF_ATOMIC)
 		{
 			if (!tmout)
-				tmout = addroottimeout(0, addmem, 1);
+				tmout = addroottimeout(0, (void cdecl (*)(struct proc *, long))addmem, 1);
 			failed_allocs++;
 			spl(sr);
 			return 0;
@@ -350,13 +374,15 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		newbuf->buflen = size;
 		newbuf->_n = nxtbuf;
 
-		while (nxtbuf->buflen < BUF_SIZE(i))
+		while (nxtbuf->buflen < (ulong)BUF_SIZE(i))
 			i++;
 
 		if (i > BUF_NSPLIT)
 		{
 			spl(sr);
 			FATAL(("%i > BUF_NSPLIT, buflen = %lu", i, nxtbuf->buflen));
+			(void) sprintf("%i > BUF_NSPLIT, buflen = %lu\r\n", (void *)(long)i, nxtbuf->buflen); /* BUG: leftover debug */
+			return NULL;
 		}
 
 		nxtbuf->_nfree = pool[i]._nfree;
@@ -365,9 +391,8 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		nxtbuf->_pfree->_nfree = nxtbuf;
 	}
 
+	newbuf->_nfree = newbuf->_pfree = NULL;
 	newbuf->links = 1;
-	newbuf->_nfree = NULL;
-	newbuf->_pfree = NULL;
 
 	spl(sr);
 
@@ -391,9 +416,14 @@ void cdecl buf_free(BUF *buf, short mode)
 	short i;
 
 	UNUSED(mode);
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
-	b = buf->_p;
-	if (b && !b->links)
+#endif
+	if ((b = buf->_p) != NULL && !b->links)
 	{
 		b->_nfree->_pfree = b->_pfree;
 		b->_pfree->_nfree = b->_nfree;
@@ -406,8 +436,7 @@ void cdecl buf_free(BUF *buf, short mode)
 		buf = b;
 	}
 
-	b = buf->_n;
-	if (b && !b->links)
+	if ((b = buf->_n) != NULL && !b->links)
 	{
 		b->_nfree->_pfree = b->_pfree;
 		b->_pfree->_nfree = b->_nfree;
@@ -420,26 +449,27 @@ void cdecl buf_free(BUF *buf, short mode)
 	}
 
 	for (i = 0; i <= BUF_NSPLIT; i++)
-		if (buf->buflen >= BUF_SIZE(i))
+		if (buf->buflen >= (ulong)BUF_SIZE(i))
 			break;
 
 	if (buf->buflen > BUF_BLOCK_SIZE || i > BUF_NSPLIT)
 	{
-		spl(sr);
+		/* BUG: must reset ipl before debug output */
 		FATAL(("buf_free: invalid buf size: %ld (%i)", buf->buflen, i));
+	} else
+	{
+		buf->links = 0;
+		buf->_nfree = pool[i]._nfree;
+		buf->_pfree = &pool[i];
+		buf->_nfree->_pfree = buf;
+		buf->_pfree->_nfree = buf;
 	}
-
-	buf->links = 0;
-	buf->_nfree = pool[i]._nfree;
-	buf->_pfree = &pool[i];
-	buf->_nfree->_pfree = buf;
-	buf->_pfree->_nfree = buf;
 
 	spl(sr);
 }
 
 
-#if 0
+#ifdef NOTYET
 void cdecl buf_free(BUF *buf, short mode)
 {
 	UNUSED(mode);
@@ -452,7 +482,7 @@ void cdecl buf_free(BUF *buf, short mode)
 
 void cdecl buf_deref(BUF *buf, short mode)
 {
-#if 0
+#ifdef NOTYET
 	ushort sr = splhigh();
 
 	UNUSED(mode);
@@ -469,9 +499,67 @@ void cdecl buf_deref(BUF *buf, short mode)
 	else
 		_buf_free(buf, sr);
 #else
-	buf->links--;
-	if (buf->links <= 0)
-		buf_free(buf, mode);
+	ushort sr;
+	BUF *b;
+	short i;
+
+	UNUSED(mode);
+	if (--buf->links > 0)
+		return;
+
+	/* WTF; buf_free() inlined */
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
+	sr = splhigh();
+#endif
+	b = buf->_p;
+	if (b != NULL && !b->links)
+	{
+		b->_nfree->_pfree = b->_pfree;
+		b->_pfree->_nfree = b->_nfree;
+
+		if (buf->_n)
+			buf->_n->_p = b;
+
+		b->_n = buf->_n;
+		b->buflen += buf->buflen;
+		buf = b;
+	}
+
+	b = buf->_n;
+	if (b != NULL && !b->links)
+	{
+		b->_nfree->_pfree = b->_pfree;
+		b->_pfree->_nfree = b->_nfree;
+
+		if (b->_n)
+			b->_n->_p = buf;
+
+		buf->_n = b->_n;
+		buf->buflen += b->buflen;
+	}
+
+	for (i = 0; i <= BUF_NSPLIT; i++)
+		if (buf->buflen >= (ulong)BUF_SIZE(i))
+			break;
+
+	if (buf->buflen > BUF_BLOCK_SIZE || i > BUF_NSPLIT)
+	{
+		/* BUG: must reset ipl before debug output */
+		FATAL(("buf_free: invalid buf size: %ld (%i)", buf->buflen, i));
+	} else
+	{
+		buf->links = 0;
+		buf->_nfree = pool[i]._nfree;
+		buf->_pfree = &pool[i];
+		buf->_nfree->_pfree = buf;
+		buf->_pfree->_nfree = buf;
+	}
+
+	spl(sr);
 #endif
 }
 

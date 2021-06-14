@@ -19,7 +19,34 @@
 #include "buf.h"
 #include "iov.h"
 
-#define INADDR_MULTICAST  ((ulong) 0xe0000000UL)
+
+#define IOV_MAX 16
+
+
+/*
+ * For GNU-C, this function is usually inlined,
+ * but does not have to be
+ */
+long iov_size(const struct iovec *iov, short n)
+{
+	long size;
+
+	if (n <= 0 || n > IOV_MAX)
+		return -1;
+	
+	for (size = 0; n; ++iov, --n)
+	{
+		if ((long)iov->iov_len < 0)
+			return -1;
+		
+		size += iov->iov_len;
+	}
+	
+	return size;
+}
+
+
+#define INADDR_MULTICAST  ((in_addr_t) 0xe0000000UL)
 
 static long udp_attach(struct in_data *);
 static long udp_abort(struct in_data *, short);
@@ -34,8 +61,8 @@ static long udp_shutdown(struct in_data *, short);
 static long udp_setsockopt(struct in_data *, short, short, char *, long);
 static long udp_getsockopt(struct in_data *, short, short, char *, long *);
 
-static long udp_error(short, short, BUF *, ulong, ulong);
-static long udp_input(struct netif *, BUF *, ulong, ulong);
+static long udp_error(short, short, BUF *, in_addr_t, in_addr_t);
+static long udp_input(struct netif *, BUF *, in_addr_t, in_addr_t);
 
 struct in_proto udp_proto = {
 	IPPROTO_UDP,
@@ -46,7 +73,7 @@ struct in_proto udp_proto = {
 		udp_abort,
 		udp_detach,
 		udp_connect,
-		0,
+		0, /* listen */
 		udp_accept,
 		udp_ioctl,
 		udp_select,
@@ -63,12 +90,6 @@ struct in_proto udp_proto = {
 	},
 	0
 };
-
-void udp_init(void)
-{
-	in_proto_register(IPPROTO_UDP, &udp_proto);
-}
-
 
 static long udp_attach(struct in_data *data)
 {
@@ -175,8 +196,8 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 	long size;
 	long r;
 	long copied;
-	ulong dstaddr;
-	ulong srcaddr;
+	in_addr_t dstaddr;
+	in_addr_t srcaddr;
 	ushort dstport;
 	short ipflags = 0;
 
@@ -265,11 +286,8 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 	DEBUG(("udp_send: dstaddr = 0x%lx", dstaddr));
 
 	r = ip_send(data->src.addr, dstaddr, buf, IPPROTO_UDP, ipflags, &data->opts);
-
-	if (r == 0)
-		r = copied;
-
-	return r;
+	r = (r ? r : copied);
+	return r; /* XXX slightly different code */
 }
 
 
@@ -301,6 +319,7 @@ static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 
 	while (!data->rcv.qfirst)
 	{
+#ifdef NOTYET
 		if (nonblock)
 		{
 			DEBUG(("udp_recv: EAGAIN"));
@@ -312,6 +331,13 @@ static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 			DEBUG(("udp_recv: shut down"));
 			return 0;
 		}
+#else
+		if (nonblock || (so->flags & SO_CANTRCVMORE))
+		{
+			DEBUG(("udp_recv: EAGAIN"));
+			return 0;
+		}
+#endif
 
 		if (sleep(IO_Q, (long) so))
 		{
@@ -342,7 +368,7 @@ static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	{
 		struct sockaddr_in in;
 
-		*addrlen = MIN((ushort) * addrlen, sizeof(in));
+		*addrlen = MIN(*addrlen, (short)sizeof(in));
 		in.sin_family = AF_INET;
 		in.sin_addr.s_addr = IP_SADDR(buf);
 		in.sin_port = uh->srcport;
@@ -405,7 +431,7 @@ static long udp_getsockopt(struct in_data *data, short level, short optname, cha
  * If destination non existant then don't free buf and return != 0.
  * Otherwise always take over (or free) buf and return zero.
  */
-static long udp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
+static long udp_input(struct netif *iface, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	struct udp_dgram *uh = (struct udp_dgram *) IP_DATA(buf);
 	struct in_data *data;
@@ -437,7 +463,9 @@ static long udp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
 		 * It would violate RFC1122 to send an ICMP error when the
 		 * daddr is a broadcast address!!!
 		 */
+#ifdef NOTYET /* BUG: commented out */
 		if (!ip_is_brdcst_addr(daddr))
+#endif
 		{
 			nbuf = buf_clone(buf, BUF_NORMAL);
 			if (nbuf != 0)
@@ -447,7 +475,7 @@ static long udp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
 		return -1;
 	}
 	pktlen -= sizeof(struct udp_dgram);
-	if (pktlen + data->rcv.curdatalen > (ulong) data->rcv.maxdatalen)
+	if (pktlen + data->rcv.curdatalen > (ulong)data->rcv.maxdatalen)
 	{
 		DEBUG(("udp_input: Input queue full"));
 		buf_deref(buf, BUF_NORMAL);
@@ -483,7 +511,7 @@ static long udp_input(struct netif *iface, BUF * buf, ulong saddr, ulong daddr)
  * Note that `saddr' is our address, ie the source address of the packet
  * that caused the icmp reply.
  */
-static long udp_error(short type, short code, BUF * buf, ulong saddr, ulong daddr)
+static long udp_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	struct in_data *data;
 	struct udp_dgram *uh = (struct udp_dgram *) IP_DATA(buf);
@@ -508,7 +536,7 @@ static long udp_error(short type, short code, BUF * buf, ulong saddr, ulong dadd
 
 
 #ifdef __GNUC__
-ushort udp_checksum(struct udp_dgram *dgram, ulong srcadr, ulong dstadr)
+ushort udp_checksum(struct udp_dgram *dgram, in_addr_t srcadr, in_addr_t dstadr)
 {
 	ulong sum = 0;
 	ushort len = dgram->length;
@@ -665,15 +693,9 @@ ushort udp_checksum(struct udp_dgram *dgram, ulong srcadr, ulong dstadr)
 	return (short) (~sum & 0xffff);
 }
 
-#else
-
-ushort udp_checksum(struct udp_dgram *dgram, ulong srcadr, ulong dstadr)
-{
-	/* TODO */
-	(void)dgram;
-	(void)srcadr;
-	(void)dstadr;
-	return 0;
-}
-
 #endif
+
+void udp_init(void)
+{
+	in_proto_register(IPPROTO_UDP, &udp_proto);
+}

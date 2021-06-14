@@ -95,4 +95,5 @@ void if_load(void)
 	(void) Cconws("Loading interfaces:\r\n");
 	
 	Fsetdta(old_dta);
+	netinfo.reserved[0] = 0;
 }

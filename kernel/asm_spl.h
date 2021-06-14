@@ -50,6 +50,8 @@ static void __lpstop3(short) 0x2000;
 static unsigned short __splhigh1(void) 0x40c0; /* move.w sr,d0 */
 static unsigned short __splhigh2(unsigned short) 0x007c; /* ori.w #0x700,sr */
 static unsigned short __splhigh3(unsigned short) 0x0700;
+static unsigned short __splhigh4(void) 0x007c; /* ori.w #0x700,sr */
+static void nop(void) 0x4e71;
 
 /* dangerous code: modifies stack without compilers knowledge */
 static unsigned short __pushsr1(void) 0x40e7; /* move.w sr,-(a7) */
@@ -60,6 +62,9 @@ static void popsr(void) 0x46df; /* move.w (a7)+,sr */
 #define cpu_lpstop() __lpstop3(__lpstop2(__lpstop1()))
 #define splhigh() __splhigh3(__splhigh2(__splhigh1()))
 static void spl(unsigned short sr) 0x46c0;
+
+#define getsr() __splhigh1()
+#define setipl7() __splhigh3(__splhigh4())
 
 #endif /* __PUREC___ */
 
@@ -119,9 +124,6 @@ static inline void spl(unsigned short sr)
 	__asm__ volatile ("movew   %0,sr"::"d" (sr));
 }
 #endif /* __GNUC__ */
-
-
-#define spl7()	splhigh()
 
 
 #endif /* _mint_m68k_asm_spl_h */

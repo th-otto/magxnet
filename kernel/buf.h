@@ -34,6 +34,7 @@ struct buf
 long buf_init(void);
 
 BUF *cdecl buf_alloc (ulong, ulong, short);
+
 void cdecl buf_free (BUF *, short);
 BUF *cdecl buf_reserve (BUF *, long, short);
 void cdecl buf_deref (BUF *, short);

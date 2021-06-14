@@ -302,6 +302,7 @@ short cdecl chksum(void *buf, short nwords)
 
 #else
 
+/* BUG: is exported via netinfo and must be cdecl */
 short chksum(void *buf, short nwords)
 {
 	/* TODO */
