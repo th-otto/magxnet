@@ -66,7 +66,9 @@ struct rtentry
 
 extern struct route *allroutes[RT_HASH_SIZE];
 extern struct route *defroute;
+#ifdef NOTYET
 extern struct route rt_primary;		/* fake broadcast route */
+#endif
 
 void		route_init	(void);
 

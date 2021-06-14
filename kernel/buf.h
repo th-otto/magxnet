@@ -40,7 +40,7 @@ BUF *cdecl buf_reserve (BUF *, long, short);
 void cdecl buf_deref (BUF *, short);
 BUF *buf_clone (BUF *, short);
 
-void buf_ref(BUF *buf);
+#define buf_ref(buf) (buf)->links++
 
 
 # endif /* _buf_h */

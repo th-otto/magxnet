@@ -7,10 +7,10 @@
 #include "buf.h"
 
 
-static long loop_open(struct netif *);
-static long loop_close(struct netif *);
-static long loop_output(struct netif *, BUF *, const char *, short, short);
-static long loop_ioctl(struct netif *, short, long);
+static long cdecl loop_open(struct netif *);
+static long cdecl loop_close(struct netif *);
+static long cdecl loop_output(struct netif *, BUF *, const char *, short, short);
+static long cdecl loop_ioctl(struct netif *, short, long);
 
 static struct netif if_loopback = {
 	"lo",
@@ -54,19 +54,19 @@ static struct netif if_loopback = {
 };
 
 
-static long loop_open(struct netif *nif)
+static long cdecl loop_open(struct netif *nif)
 {
 	UNUSED(nif);
 	return 0;
 }
 
-static long loop_close(struct netif *nif)
+static long cdecl loop_close(struct netif *nif)
 {
 	UNUSED(nif);
 	return 0;
 }
 
-static long loop_output(struct netif *nif, BUF * buf, const char *hwaddr, short hwlen, short pktype)
+static long cdecl loop_output(struct netif *nif, BUF * buf, const char *hwaddr, short hwlen, short pktype)
 {
 	long r;
 
@@ -96,7 +96,7 @@ static long loop_output(struct netif *nif, BUF * buf, const char *hwaddr, short 
 	return r;
 }
 
-static long loop_ioctl(struct netif *nif, short cmd, long arg)
+static long cdecl loop_ioctl(struct netif *nif, short cmd, long arg)
 {
 	UNUSED(arg);
 	switch (cmd)

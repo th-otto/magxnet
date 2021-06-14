@@ -22,12 +22,15 @@
 
 struct route *allroutes[RT_HASH_SIZE];
 struct route *defroute;
+#ifdef NOTYET
 struct route rt_primary;
+#endif
 
 void route_init(void)
 {
 	short i;
 
+#ifdef NOTYET
 	/* fake broadcast route */
 	rt_primary.net = INADDR_ANY;
 	rt_primary.mask = 0xffffffffL;
@@ -39,6 +42,7 @@ void route_init(void)
 	rt_primary.flags = RTF_STATIC | RTF_UP;
 	rt_primary.usecnt = 1;
 	rt_primary.refcnt = 1;
+#endif
 
 	for (i = 0; i < RT_HASH_SIZE; ++i)
 		allroutes[i] = 0;
@@ -89,6 +93,7 @@ struct route *route_get(ulong daddr)
 		}
 	}
 
+#ifdef NOTYET
 	if (!rt)
 	{
 		if (netrt)
@@ -117,6 +122,10 @@ struct route *route_get(ulong daddr)
 		rt = &rt_primary;
 	}
 
+#else
+	if (!rt)
+		rt = netrt ? netrt : defroute;
+#endif
 	if (rt && rt->flags & RTF_UP)
 	{
 		rt->refcnt++;

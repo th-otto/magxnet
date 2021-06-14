@@ -9,6 +9,9 @@
  * counter for the first event in the list decereses the counter for the other
  * events too.
  */
+# ifndef _timeout_h
+# define _timeout_h
+
 typedef struct timeout TIMEOUT;
 
 typedef struct proc PROC;
@@ -26,6 +29,8 @@ struct timeout
 	long	arg;		/**< Argument to the function which gets called.	*/
 };
 
+extern TIMEOUT *tmout;
+
 TIMEOUT *addtimeout(struct proc *p, long delta, void (*func)(struct proc *, long));
 TIMEOUT *addtimeout_curproc(long delta, void (*func)(struct proc *, long));
 TIMEOUT *cdecl addroottimeout(long delta, void cdecl (*func)(struct proc *, long), ushort flags);
@@ -34,3 +39,4 @@ void canceltimeout(TIMEOUT *which);
 void cdecl cancelroottimeout(TIMEOUT *which);
 
 
+#endif /* _timeout_h */

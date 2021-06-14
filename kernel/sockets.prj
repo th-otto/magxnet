@@ -37,6 +37,7 @@ inetutil.c
 icmp.c
 igmp.c
 if.c
+loopback.c
 
 arpdev.c
 arp.c
@@ -48,7 +49,6 @@ tcpsig.c
 route.c
 routeasm.s
 routedev.c
-loopback.c
 bpf.c
 bpfasm.s
 bpf_filt.c

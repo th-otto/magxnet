@@ -38,7 +38,11 @@ in_addr_t ip_local_addr(in_addr_t dstaddr)
 
 	if (dstaddr == INADDR_ANY)
 	{
+#ifdef NOTYET
 		ifa = if_af2ifaddr(rt_primary.nif, AF_INET);
+#else
+		ifa = if_af2ifaddr(if_primary, AF_INET);
+#endif
 	} else
 	{
 		rt = route_get(dstaddr);
@@ -51,6 +55,7 @@ in_addr_t ip_local_addr(in_addr_t dstaddr)
 
 	return ifa ? ifa->adr.in.sin_addr.s_addr : INADDR_ANY;
 }
+
 
 short ip_is_brdcst_addr(in_addr_t addr)
 {
@@ -165,7 +170,11 @@ in_addr_t ip_dst_addr(in_addr_t addr)
 		/*
 		 * Use address of primary interface
 		 */
+#ifdef NOTYET
 		ifa = if_af2ifaddr(rt_primary.nif, AF_INET);
+#else
+		ifa = if_af2ifaddr(if_primary, AF_INET);
+#endif
 
 		DEBUG(("ip_dst_addr: nif = %s any", ifa ? ifa->ifp->name : "??"));
 
@@ -175,8 +184,13 @@ in_addr_t ip_dst_addr(in_addr_t addr)
 		/*
 		 * Use broadcast address of primary interface
 		 */
+#ifdef NOTYET
 		if (rt_primary.nif->flags & IFF_BROADCAST)
 			ifa = if_af2ifaddr(rt_primary.nif, AF_INET);
+#else
+		if (if_primary->flags & IFF_BROADCAST)
+			ifa = if_af2ifaddr(if_primary, AF_INET);
+#endif
 
 		DEBUG(("ip_dst_addr: nif = %s brcst", ifa ? ifa->ifp->name : "??"));
 

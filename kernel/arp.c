@@ -154,7 +154,9 @@ void arp_flush(struct netif *nif)
 				*prev = next;
 				arp_deref(curr);
 			} else
+			{
 				prev = &curr->prnext;
+			}
 		}
 
 		/*
@@ -169,7 +171,9 @@ void arp_flush(struct netif *nif)
 				*prev = next;
 				arp_deref(curr);
 			} else
+			{
 				prev = &curr->hwnext;
+			}
 		}
 	}
 }
@@ -523,7 +527,9 @@ void arp_input(struct netif *nif, BUF *buf)
 			}
 
 			if (are)
+			{
 				arp_deref(are);
+			}
 		}
 	}
 
@@ -587,7 +593,9 @@ void rarp_input(struct netif *nif, BUF *buf)
 	}
 
 	if (are)
+	{
 		arp_deref(are);
+	}
 
 	buf_deref(buf, BUF_NORMAL);
 }
@@ -767,7 +775,9 @@ long arp_ioctl(short cmd, void *arg)
 			if (!are || !(are->flags & ATF_HWCOM))
 			{
 				if (are)
+				{
 					arp_deref(are);
+				}
 				return ENOENT;
 			}
 
@@ -782,11 +792,13 @@ long arp_ioctl(short cmd, void *arg)
 	return ENOSYS;
 }
 
+#if 0
 void arp_deref(struct arp_entry *are)
 {
 	if (--are->links <= 0)
 		arp_free(are);
 }
+#endif
 
 
 long arp_init(void)

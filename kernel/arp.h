@@ -115,7 +115,15 @@ struct arp_entry *	rarp_lookup (short flags, struct netif *, short type, short l
 # define ARLK_NOCREAT	0x01	/* don't create+resolve entry if not found */
 # define ARLK_NORESOLV	0x02	/* don't resolve entry if not found */
 
-void arp_deref(struct arp_entry *are);
+#ifdef __GNUC__
+static __inline__ void arp_deref (struct arp_entry *are)
+{
+	if (--are->links <= 0)
+		arp_free(are);
+}
+#else
+#define arp_deref(are) if (--(are)->links == 0) arp_free(are) /* BUG: <= */
+#endif
 
 
 # endif /* _arp_h */

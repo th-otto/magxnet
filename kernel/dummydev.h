@@ -48,8 +48,6 @@ struct dev_descr
 	short	reserved;
 };
 
-extern long sprintf_params[];
-
 long	dummydev_init		(const char *name, const struct dev_descr *);
 
 long	cdecl dummydev_open		(MX_DOSFD *f);

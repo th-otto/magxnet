@@ -26,6 +26,9 @@
 #ifndef SIOCSIFHWADDR
 #define SIOCSIFHWADDR	(('S' << 8) | 49)	/* set hardware address */
 #endif
+#ifdef __PUREC__
+#define p_geteuid() 0L
+#endif
 
 /******************************************************************************/
 /*** ---------------------------------------------------------------------- ***/

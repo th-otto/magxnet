@@ -31,20 +31,24 @@
 /*
  * Pending timeout
  */
-static TIMEOUT *tmout = 0;
+TIMEOUT *tmout = 0;
 
 /*
  * List of all registered interfaces, loopback and primary interface.
  */
 struct netif *allinterfaces;
 struct netif *if_lo;
+#ifndef NOTYET
+struct netif *if_primary;
+#endif
 
+#ifdef __GNUC__
 /*
  * Stack used while processing incoming packets
+ * do we really need this?
  */
 static char stack[8192];
 
-#ifdef __GNUC__
 static void *setstack(void *sp)
 {
 	register void *osp __asm__("d0") = 0;
@@ -64,9 +68,14 @@ static void *setstack(void *sp)
 
 short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 {
+#ifdef __PUREC__
+	/* dangerous; better use splhigh() */
+	pushsr();
+#else
 	ushort sr;
 
 	sr = splhigh();
+#endif
 
 	if (q->qlen >= q->maxqlen)
 	{
@@ -75,7 +84,11 @@ short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 		 */
 		buf_deref(buf, BUF_ATOMIC);
 
-		/* spl(sr); */
+#ifdef __PUREC__
+		popsr();
+#else
+		spl(sr);
+#endif
 		return ENOMEM;
 	} else
 	{
@@ -93,7 +106,11 @@ short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 		q->qlen++;
 	}
 
+#ifdef __PUREC__
+	popsr();
+#else
 	spl(sr);
+#endif
 
 	return 0;
 }
@@ -101,10 +118,15 @@ short cdecl if_enqueue(struct ifq *q, BUF *buf, short pri)
 BUF *cdecl if_dequeue(struct ifq *q)
 {
 	BUF *buf = NULL;
-	ushort sr;
 	short i;
 
+#ifdef __PUREC__
+	/* dangerous; better use splhigh() */
+	pushsr();
+#else
+	ushort sr;
 	sr = splhigh();
+#endif
 
 	if (q->qlen > 0)
 	{
@@ -131,7 +153,11 @@ BUF *cdecl if_dequeue(struct ifq *q)
 		}
 	}
 
+#ifdef __PUREC__
+	popsr();
+#else
 	spl(sr);
+#endif
 
 	return buf;
 }
@@ -181,10 +207,15 @@ short cdecl if_putback(struct ifq *q, BUF *buf, short pri)
 
 void cdecl if_flushq(struct ifq *q)
 {
-	register ushort sr;
-	register short i;
+	short i;
 
+#ifdef __PUREC__
+	/* dangerous; better use splhigh() */
+	pushsr();
+#else
+	ushort sr;
 	sr = splhigh();
+#endif
 
 	for (i = 0; i < IF_PRIORITIES; ++i)
 	{
@@ -200,24 +231,35 @@ void cdecl if_flushq(struct ifq *q)
 	}
 	q->qlen = 0;
 
+#ifdef __PUREC__
+	popsr();
+#else
 	spl(sr);
+#endif
 }
 
 
-static void if_doinput(PROC *proc, long arg)
+/*
+ * BUG: not declared cdecl
+ */
+void if_doinput(PROC *proc, long arg)
 {
 	struct netif *nif;
+#ifdef __GNUC__
 	char *sp;
+#endif
 	short comeagain = 0;
 
 	UNUSED(proc);
 	UNUSED(arg);
 	tmout = 0;
+#ifdef __GNUC__
 	sp = setstack(stack + sizeof(stack));
+#endif
 
 	for (nif = allinterfaces; nif; nif = nif->next)
 	{
-		register short todo;
+		short todo;
 
 		if ((nif->flags & (IFF_UP | IFF_RUNNING)) != (IFF_UP | IFF_RUNNING))
 			continue;
@@ -262,18 +304,24 @@ static void if_doinput(PROC *proc, long arg)
 		 * not check all interfaces, there might be packets
 		 * waiting for us.
 		 */
+#ifdef NOTYET
 		if_input(0, 0, 100, 0);
+#else
+		tmout = addroottimeout(60, (void cdecl (*)(struct proc *, long))if_doinput, 1);
+#endif
 	}
 
-	(void) setstack(sp);
+#ifdef __GNUC__
+	setstack(sp);
+#endif
 }
 
 
-#ifdef __GNUC__
+#if 0  /* for MagiCNet, moved to kerinfo; FIXME */
 short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 {
-	register ushort sr;
-	register short r = 0;
+	short r = 0;
+	ushort sr;
 
 	sr = splhigh();
 
@@ -292,7 +340,11 @@ short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 }
 #endif
 
-static void cdecl if_slowtimeout(PROC *proc, long arg)
+
+/*
+ * BUG: not declared cdecl
+ */
+static void if_slowtimeout(PROC *proc, long arg)
 {
 	struct netif *nif;
 
@@ -300,12 +352,13 @@ static void cdecl if_slowtimeout(PROC *proc, long arg)
 	UNUSED(arg);
 	for (nif = allinterfaces; nif; nif = nif->next)
 	{
-		if (nif->flags & IFF_UP && nif->timeout)
+		if ((nif->flags & IFF_UP) && nif->timeout)
 			(*nif->timeout) (nif);
 	}
 
-	addroottimeout(IF_SLOWTIMEOUT, if_slowtimeout, 0);
+	addroottimeout(IF_SLOWTIMEOUT, (void cdecl (*)(struct proc *, long))if_slowtimeout, 0);
 }
+
 
 long cdecl if_deregister(struct netif *nif)
 {
@@ -331,6 +384,7 @@ long cdecl if_deregister(struct netif *nif)
 
 	return 0;							/* not removed */
 }
+
 
 long cdecl if_register(struct netif *nif)
 {
@@ -365,12 +419,13 @@ long cdecl if_register(struct netif *nif)
 	allinterfaces = nif;
 	if (nif->timeout && !have_timeout)
 	{
-		addroottimeout(IF_SLOWTIMEOUT, if_slowtimeout, 0);
+		addroottimeout(IF_SLOWTIMEOUT, (void cdecl (*)(struct proc *, long))if_slowtimeout, 0);
 		have_timeout = 1;
 	}
 
 	return 0;
 }
+
 
 /*
  * Get an unused unit number for interface name 'name'
@@ -400,7 +455,7 @@ long if_open(struct netif *nif)
 		DEBUG(("if_open: cannot open interface %s%d", nif->name, nif->unit));
 		return error;
 	}
-	nif->flags |= (IFF_UP | IFF_RUNNING);
+	nif->flags |= IFF_UP | IFF_RUNNING;
 
 	/*
 	 * Make sure lo0 is always reachable as 127.0.0.1
@@ -424,7 +479,12 @@ long if_open(struct netif *nif)
 	 * interfaces' local address. If they match, the packet is
 	 * delivered to the local software.
 	 */
+#ifdef NOTYET
 	if (ifa->adr.in.sin_addr.s_addr != INADDR_ANY)
+#else
+	if (!(if_primary->flags & IFF_UP))
+		if_primary = nif;
+#endif
 	{
 		route_add(if_lo, ifa->adr.in.sin_addr.s_addr, 0xffffffffL,
 				  INADDR_ANY, RTF_STATIC | RTF_UP | RTF_HOST | RTF_LOCAL, 999, 0);
@@ -435,7 +495,9 @@ long if_open(struct netif *nif)
 	 *
 	 * This is usefull to broadcast packets.
 	 */
+#ifdef NOTYET
 	rt_primary.nif = nif;
+#endif
 
 #ifdef IGMP_SUPPORT
 	igmp_start(nif);
@@ -475,7 +537,7 @@ long if_close(struct netif *nif)
 		route_del(ifa->adr.in.sin_addr.s_addr, 0xffffffffUL);
 
 	if (nif->flags & IFF_LOOPBACK)
-		route_del(0x7f000000L, IN_CLASSA_NET);
+		route_del(INADDR_LOOPBACK & IN_CLASSA_NET, IN_CLASSA_NET);
 
 	nif->flags &= ~(IFF_UP |
 #ifdef IGMP_SUPPORT
@@ -486,13 +548,21 @@ long if_close(struct netif *nif)
 	/*
 	 * Want a running primary interface
 	 */
+#ifdef NOTYET
 	if (nif == rt_primary.nif)
+#else
+	if (nif == if_primary)
+#endif
 	{
 		for (nif = allinterfaces; nif; nif = nif->next)
 		{
 			if (nif->flags & IFF_UP)
 			{
+#ifdef NOTYET
 				rt_primary.nif = nif;
+#else
+				if_primary = nif;
+#endif
 				break;
 			}
 		}
@@ -597,6 +667,8 @@ long if_ioctl(short cmd, long arg)
 {
 	struct kernel_ifreq *ifr;
 	struct netif *nif;
+	long error;
+	struct kernel_ifaddr *ifa;
 
 	switch (cmd)
 	{
@@ -638,14 +710,15 @@ long if_ioctl(short cmd, long arg)
 
 	switch (cmd)
 	{
+#ifdef NOTYET
 	case SIOCSIFHWADDR:
 		{
 			struct sockaddr_hw *shw = &ifr->ifru.adr.hw;
 
 			memcpy(nif->hwlocal.adr.bytes, shw->shw_addr, MIN(shw->shw_len, sizeof(shw->shw_addr)));
-
-			return 0;
 		}
+		return 0;
+#endif
 
 	case SIOCGIFHWADDR:
 		{
@@ -655,9 +728,8 @@ long if_ioctl(short cmd, long arg)
 			shw->shw_type = nif->hwtype;
 			shw->shw_len = nif->hwlocal.len;
 			memcpy(shw->shw_addr, nif->hwlocal.adr.bytes, MIN(shw->shw_len, sizeof(shw->shw_addr)));
-
-			return 0;
 		}
+		return 0;
 
 	case SIOCSLNKFLAGS:
 	case SIOCSIFOPT:
@@ -683,7 +755,6 @@ long if_ioctl(short cmd, long arg)
 	case SIOCSIFFLAGS:
 		{
 			short nflags = ifr->ifru.flags & IFF_MASK;
-			long error;
 
 			if (p_geteuid() != 0)
 			{
@@ -691,7 +762,7 @@ long if_ioctl(short cmd, long arg)
 				return EACCES;
 			}
 
-			if (nif->flags & IFF_UP && !(nflags & IFF_UP))
+			if ((nif->flags & IFF_UP) && !(nflags & IFF_UP))
 			{
 				error = if_close(nif);
 				if (error)
@@ -733,14 +804,11 @@ long if_ioctl(short cmd, long arg)
 		return 0;
 
 	case SIOCGIFMTU:
-		{
-			ifr->ifru.mtu = nif->mtu;
-			return 0;
-		}
+		ifr->ifru.mtu = nif->mtu;
+		return 0;
+
 	case SIOCSIFDSTADDR:
 		{
-			struct kernel_ifaddr *ifa;
-
 			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
@@ -756,7 +824,7 @@ long if_ioctl(short cmd, long arg)
 			ifa = if_af2ifaddr(nif, ifr->ifru.dstadr.sa.sa_family);
 			if (!ifa)
 			{
-				DEBUG(("if_ioctl: %d: interface has no addr " "in this AF", ifr->ifru.dstadr.sa.sa_family));
+				DEBUG(("if_ioctl: %d: interface has no addr in this AF", ifr->ifru.dstadr.sa.sa_family));
 				return EINVAL;
 			}
 
@@ -766,8 +834,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCGIFDSTADDR:
 		{
-			struct kernel_ifaddr *ifa;
-
 			if (!(nif->flags & IFF_POINTOPOINT))
 			{
 				DEBUG(("if_ioctl: nif is not p2p"));
@@ -777,7 +843,7 @@ long if_ioctl(short cmd, long arg)
 			ifa = if_af2ifaddr(nif, ifr->ifru.dstadr.sa.sa_family);
 			if (!ifa)
 			{
-				DEBUG(("if_ioctl: %d: interface has no addr " "in this AF", ifr->ifru.dstadr.sa.sa_family));
+				DEBUG(("if_ioctl: %d: interface has no addr in this AF", ifr->ifru.dstadr.sa.sa_family));
 				return EINVAL;
 			}
 
@@ -787,8 +853,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCSIFADDR:
 		{
-			long error;
-
 			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
@@ -804,8 +868,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCGIFADDR:
 		{
-			struct kernel_ifaddr *ifa;
-
 			ifa = if_af2ifaddr(nif, ifr->ifru.dstadr.sa.sa_family);
 			if (!ifa)
 			{
@@ -819,8 +881,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCSIFBRDADDR:
 		{
-			struct kernel_ifaddr *ifa;
-
 			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
@@ -836,7 +896,7 @@ long if_ioctl(short cmd, long arg)
 			ifa = if_af2ifaddr(nif, ifr->ifru.broadadr.sa.sa_family);
 			if (!ifa)
 			{
-				DEBUG(("if_ioctl: %d: interface has no addr " "in this AF", ifr->ifru.broadadr.sa.sa_family));
+				DEBUG(("if_ioctl: %d: interface has no addr in this AF", ifr->ifru.broadadr.sa.sa_family));
 				return EINVAL;
 			}
 
@@ -846,8 +906,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCGIFBRDADDR:
 		{
-			struct kernel_ifaddr *ifa;
-
 			if (!(nif->flags & IFF_BROADCAST))
 			{
 				DEBUG(("if_ioctl: nif is not broadcast"));
@@ -857,7 +915,7 @@ long if_ioctl(short cmd, long arg)
 			ifa = if_af2ifaddr(nif, ifr->ifru.broadadr.sa.sa_family);
 			if (!ifa)
 			{
-				DEBUG(("if_ioctl: %d: interface has no addr " "in this AF", ifr->ifru.broadadr.sa.sa_family));
+				DEBUG(("if_ioctl: %d: interface has no addr in this AF", ifr->ifru.broadadr.sa.sa_family));
 				return EINVAL;
 			}
 
@@ -867,8 +925,6 @@ long if_ioctl(short cmd, long arg)
 
 	case SIOCSIFNETMASK:
 		{
-			struct kernel_ifaddr *ifa;
-
 			if (p_geteuid() != 0)
 			{
 				DEBUG(("if_ioctl: permission denied"));
@@ -897,7 +953,6 @@ long if_ioctl(short cmd, long arg)
 	case SIOCGIFNETMASK:
 		{
 			struct sockaddr_in in;
-			struct kernel_ifaddr *ifa;
 
 			ifa = if_af2ifaddr(nif, ifr->ifru.broadadr.sa.sa_family);
 			if (!ifa)
@@ -1020,7 +1075,11 @@ long if_setifaddr(struct netif *nif, struct sockaddr *sa)
 			ulong netmask;
 
 			netmask = ip_netmask(in->sin_addr.s_addr);
-			if (netmask == 0 && in->sin_addr.s_addr != INADDR_ANY)
+			if (netmask == 0
+#ifdef NOTYET /* 1008abcb2b91f42c96f505d4370bbc8ae439b7ad */
+				&& in->sin_addr.s_addr != INADDR_ANY
+#endif
+				)
 			{
 				DEBUG(("if_setaddr: Addr not in class A/B/C"));
 				error = EADDRNOTAVAIL;
@@ -1053,6 +1112,7 @@ long if_setifaddr(struct netif *nif, struct sockaddr *sa)
 			 * interfaces' local address. If they match, the packet is
 			 * delivered to the local software.
 			 */
+#ifdef NOTYET
 			if (ifa->adr.in.sin_addr.s_addr != INADDR_ANY)
 			{
 				route_add(if_lo, ifa->adr.in.sin_addr.s_addr,
@@ -1063,6 +1123,10 @@ long if_setifaddr(struct netif *nif, struct sockaddr *sa)
 				rt_primary.nif = nif;
 				DEBUG(("if_setifaddr: primary_nif = %s", rt_primary.nif->name));
 			}
+#else
+			route_add(if_lo, ifa->adr.in.sin_addr.s_addr,
+					  0xffffffffUL, INADDR_ANY, RTF_STATIC | RTF_UP | RTF_HOST | RTF_LOCAL, 999, 0);
+#endif
 			break;
 		}
 	default:
@@ -1099,9 +1163,10 @@ long if_config(struct ifconf *ifconf)
 	struct netif *nif;
 	struct kernel_ifreq *ifr;
 	struct kernel_ifaddr *ifa;
-	char name[100];
+	char name[64]; /* FIXME: 100 in MiNT */
 	ulong len;
 
+#ifdef NOTYET /* 2d3421f8220e8b49f4eadd22e86f21f0ec86b759 */
 	if (!ifconf->ifc_ifcu.ifcu_buf)
 	{
 		/* count interfaces when no buffer! */
@@ -1112,6 +1177,7 @@ long if_config(struct ifconf *ifconf)
 		}
 		return 0;
 	}
+#endif
 
 	len = ifconf->ifc_len;
 	ifr = (struct kernel_ifreq *)ifconf->ifc_ifcu.ifcu_req;
@@ -1119,6 +1185,10 @@ long if_config(struct ifconf *ifconf)
 	{
 #ifdef NOTYET
 		ksprintf(name, "%s%d", nif->name, nif->unit);
+#else
+		sprintf_params[0] = (long)nif->name;
+		sprintf_params[1] = nif->unit;
+		p_kernel->_sprintf(name, "%S%L", sprintf_params);
 #endif
 		ifa = nif->addrlist;
 		if (!ifa)
@@ -1142,6 +1212,7 @@ long if_config(struct ifconf *ifconf)
 				ifr++;
 			}
 		}
+#ifdef NOTYET
 		{
 			struct sockaddr_hw shw;
 
@@ -1154,6 +1225,7 @@ long if_config(struct ifconf *ifconf)
 			len -= sizeof(*ifr);
 			ifr++;
 		}
+#endif
 	}
 	ifconf->ifc_len -= len;
 	return 0;
@@ -1161,6 +1233,7 @@ long if_config(struct ifconf *ifconf)
 
 struct kernel_ifaddr *if_af2ifaddr(struct netif *nif, short family)
 {
+#ifdef NOTYET /* 97bfb56b5758d3ed8e1c702377ee6597d255be2a */
 	struct kernel_ifaddr *ifa = NULL;
 
 	if (nif)
@@ -1171,7 +1244,13 @@ struct kernel_ifaddr *if_af2ifaddr(struct netif *nif, short family)
 				break;
 		}
 	}
+#else
+	struct kernel_ifaddr *ifa;
 
+	for (ifa = nif->addrlist; ifa; ifa = ifa->next)
+		if (ifa->family == family)
+			break;
+#endif
 	return ifa;
 }
 
@@ -1190,7 +1269,11 @@ long if_init(void)
 	{
 		if (nif->flags & IFF_LOOPBACK)
 		{
+#ifdef NOTYET
 			if_lo = rt_primary.nif = nif;
+#else
+			if_lo = if_primary = nif;
+#endif
 			break;
 		}
 #ifdef IGMP_SUPPORT
@@ -1201,6 +1284,7 @@ long if_init(void)
 	if (!if_lo)
 	{
 		FATAL("if_init: no loopback interface");
+		return -1;
 	}
 
 	return 0;

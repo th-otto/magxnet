@@ -49,9 +49,19 @@ void *ker_mshrink(void *block, LONG newlen);
 #define kmalloc(size) p_kernel->mxalloc(size, MX_PREFTTRAM, _BasPag)
 #define kfree(ptr) p_kernel->mfree(ptr)
 #define mint_bzero(ptr, size) p_kernel->fast_clrmem(ptr, (char *)(ptr) + size)
+#ifdef __PUREC__
+/*
+ * FIXME: only for binary comparison.
+ * FIXME2: should really call OS instead
+ */
+static short p_geteuid(void) 0x7000; /* moveq #0,d0 */
+#else
 #define p_geteuid() 0L
+#endif
 #define p_kill(pid, sig) (void) Pkill(pid, sig)
 #define p_getpid() p_kernel->proc_info(2, *(real_p_kernel->act_pd))
+
+extern long sprintf_params[];
 
 #endif /* _mx_kernel_h */
 

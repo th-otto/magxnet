@@ -582,7 +582,9 @@ BUF *buf_clone(BUF *buf, short mode)
 }
 
 
+#if 0
 void buf_ref(BUF *buf)
 {
 	buf->links++;
 }
+#endif

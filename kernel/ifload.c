@@ -39,7 +39,11 @@ struct netinfo netinfo = {
 
 	bpf_input,
 
+#ifdef NOTYET
 	if_deregister,
+#else
+	0,
+#endif
 
 	{ 0, 0, 0, 0 }
 };

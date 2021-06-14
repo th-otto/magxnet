@@ -110,11 +110,11 @@ struct netif
 	struct ifq	snd;		/* send and recv queue */
 	struct ifq	rcv;
 	
-	long		(*open)(struct netif *);
-	long		(*close)(struct netif *);
-	long		(*output)(struct netif *, BUF *, const char *, short, short);
-	long		(*ioctl)(struct netif *, short, long);
-	void		(*timeout)(struct netif *);
+	long		cdecl (*open)(struct netif *);
+	long		cdecl (*close)(struct netif *);
+	long		cdecl (*output)(struct netif *, BUF *, const char *, short, short);
+	long		cdecl (*ioctl)(struct netif *, short, long);
+	void		(*timeout)(struct netif *); /* BUG: not declared cdecl */
 
 	void		*data;		/* extra data the if may want */
 	
@@ -178,7 +178,11 @@ struct kernel_ifreq
 # define IFO_HWADDR	2	/* hardware address, v_string[0..5] */
 
 
-extern struct netif *allinterfaces, *if_lo;
+extern struct netif *allinterfaces;
+extern struct netif *if_lo;
+#ifndef NOTYET
+extern struct netif *if_primary;
+#endif
 
 short cdecl if_enqueue	(struct ifq *, BUF *, short pri);
 short cdecl if_putback	(struct ifq *, BUF *, short pri); /* FIXME: no need for cdecl */
@@ -188,6 +192,10 @@ long cdecl if_register	(struct netif *);
 long cdecl if_deregister	(struct netif *);
 long		if_init		(void);
 short cdecl if_input	(struct netif *, BUF *, long, short);
+#ifdef _timeout_h
+void if_doinput(PROC *proc, long arg);
+#endif
+
 
 /*
  * These must match ethernet protcol types
