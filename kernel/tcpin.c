@@ -54,18 +54,54 @@ void (*tcb_state[])(struct tcb *, BUF *) = {
 	tcbs_timewait
 };
 
+
+/*
+ * Utitity functions from tcputil.h, may be inlined
+ */
+#define _tcp_finished(tcb) ((tcb->flags & TCBF_FIN) && SEQLT(tcb->seq_fin, tcb->rcv_nxt))
+short tcp_finished(struct tcb *tcb)
+{
+	return _tcp_finished(tcb);
+}
+
+
+/* Return the length of the TCP segment in `buf'. */
+static long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
+{
+	/* FIXME: originally generates better code */
+	/* FIXME2: duplicated in tcpout.c */
+	struct tcp_dgram *hdr = tcph;
+	long len;
+	
+	len = (long) buf->dend - (long) tcph - (hdr->f.f.hdr >> 4) * 4; /* TCP_HDRLEN */
+
+	if (tcph->f.b.flags & TCPF_SYN)
+		++len;
+	if (tcph->f.b.flags & TCPF_FIN)
+		++len;
+	
+	return len;
+}
+
+
+long tcp_datalen(BUF *buf, struct tcp_dgram *tcph)
+{
+	return (long) buf->dend - (long) tcph - (tcph->f.b.hdrlen * 4); /* TCP_HDRLEN */
+}
+
+
 /*
  * Input finite state machine.
  */
 
-static void tcbs_closed(struct tcb *tcb, BUF * buf)
+static void tcbs_closed(struct tcb *tcb, BUF *buf)
 {
 	UNUSED(tcb);
 	tcp_sndrst(buf);
 	buf_deref(buf, BUF_NORMAL);
 }
 
-static void tcbs_listen(struct tcb *tcb, BUF * buf)
+static void tcbs_listen(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	struct socket *so;
@@ -73,13 +109,13 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 	struct tcb *ntcb;
 	long r;
 
-	if ((tcph->f.f.flags & (TCPF_RST | TCPF_SYN)) != TCPF_SYN)
+	if ((tcph->f.b.flags & (TCPF_RST | TCPF_SYN)) != TCPF_SYN)
 	{
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
 
-	if (tcph->f.f.flags & TCPF_ACK)
+	if (tcph->f.b.flags & TCPF_ACK)
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
@@ -122,8 +158,10 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 	so->data = data;
 	so->ops = tcb->data->sock->ops;
 	so->type = tcb->data->sock->type;
+#ifdef NOTYET /* commented out? */
 	so->date = Tgetdate();
 	so->time = Tgettime();
+#endif
 
 	/*
 	 * Init the inet data
@@ -165,6 +203,7 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 		DEBUG(("tcp_listen: cannot connect to server"));
 		ntcb->state = TCBS_CLOSED;
 		so_free(so);
+		p_kernel->mfree(so);
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
 		return;
@@ -179,21 +218,21 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 	tcp_output(ntcb, 0, 0, 0, 0, TCPF_SYN | TCPF_ACK);
 }
 
-static void tcbs_synsent(struct tcb *tcb, BUF * buf)
+static void tcbs_synsent(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	long r;
 
-	if ((tcph->f.f.flags & TCPF_ACK) && (SEQLE(tcph->ack, tcb->snd_isn) || SEQGT(tcph->ack, tcb->snd_max)))
+	if ((tcph->f.b.flags & TCPF_ACK) && (SEQLE(tcph->ack, tcb->snd_isn) || SEQGT(tcph->ack, tcb->snd_max)))
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
 
-	if (tcph->f.f.flags & TCPF_RST)
+	if (tcph->f.b.flags & TCPF_RST)
 	{
-		if (tcph->f.f.flags & TCPF_ACK)
+		if (tcph->f.b.flags & TCPF_ACK)
 		{
 			tcb_reset(tcb, ECONNREFUSED);
 			tcb->state = TCBS_CLOSED;
@@ -203,7 +242,7 @@ static void tcbs_synsent(struct tcb *tcb, BUF * buf)
 		return;
 	}
 
-	if (!(tcph->f.f.flags & TCPF_SYN))
+	if (!(tcph->f.b.flags & TCPF_SYN))
 	{
 		buf_deref(buf, BUF_NORMAL);
 		return;
@@ -233,7 +272,9 @@ static void tcbs_synsent(struct tcb *tcb, BUF * buf)
 		tcb->snd_wndack = tcph->ack;
 
 		tcb->data->sock->state = SS_ISCONNECTED;
+#ifdef NOTYET /* 556fc16f285c103fe63ce724821bee7631ce0a72 */
 		so_wakersel(tcb->data->sock);
+#endif
 		so_wakewsel(tcb->data->sock);
 		wake(IO_Q, (long) tcb->data->sock);
 	} else
@@ -256,7 +297,7 @@ static void tcbs_synsent(struct tcb *tcb, BUF * buf)
 	return;
 }
 
-static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
+static void tcbs_synrcvd(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -264,8 +305,11 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
 	{
 		if (tcb->flags & TCBF_PASSIVE)
 		{
+			struct socket *so = tcb->data->sock;
+			
 			tcb->state = TCBS_CLOSED;
-			so_free(tcb->data->sock);
+			so_free(so);
+			p_kernel->mfree(so);
 		} else
 		{
 			tcb_reset(tcb, ECONNRESET);
@@ -281,8 +325,11 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
 		tcp_sndrst(buf);
 		if (tcb->flags & TCBF_PASSIVE)
 		{
+			struct socket *so = tcb->data->sock;
+			
 			tcb->state = TCBS_CLOSED;
-			so_free(tcb->data->sock);
+			so_free(so);
+			p_kernel->mfree(so);
 		} else
 		{
 			tcb_reset(tcb, ECONNRESET);
@@ -329,7 +376,7 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
 	}
 }
 
-static void tcbs_established(struct tcb *tcb, BUF * buf)
+static void tcbs_established(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -357,7 +404,7 @@ static void tcbs_established(struct tcb *tcb, BUF * buf)
 	}
 
 	tcp_rcvdata(tcb, buf);
-	if (tcp_finished(tcb))
+	if (_tcp_finished(tcb))
 	{
 		KAYDEBUG(("tcp port %d: ESTABLISHED -> CLOSEWAIT", tcb->data->src.port));
 
@@ -369,11 +416,11 @@ static void tcbs_established(struct tcb *tcb, BUF * buf)
 	return;
 }
 
-static void tcbs_finwait1(struct tcb *tcb, BUF * buf)
+static void tcbs_finwait1(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.b.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -422,11 +469,11 @@ static void tcbs_finwait1(struct tcb *tcb, BUF * buf)
 	}
 }
 
-static void tcbs_finwait2(struct tcb *tcb, BUF * buf)
+static void tcbs_finwait2(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.b.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
@@ -454,7 +501,7 @@ static void tcbs_finwait2(struct tcb *tcb, BUF * buf)
 	}
 }
 
-static void tcbs_closewait(struct tcb *tcb, BUF * buf)
+static void tcbs_closewait(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -471,7 +518,7 @@ static void tcbs_closewait(struct tcb *tcb, BUF * buf)
 	buf_deref(buf, BUF_NORMAL);
 }
 
-static void tcbs_lastack(struct tcb *tcb, BUF * buf)
+static void tcbs_lastack(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -500,7 +547,7 @@ static void tcbs_lastack(struct tcb *tcb, BUF * buf)
 	}
 }
 
-static void tcbs_closing(struct tcb *tcb, BUF * buf)
+static void tcbs_closing(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -530,7 +577,7 @@ static void tcbs_closing(struct tcb *tcb, BUF * buf)
 /*
  * Note that in TIMEWAIT state the tcb has no associated socket.
  */
-static void tcbs_timewait(struct tcb *tcb, BUF * buf)
+static void tcbs_timewait(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
@@ -575,6 +622,7 @@ static short check_syn(long syn, long saddr, long daddr, short sport, short dpor
 /*
  * Schedule a delayed ack, but ack at least every other packet.
  */
+#ifdef NOTYET
 static void tcp_delack(struct tcb *tcb)
 {
 #ifdef USE_DELAYED_ACKS
@@ -582,11 +630,13 @@ static void tcp_delack(struct tcb *tcb)
 	{
 		tcb->flags |= TCBF_DELACK;
 		event_add(&tcb->ack_evt, TCP_ACKDELAY, dodelack, (long) tcb);
-		return;
-	}
+	} else
 #endif
-	tcp_output(tcb, 0, 0, 0, 0, TCPF_ACK);
+	{
+		tcp_output(tcb, 0, 0, 0, 0, TCPF_ACK);
+	}
 }
+#endif
 
 
 #ifdef USE_DELAYED_ACKS
@@ -606,26 +656,26 @@ static void dodelack(long arg)
 /*
  * Handle incoming data and special flags
  */
-static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
+static long tcp_rcvdata(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *tcph;
-	long nxt,
-	 onxt,
-	 datalen;
-	short flags,
-	 acknow = 1;
+	long nxt;
+	long onxt;
+	long datalen;
+	short flags;
+	short acknow = 1;
 
 	/*
 	 * Strip the IP header
 	 */
 	buf->dstart = IP_DATA(buf);
 	tcph = (struct tcp_dgram *) buf->dstart;
-	flags = tcph->f.flags;
+	flags = tcph->f.f.flags;
 
 	/*
 	 * Store the segments data length in urgptr
 	 */
-	datalen = (long) buf->dend - (long) tcph - TCP_HDRLEN(tcph);
+	datalen = (long) buf->dend - (long) tcph - (tcph->f.f.hdr >> 4) * 4; /* TCP_HDRLEN(tcph) */
 	tcph->urgptr = datalen;
 #if 0
 	DEBUG(("tcp_rcvdata::"));
@@ -660,7 +710,7 @@ static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
 		 * Compute the next sequence number beyond the continuous
 		 * sequence of received bytes in `nxt'.
 		 */
-		acknow = (onxt != SEQ1ST(b));
+		acknow = onxt != SEQ1ST(b);
 		while (b && SEQLE(SEQ1ST(b), nxt))
 		{
 			nxt = SEQNXT(b);
@@ -691,9 +741,26 @@ static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
 	if (datalen > 0 || (flags & TCPF_FIN))
 	{
 		if (tcb->state == TCBS_ESTABLISHED && !acknow)
+		{
+#ifdef NOTYET
 			tcp_delack(tcb);
-		else
+#else
+#ifdef USE_DELAYED_ACKS
+			/* tcp_delack inlined */
+			if (!(tcb->flags & TCBF_DELACK))
+			{
+				tcb->flags |= TCBF_DELACK;
+				event_add(&tcb->ack_evt, TCP_ACKDELAY, dodelack, (long) tcb);
+			} else
+#endif
+			{
+				tcp_output(tcb, 0, 0, 0, 0, TCPF_ACK);
+			}
+#endif
+		} else
+		{
 			tcp_output(tcb, 0, 0, 0, 0, TCPF_ACK);
+		}
 	}
 	return 0;
 }
@@ -705,11 +772,11 @@ static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
  * Also note that the `urgptr' field of the segment beeing insertred MUST
  * hold the segment length for urgent AND non urgent segments!
  */
-static long tcp_addseg(struct in_dataq *q, BUF * buf)
+static long tcp_addseg(struct in_dataq *q, BUF *buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) buf->dstart;
-	long seq1st,
-	 seqnxt;
+	long seq1st;
+	long seqnxt;
 	BUF *b;
 
 	/*
@@ -760,7 +827,14 @@ static long tcp_addseg(struct in_dataq *q, BUF * buf)
 		 * (partially) filled by the new segment.
 		 * Search backwards for efficiency reasons.
 		 */
-		for (b = q->qlast; b->prev; b = b->prev)
+		b = q->qlast;
+		/* XXX check not in MiNT */
+		if (b == NULL)
+		{
+			buf_deref(buf, BUF_NORMAL);
+			return -1;
+		}
+		for (; b->prev; b = b->prev)
 		{
 			if (SEQLT(SEQNXT(b->prev), SEQ1ST(b)) && SEQLT(seq1st, SEQ1ST(b)) && SEQLT(SEQNXT(b->prev), seqnxt))
 			{
@@ -853,7 +927,7 @@ static short tcp_sndwnd(struct tcb *tcb, struct tcp_dgram *tcph)
 /*
  * Handle incoming acknowledgments
  */
-static long tcp_ack(struct tcb *tcb, BUF * buf, short update_sndwnd)
+static long tcp_ack(struct tcb *tcb, BUF *buf, short update_sndwnd)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	short cmd = -1;
@@ -917,7 +991,7 @@ static long tcp_ack(struct tcb *tcb, BUF * buf, short update_sndwnd)
  * Exported for other modules.
  */
 
-long tcp_rcvurg(struct tcb *tcb, BUF * buf)
+long tcp_rcvurg(struct tcb *tcb, BUF *buf)
 {
 	struct tcp_dgram *utcph,
 	*tcph;
@@ -941,7 +1015,7 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 		return 0;
 	}
 
-	hdrlen = TCP_HDRLEN(tcph);
+	hdrlen = (tcph->f.f.hdr >> 4) * 4; /* TCP_HDRLEN(tcph); */
 	datalen = (long) buf->dend - (long) tcph - hdrlen;
 	urglen = tcph->urgptr;
 	urgptr = tcph->seq + urglen;
@@ -1028,8 +1102,9 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 	 * Adjust the original segment
 	 */
   adjust:
-	memcpy(TCP_DATA(tcph), TCP_DATA(tcph) + urglen, datalen - urglen);
-	tcph->f.f.flags &= ~TCPF_URG;
+  	/* XXX TCP_DATA(tcph) */
+	memcpy(((char *)(tcph) + (tcph->f.b.hdrlen * 4)), ((char *)(tcph) + (tcph->f.b.hdrlen * 4)) + urglen, datalen - urglen);
+	tcph->f.b.flags &= ~TCPF_URG;
 	tcph->seq += urglen;
 	buf->dend -= urglen;
 	((struct ip_dgram *) buf->dstart)->length -= urglen;

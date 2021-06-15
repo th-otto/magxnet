@@ -43,12 +43,12 @@ routeasm.s
 routedev.c
 timer.c
 tcp.c
+tcpin.c
+tcpout.c
 
 arpdev.c
 arp.c
 masquera.c
-tcpin.c
-tcpout.c
 tcpsig.c
 bpf.c
 bpfasm.s

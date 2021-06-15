@@ -889,6 +889,9 @@ static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
 	struct tcb *tcb;
 	ulong pktlen;
 
+#ifndef __PUREC__
+	UNUSED(iface);
+#endif
 	pktlen = (long) buf->dend - (long) tcph;
 	if (pktlen < TCP_MINLEN)
 	{

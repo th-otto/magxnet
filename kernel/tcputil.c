@@ -15,6 +15,25 @@
 #include "bpf.h"
 
 
+/* Return the length of the TCP segment in `buf'. */
+static long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
+{
+	/* FIXME: originally generates better code */
+	/* FIXME2: duplicated in tcpout.c */
+	struct tcp_dgram *hdr = tcph;
+	long len;
+	
+	len = (long) buf->dend - (long) tcph - (hdr->f.f.hdr >> 4) * 4; /* TCP_HDRLEN */
+
+	if (tcph->f.b.flags & TCPF_SYN)
+		++len;
+	if (tcph->f.b.flags & TCPF_FIN)
+		++len;
+	
+	return len;
+}
+
+
 long tcp_isn(void)
 {
 	static long isn = 0;
@@ -587,34 +606,4 @@ void tcp_dump(BUF *buf)
 		   ""));
 	DEBUG(("tcpdump: window = %u, chksum = %u, urgptr = %u", tcph->window, tcph->chksum, tcph->urgptr));
 }
-
-
-short tcp_finished (struct tcb *tcb)
-{
-	return (tcb->flags & TCBF_FIN) && SEQLT(tcb->seq_fin, tcb->rcv_nxt);
-}
-
-
-/* Return the length of the TCP segment in `buf'. */
-long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
-{
-	long len;
-	
-	len = (long) buf->dend - (long) tcph - TCP_HDRLEN(tcph);
-	
-	if (tcph->f.f.flags & TCPF_SYN)
-		++len;
-	if (tcph->f.f.flags & TCPF_FIN)
-		++len;
-	
-	return len;
-}
-
-
-long tcp_datalen(BUF *buf, struct tcp_dgram *tcph)
-{
-	return ((long) buf->dend - (long) tcph - TCP_HDRLEN(tcph));
-}
-
-
 

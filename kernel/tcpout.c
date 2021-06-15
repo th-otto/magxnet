@@ -54,6 +54,25 @@ static const char *const ostate_names[] = {
 };
 #endif
 
+/* Return the length of the TCP segment in `buf'. */
+static long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
+{
+	/* FIXME: originally generates better code */
+	/* FIXME2: duplicated in tcpin.c */
+	struct tcp_dgram *hdr = tcph;
+	long len;
+	
+	len = (long) buf->dend - (long) tcph - (hdr->f.f.hdr >> 4) * 4; /* TCP_HDRLEN */
+
+	if (tcph->f.b.flags & TCPF_SYN)
+		++len;
+	if (tcph->f.b.flags & TCPF_FIN)
+		++len;
+	
+	return len;
+}
+
+
 /*
  * Output finite state machine.
  */

@@ -54,9 +54,6 @@ void		tcp_dump	(BUF *);
 
 short tcp_finished (struct tcb *tcb);
 
-/* Return the length of the TCP segment in `buf'. */
-long tcp_seglen (BUF *buf, struct tcp_dgram *tcph);
-
 long tcp_datalen (BUF *buf, struct tcp_dgram *tcph);
 
 
