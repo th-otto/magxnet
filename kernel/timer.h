@@ -37,7 +37,7 @@
 
 # define EVTGRAN	10	/* timer granularity in ms */
 # define GETTIME()	(*(volatile long *) 0x4baL)
-# define DIFTIME(o,n)	(((n) - (o))/(EVTGRAN / 5))
+# define DIFTIME(o,n)	(((n) - (o)) >> 1 /* / (EVTGRAN / 5) */)
 
 struct event
 {

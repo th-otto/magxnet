@@ -16,7 +16,7 @@
  * Default and max. maximum segment size.
  */
 # define TCP_MSS	1460	/* was 536 */
-# define TCP_MAXMSS	2000
+# define TCP_MAXMSS	0x2000
 # define TCP_MINMSS	100
 
 /*
@@ -77,8 +77,9 @@
 # define TCP_RESERVE	140
 # define TCP_MINLEN	(sizeof (struct tcp_dgram))
 
-# define TCP_DATA(th)	((char *)(th) + (th)->hdrlen * 4)
-# define TCP_HDRLEN(th)	((th)->hdrlen * 4)
+# define TCPH_HDRLEN(th) (((th)->f.flags >> 12) & 0x0f)
+# define TCP_DATA(th)	((char *)(th) + TCPH_HDRLEN(th) * 4)
+# define TCP_HDRLEN(th)	(TCPH_HDRLEN(th) * 4)
 
 /* TCP datagram header */
 struct tcp_dgram
@@ -87,15 +88,24 @@ struct tcp_dgram
 	ushort		dstport;	/* destination port */
 	long		seq;		/* sequence number */
 	long		ack;		/* acknowledge number */
-	unsigned int	hdrlen:4;	/* TCP header len in longs */
-	unsigned int	flags:12;	/* segment flags */
+	union {
+		struct {
+			unsigned char hdr;		/* header len & flags */
+			unsigned char flags;	/* segment flags */
+		} f;
+		unsigned short flags;
+		struct {
+			unsigned int hdrlen:4;
+			unsigned int flags:12;
+		} b;
+	} f;
 # define TCPF_URG	0x020		/* segment contains urgent data */
 # define TCPF_ACK	0x010		/* segment contains acknowledgement */
 # define TCPF_PSH	0x008		/* push function */
 # define TCPF_RST	0x004		/* reset connection */
 # define TCPF_SYN	0x002		/* syncronice sequence numbers */
 # define TCPF_FIN	0x001		/* finish connection */
-# define TCPF_FREEME	0x800
+# define TCPF_FREEME	0x08 /* in hdrflags */
 	ushort		window;		/* window size */
 	short		chksum;		/* checksum */
 	ushort		urgptr;		/* urgent data offset rel to seq */
@@ -215,9 +225,10 @@ struct tcb
 extern struct in_proto tcp_proto;
 
 
-void	tcp_init	(void);
-long	tcp_canread	(struct in_data *data);
-long	tcp_canwrite	(struct in_data *data);
+void	tcpd_init(void);
+void	tcp_init(void);
+long	tcp_canread(struct in_data *data);
+long	tcp_canwrite(struct in_data *data);
 
 
 # endif /* _tcp_h */

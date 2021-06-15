@@ -18,9 +18,10 @@
 
 hz_200 = 0x4ba
 
-	.xref x1e714
+	.xref in_tcp_send
 	.xref x1ef60
 	.xref x1ef64
+	.globl bios_sema
 
 	.text
 
@@ -486,7 +487,7 @@ ret_from_bios:
 	move.w     60(a7),d0
 	bset       #13,d0
 	move.w     d0,sr
-	move.w     x1e714,d0
+	move.w     in_tcp_send,d0
 	bne        ret_b10
 	lea.l      x1ef60,a2
 ret_b1:

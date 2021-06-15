@@ -38,17 +38,18 @@ icmp.c
 igmp.c
 if.c
 loopback.c
+route.c
+routeasm.s
+routedev.c
+timer.c
+tcp.c
 
 arpdev.c
 arp.c
 masquera.c
-tcp.c
 tcpin.c
 tcpout.c
 tcpsig.c
-route.c
-routeasm.s
-routedev.c
 bpf.c
 bpfasm.s
 bpf_filt.c
@@ -56,7 +57,6 @@ inetasm.s
 inetdev.c
 ifload.c
 ifeth.c
-timer.c
 rawip.c
 tcputil.c
 

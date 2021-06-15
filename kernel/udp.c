@@ -319,7 +319,7 @@ static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 
 	while (!data->rcv.qfirst)
 	{
-#ifdef NOTYET
+#ifdef NOTYET /* 3535e0d6a8f193c27ae189e5ca7eaf618e0641ba */
 		if (nonblock)
 		{
 			DEBUG(("udp_recv: EAGAIN"));

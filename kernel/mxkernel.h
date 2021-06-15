@@ -62,6 +62,8 @@ static short p_geteuid(void) 0x7000; /* moveq #0,d0 */
 #define p_getpid() p_kernel->proc_info(2, *(real_p_kernel->act_pd))
 
 extern long sprintf_params[];
+extern short bios_sema GNU_ASM_NAME("bios_sema");
+extern short in_tcp_send GNU_ASM_NAME("in_tcp_send");
 
 #endif /* _mx_kernel_h */
 

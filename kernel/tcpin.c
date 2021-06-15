@@ -73,13 +73,13 @@ static void tcbs_listen(struct tcb *tcb, BUF * buf)
 	struct tcb *ntcb;
 	long r;
 
-	if ((tcph->flags & (TCPF_RST | TCPF_SYN)) != TCPF_SYN)
+	if ((tcph->f.f.flags & (TCPF_RST | TCPF_SYN)) != TCPF_SYN)
 	{
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
 
-	if (tcph->flags & TCPF_ACK)
+	if (tcph->f.f.flags & TCPF_ACK)
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
@@ -184,16 +184,16 @@ static void tcbs_synsent(struct tcb *tcb, BUF * buf)
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	long r;
 
-	if ((tcph->flags & TCPF_ACK) && (SEQLE(tcph->ack, tcb->snd_isn) || SEQGT(tcph->ack, tcb->snd_max)))
+	if ((tcph->f.f.flags & TCPF_ACK) && (SEQLE(tcph->ack, tcb->snd_isn) || SEQGT(tcph->ack, tcb->snd_max)))
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
 		return;
 	}
 
-	if (tcph->flags & TCPF_RST)
+	if (tcph->f.f.flags & TCPF_RST)
 	{
-		if (tcph->flags & TCPF_ACK)
+		if (tcph->f.f.flags & TCPF_ACK)
 		{
 			tcb_reset(tcb, ECONNREFUSED);
 			tcb->state = TCBS_CLOSED;
@@ -203,7 +203,7 @@ static void tcbs_synsent(struct tcb *tcb, BUF * buf)
 		return;
 	}
 
-	if (!(tcph->flags & TCPF_SYN))
+	if (!(tcph->f.f.flags & TCPF_SYN))
 	{
 		buf_deref(buf, BUF_NORMAL);
 		return;
@@ -260,7 +260,7 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & TCPF_RST)
+	if (tcph->f.f.flags & TCPF_RST)
 	{
 		if (tcb->flags & TCBF_PASSIVE)
 		{
@@ -276,7 +276,7 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF * buf)
 		return;
 	}
 
-	if (tcph->flags & TCPF_SYN)
+	if (tcph->f.f.flags & TCPF_SYN)
 	{
 		tcp_sndrst(buf);
 		if (tcb->flags & TCBF_PASSIVE)
@@ -333,7 +333,7 @@ static void tcbs_established(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & TCPF_RST)
+	if (tcph->f.f.flags & TCPF_RST)
 	{
 		tcb_reset(tcb, ECONNRESET);
 		tcb->state = TCBS_CLOSED;
@@ -341,7 +341,7 @@ static void tcbs_established(struct tcb *tcb, BUF * buf)
 		return;
 	}
 
-	if (tcph->flags & TCPF_SYN)
+	if (tcph->f.f.flags & TCPF_SYN)
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -373,7 +373,7 @@ static void tcbs_finwait1(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -426,7 +426,7 @@ static void tcbs_finwait2(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
@@ -458,7 +458,7 @@ static void tcbs_closewait(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN))
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -475,7 +475,7 @@ static void tcbs_lastack(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -504,7 +504,7 @@ static void tcbs_closing(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		tcb_reset(tcb, ECONNRESET);
@@ -534,7 +534,7 @@ static void tcbs_timewait(struct tcb *tcb, BUF * buf)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 
-	if (tcph->flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
+	if (tcph->f.f.flags & (TCPF_RST | TCPF_SYN) || (!tcb->data->sock && tcp_datalen(buf, tcph)))
 	{
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
@@ -620,12 +620,12 @@ static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
 	 */
 	buf->dstart = IP_DATA(buf);
 	tcph = (struct tcp_dgram *) buf->dstart;
-	flags = tcph->flags;
+	flags = tcph->f.flags;
 
 	/*
 	 * Store the segments data length in urgptr
 	 */
-	datalen = (long) buf->dend - (long) tcph - tcph->hdrlen * 4;
+	datalen = (long) buf->dend - (long) tcph - TCP_HDRLEN(tcph);
 	tcph->urgptr = datalen;
 #if 0
 	DEBUG(("tcp_rcvdata::"));
@@ -647,7 +647,7 @@ static long tcp_rcvdata(struct tcb *tcb, BUF * buf)
 		tcb->flags |= TCBF_PSH;
 		tcb->seq_psh = tcph->seq + datalen;
 	}
-	tcph->flags &= ~(TCPF_SYN | TCPF_PSH | TCPF_FIN);
+	tcph->f.f.flags &= ~(TCPF_SYN | TCPF_PSH | TCPF_FIN);
 	/*
 	 * Add the segment to the recv queue and wake things up
 	 */
@@ -720,7 +720,7 @@ static long tcp_addseg(struct in_dataq *q, BUF * buf)
 		buf_deref(buf, BUF_NORMAL);
 		return -1;
 	}
-	tcph->flags &= ~TCPF_FREEME;
+	tcph->f.f.hdr &= ~TCPF_FREEME;
 
 	seq1st = tcph->seq;
 	seqnxt = seq1st + tcph->urgptr;
@@ -816,7 +816,7 @@ static short tcp_sndwnd(struct tcb *tcb, struct tcp_dgram *tcph)
 	long owlast,
 	 wlast;
 
-	if (!(tcph->flags & TCPF_ACK))
+	if (!(tcph->f.f.flags & TCPF_ACK))
 		return -1;
 
 	if (SEQLT(tcph->seq, tcb->snd_wndseq) || (SEQEQ(tcph->seq, tcb->snd_wndseq) && SEQLT(tcph->ack, tcb->snd_wndack)))
@@ -859,7 +859,7 @@ static long tcp_ack(struct tcb *tcb, BUF * buf, short update_sndwnd)
 	short cmd = -1;
 	long osnd_wnd;
 
-	if (!(tcph->flags & TCPF_ACK))
+	if (!(tcph->f.f.flags & TCPF_ACK))
 		return -1;
 
 	/*
@@ -929,19 +929,19 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 	BUF *ubuf;
 
 	tcph = (struct tcp_dgram *) IP_DATA(buf);
-	if (!(tcph->flags & TCPF_URG))
+	if (!(tcph->f.f.flags & TCPF_URG))
 		return 0;
 
 	/*
 	 * Ignore urgent data before connection is established
 	 */
-	if (tcb->state < TCBS_SYNRCVD || tcb->state > TCBS_CLOSEWAIT || (tcph->flags & TCPF_SYN))
+	if (tcb->state < TCBS_SYNRCVD || tcb->state > TCBS_CLOSEWAIT || (tcph->f.f.flags & TCPF_SYN))
 	{
-		tcph->flags &= ~TCPF_URG;
+		tcph->f.f.flags &= ~TCPF_URG;
 		return 0;
 	}
 
-	hdrlen = tcph->hdrlen * 4;
+	hdrlen = TCP_HDRLEN(tcph);
 	datalen = (long) buf->dend - (long) tcph - hdrlen;
 	urglen = tcph->urgptr;
 	urgptr = tcph->seq + urglen;
@@ -953,7 +953,7 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 	{
 		if (datalen > 0 && urglen <= datalen)
 			goto adjust;
-		tcph->flags &= ~TCPF_URG;
+		tcph->f.f.flags &= ~TCPF_URG;
 		return 0;
 	}
 
@@ -976,7 +976,7 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 		 * the actual urgent data is not carried within
 		 * this segment
 		 */
-		tcph->flags &= ~TCPF_URG;
+		tcph->f.f.flags &= ~TCPF_URG;
 		return 0;
 	}
 
@@ -988,7 +988,7 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 	{
 		utcph = (struct tcp_dgram *) ubuf->dstart;
 		memcpy(utcph, tcph, hdrlen + urglen);
-		utcph->flags = TCPF_URG;
+		utcph->f.f.flags = TCPF_URG;
 		utcph->urgptr = urglen;
 		ubuf->dend += hdrlen + urglen;
 #if 0
@@ -1029,7 +1029,7 @@ long tcp_rcvurg(struct tcb *tcb, BUF * buf)
 	 */
   adjust:
 	memcpy(TCP_DATA(tcph), TCP_DATA(tcph) + urglen, datalen - urglen);
-	tcph->flags &= ~TCPF_URG;
+	tcph->f.f.flags &= ~TCPF_URG;
 	tcph->seq += urglen;
 	buf->dend -= urglen;
 	((struct ip_dgram *) buf->dstart)->length -= urglen;

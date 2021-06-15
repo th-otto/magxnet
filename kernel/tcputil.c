@@ -180,7 +180,7 @@ long tcp_sndrst(BUF *ibuf)
 	BUF *obuf;
 
 	itcph = (struct tcp_dgram *) IP_DATA(ibuf);
-	if (itcph->flags & TCPF_RST)
+	if (itcph->f.f.flags & TCPF_RST)
 		return 0;
 
 	obuf = buf_alloc(TCP_MINLEN + TCP_RESERVE, TCP_RESERVE, BUF_NORMAL);
@@ -194,18 +194,20 @@ long tcp_sndrst(BUF *ibuf)
 	otcph->srcport = itcph->dstport;
 	otcph->dstport = itcph->srcport;
 
-	if (itcph->flags & TCPF_ACK)
+	if (itcph->f.f.flags & TCPF_ACK)
 	{
 		otcph->seq = itcph->ack;
-		otcph->flags = TCPF_RST;
+		otcph->f.f.flags = TCPF_RST;
 	} else
 	{
 		otcph->seq = 0;
-		otcph->flags = TCPF_RST | TCPF_ACK;
+		otcph->f.f.flags = TCPF_RST | TCPF_ACK;
 	}
 
 	otcph->ack = itcph->seq + tcp_seglen(ibuf, itcph);
+#ifdef TODO
 	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
+#endif
 	otcph->window = 0;
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
@@ -226,7 +228,7 @@ long tcp_sndack(struct tcb *tcb, BUF *ibuf)
 	long wndlast;
 	BUF *obuf;
 
-	if (itcph->flags & TCPF_RST)
+	if (itcph->f.f.flags & TCPF_RST)
 		return 0;
 
 	wndlast = tcb->snd_wndack + tcb->snd_wnd;
@@ -245,8 +247,10 @@ long tcp_sndack(struct tcb *tcb, BUF *ibuf)
 	otcph->dstport = itcph->srcport;
 	otcph->seq = SEQLE(tcb->snd_nxt, wndlast) ? tcb->snd_nxt : wndlast;
 	otcph->ack = tcb->rcv_nxt;
+#ifdef TODO
 	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
-	otcph->flags = TCPF_ACK;
+#endif
+	otcph->f.f.flags = TCPF_ACK;
 	otcph->window = tcp_rcvwnd(tcb, 1);
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
@@ -288,14 +292,14 @@ short tcp_valid(struct tcb *tcb, BUF *buf)
 		if (seglen)
 			--seqlast;
 
-		if ((tcph->flags & TCPF_SYN) && SEQLT(seq, tcb->rcv_nxt))
+		if ((tcph->f.f.flags & TCPF_SYN) && SEQLT(seq, tcb->rcv_nxt))
 		{
-			tcph->flags &= ~TCPF_SYN;
+			tcph->f.f.flags &= ~TCPF_SYN;
 			++tcph->seq;
 		}
 
-		if ((tcph->flags & TCPF_FIN) && SEQGE(seqlast, wndlast))
-			tcph->flags &= ~TCPF_FIN;
+		if ((tcph->f.f.flags & TCPF_FIN) && SEQGE(seqlast, wndlast))
+			tcph->f.f.flags &= ~TCPF_FIN;
 
 		if (SEQLE(tcb->rcv_nxt, seqlast) && SEQLT(seq, wndlast))
 			return 1;
@@ -314,7 +318,7 @@ long tcp_options(struct tcb *tcb, struct tcp_dgram *tcph)
 	long mss = TCP_MSS;
 
 	UNUSED(tcb);
-	optlen = tcph->hdrlen * 4 - TCP_MINLEN;
+	optlen = TCP_HDRLEN(tcph) - TCP_MINLEN;
 	cp = (unsigned char *) tcph->data;
 	for (i = 0; i < optlen; i += len)
 	{
@@ -334,7 +338,7 @@ long tcp_options(struct tcb *tcb, struct tcp_dgram *tcph)
 				DEBUG(("tcp_opt: wrong mss opt len %d", len));
 				break;
 			}
-			if (tcph->flags & TCPF_SYN)
+			if (tcph->f.f.flags & TCPF_SYN)
 				mss = (((ushort) cp[i + 2]) << 8) + cp[i + 3];
 			break;
 
@@ -579,7 +583,7 @@ void tcp_dump(BUF *buf)
 		   tcph->flags & TCPF_RST ? "RST " : "",
 		   tcph->flags & TCPF_SYN ? "SYN " : "",
 		   tcph->flags & TCPF_FIN ? "FIN " : "",
-		   tcph->flags & TCPF_FREEME ? "FRE " :
+		   tcph->hdrflags & TCPF_FREEME ? "FRE " :
 		   ""));
 	DEBUG(("tcpdump: window = %u, chksum = %u, urgptr = %u", tcph->window, tcph->chksum, tcph->urgptr));
 }
@@ -596,11 +600,11 @@ long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
 {
 	long len;
 	
-	len = (long) buf->dend - (long) tcph - tcph->hdrlen * 4;
+	len = (long) buf->dend - (long) tcph - TCP_HDRLEN(tcph);
 	
-	if (tcph->flags & TCPF_SYN)
+	if (tcph->f.f.flags & TCPF_SYN)
 		++len;
-	if (tcph->flags & TCPF_FIN)
+	if (tcph->f.f.flags & TCPF_FIN)
 		++len;
 	
 	return len;
@@ -609,7 +613,7 @@ long tcp_seglen(BUF *buf, struct tcp_dgram *tcph)
 
 long tcp_datalen(BUF *buf, struct tcp_dgram *tcph)
 {
-	return ((long) buf->dend - (long) tcph - tcph->hdrlen * 4);
+	return ((long) buf->dend - (long) tcph - TCP_HDRLEN(tcph));
 }
 
 

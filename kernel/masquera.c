@@ -189,9 +189,9 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			tcph->chksum = 0;
 			tcph->chksum = tcp_checksum(tcph, iph->saddr, db_record->masq_addr, (long) buf->dend - (long) tcph);
 
-			if (tcph->flags & TCPF_SYN)
+			if (tcph->f.f.flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
-			if ((tcph->flags & TCPF_FIN) || (tcph->flags & TCPF_RST))
+			if ((tcph->f.f.flags & TCPF_FIN) || (tcph->f.f.flags & TCPF_RST))
 				db_record->timeout = masq.tcp_fin_timeout;
 		} else if (iph->proto == IPPROTO_UDP)
 		{
@@ -384,9 +384,9 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			tcph->chksum = 0;
 			tcph->chksum = tcp_checksum(tcph, localaddr, iph->daddr, (long) buf->dend - (long) tcph);
 
-			if (tcph->flags & TCPF_SYN)
+			if (tcph->f.f.flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
-			if ((tcph->flags & TCPF_FIN) || (tcph->flags & TCPF_RST))
+			if ((tcph->f.f.flags & TCPF_FIN) || (tcph->f.f.flags & TCPF_RST))
 				db_record->timeout = masq.tcp_fin_timeout;
 		} else if (iph->proto == IPPROTO_UDP)
 		{

@@ -53,7 +53,8 @@ static void *setstack(void *sp)
 #endif
 
 
-static void cdecl check_events(PROC *proc, long arg2)
+/* BUG: not declared cdecl; clobbers D2 */
+static void check_events(PROC *proc, long arg2)
 {
 	struct event *ep;
 	void (*func)(long);
@@ -82,10 +83,13 @@ static void cdecl check_events(PROC *proc, long arg2)
 
 	if (ep)
 	{
-		nexttimeout = addroottimeout(ep->delta * EVTGRAN, check_events, 0);
+		nexttimeout = addroottimeout(ep->delta * EVTGRAN, (void cdecl (*)(struct proc *, long))check_events, 0);
 		if (!nexttimeout)
 		{
 			FATAL("timer: out of kernel memory");
+		} else
+		{
+			(void)0; /* XXX */
 		}
 	} else
 	{
@@ -133,7 +137,7 @@ static void event_insert(struct event *ep, long delta)
 		if (nexttimeout)
 			cancelroottimeout(nexttimeout);
 
-		nexttimeout = addroottimeout(delta * EVTGRAN, check_events, 0);
+		nexttimeout = addroottimeout(delta * EVTGRAN, (void cdecl (*)(struct proc *, long))check_events, 0);
 		if (!nexttimeout)
 		{
 			FATAL("timer: out of kernel memory");
@@ -230,6 +234,7 @@ void event_reset(struct event *ep, long delta)
 	if (!curr)
 	{
 		FATAL("event_reset: event not found");
+		return;
 	}
 
 	*prev = curr->next;
@@ -243,8 +248,9 @@ void event_reset(struct event *ep, long delta)
 		for (; curr; prev = &curr->next, curr = curr->next)
 		{
 			if (curr->delta <= delta)
+			{
 				delta -= curr->delta;
-			else
+			} else
 			{
 				curr->delta -= delta;
 				break;
@@ -254,5 +260,7 @@ void event_reset(struct event *ep, long delta)
 		ep->next = curr;
 		*prev = ep;
 	} else
+	{
 		event_insert(ep, delta);
+	}
 }

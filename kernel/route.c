@@ -26,32 +26,6 @@ struct route *defroute;
 struct route rt_primary;
 #endif
 
-void route_init(void)
-{
-	short i;
-
-#ifdef NOTYET
-	/* fake broadcast route */
-	rt_primary.net = INADDR_ANY;
-	rt_primary.mask = 0xffffffffL;
-	rt_primary.gway = INADDR_ANY;
-	rt_primary.metric = 1;
-	rt_primary.nif = NULL;
-	rt_primary.ttl = 0xff;
-	rt_primary.next = NULL;
-	rt_primary.flags = RTF_STATIC | RTF_UP;
-	rt_primary.usecnt = 1;
-	rt_primary.refcnt = 1;
-#endif
-
-	for (i = 0; i < RT_HASH_SIZE; ++i)
-		allroutes[i] = 0;
-
-	defroute = 0;
-
-	routedev_init();
-}
-
 static ushort route_hash(ulong d)
 {
 	ushort hash;
@@ -151,7 +125,8 @@ struct route *route_alloc(struct netif *nif, ulong net, ulong mask, ulong gway, 
 	rt->net = net;
 	rt->mask = mask;
 
-	if (flags & RTF_GATEWAY && gway == INADDR_ANY)
+	/* FIXME: should be checked right at start */
+	if ((flags & RTF_GATEWAY) && gway == INADDR_ANY)
 	{
 		DEBUG(("route_alloc: invalid gateway"));
 		kfree(rt);
@@ -159,13 +134,13 @@ struct route *route_alloc(struct netif *nif, ulong net, ulong mask, ulong gway, 
 	}
 
 	rt->gway = (flags & RTF_GATEWAY) ? gway : INADDR_ANY;
-	rt->metric = metric;
 	rt->nif = nif;
-	rt->ttl = ttl;
-	rt->next = NULL;
 	rt->flags = flags;
+	rt->ttl = ttl;
+	rt->metric = metric;
 	rt->usecnt = 0;
 	rt->refcnt = 1;
+	rt->next = NULL;
 
 	return rt;
 }
@@ -188,8 +163,7 @@ long route_add(struct netif *nif, ulong net, ulong mask, ulong gway, short flags
 	if (net == INADDR_ANY)
 	{
 		DEBUG(("route_add: updating default route"));
-		if (defroute)
-			route_deref(defroute);
+		route_deref(defroute);
 		defroute = newrt;
 		return 0;
 	}
@@ -199,7 +173,7 @@ long route_add(struct netif *nif, ulong net, ulong mask, ulong gway, short flags
 	{
 		if (rt->mask == mask && rt->net == net)
 		{
-			if (!(flags & RTF_STATIC) && rt->flags & RTF_STATIC)
+			if (!(flags & RTF_STATIC) && (rt->flags & RTF_STATIC))
 			{
 				DEBUG(("route_add: would overwrite " "static route with non static ..."));
 				kfree(newrt);
@@ -304,13 +278,13 @@ long route_ioctl(short cmd, long arg)
 	if (p_geteuid() != 0)
 		return EACCES;
 
+	flags = rte->rt_flags;
 	if (rte->dst.sa.sa_family != AF_INET)
 	{
 		DEBUG(("route_ioctl: dst not AF_INET"));
 		return EAFNOSUPPORT;
 	}
 
-	flags = rte->rt_flags;
 	net = rte->dst.in.sin_addr.s_addr;
 
 	mask = ip_netmask(net);
@@ -364,4 +338,31 @@ long route_ioctl(short cmd, long arg)
 	default:
 		return ENOSYS;
 	}
+}
+
+
+void route_init(void)
+{
+	short i;
+
+#ifdef NOTYET
+	/* fake broadcast route */
+	rt_primary.net = INADDR_ANY;
+	rt_primary.mask = 0xffffffffL;
+	rt_primary.gway = INADDR_ANY;
+	rt_primary.metric = 1;
+	rt_primary.nif = NULL;
+	rt_primary.ttl = 0xff;
+	rt_primary.next = NULL;
+	rt_primary.flags = RTF_STATIC | RTF_UP;
+	rt_primary.usecnt = 1;
+	rt_primary.refcnt = 1;
+#endif
+
+	for (i = 0; i < RT_HASH_SIZE; ++i)
+		allroutes[i] = 0;
+
+	defroute = 0;
+
+	routedev_init();
 }

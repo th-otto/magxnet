@@ -19,7 +19,7 @@ const char *socket_devname = "u:\\dev\\socket";
 typedef void (*init_func)(void);
 static init_func init_funcs[] = { inet4_init, bpf_init, 0 };
 
-void *x1e714 GNU_ASM_NAME("x1e714");
+short in_tcp_send;
 void *x1ef60 GNU_ASM_NAME("x1ef60");
 void *x1ef64 GNU_ASM_NAME("x1ef64");
 

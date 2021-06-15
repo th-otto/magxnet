@@ -79,6 +79,32 @@ struct in_proto tcp_proto = {
 };
 
 
+/*
+ * For GNU-C, this function is usually inlined,
+ * but does not have to be
+ */
+/* FIXME: duplicate */
+#define iov_size tcp_iov_size
+#define IOV_MAX 16
+static long iov_size(const struct iovec *iov, short n)
+{
+	long size;
+
+	if (n <= 0 || n > IOV_MAX)
+		return -1;
+	
+	for (size = 0; n; ++iov, --n)
+	{
+		if ((long)iov->iov_len < 0)
+			return -1;
+		
+		size += iov->iov_len;
+	}
+	
+	return size;
+}
+
+
 static long tcp_attach(struct in_data *data)
 {
 	struct tcb *tcb;
@@ -100,8 +126,10 @@ static long tcp_abort(struct in_data *data, short ostate)
 {
 	if (ostate == SS_ISCONNECTING)
 	{
+		struct socket *so = data->sock;
 		DEBUG(("tcp_abort: freeing connecting socket"));
-		so_free(data->sock);
+		so_free(so);
+		p_kernel->mfree(so);
 	}
 
 	return 0;
@@ -141,7 +169,7 @@ static long tcp_detach(struct in_data *data, short wait)
 
 	tcb->seq_read = tcb->seq_uread = tcb->rcv_nxt;
 	for (b = data->rcv.qfirst; b; b = b->next)
-		TH(b)->flags |= TCPF_FREEME;
+		TH(b)->f.f.hdr |= TCPF_FREEME;
 	tcp_dropsegs(tcb);
 
 	return 0;
@@ -317,7 +345,7 @@ static long tcp_ioctl(struct in_data *data, short cmd, void *buf)
 		return 0;
 
 	case FIONREAD:
-		if (data->err || so->flags & SO_CANTRCVMORE)
+		if (data->err || (so->flags & SO_CANTRCVMORE))
 		{
 			space = UNLIMITED;
 		} else if (tcb->state == TCBS_LISTEN)
@@ -334,7 +362,7 @@ static long tcp_ioctl(struct in_data *data, short cmd, void *buf)
 		return 0;
 
 	case FIONWRITE:
-		if (data->err || so->flags & SO_CANTSNDMORE)
+		if (data->err || (so->flags & SO_CANTSNDMORE))
 		{
 			space = UNLIMITED;
 		} else
@@ -379,7 +407,7 @@ static long tcp_select(struct in_data *data, short mode, long proc)
 	switch (mode)
 	{
 	case O_RDONLY:
-		if (data->err || so->flags & SO_CANTRCVMORE)
+		if (data->err || (so->flags & SO_CANTRCVMORE))
 			return 1;
 
 		if (tcb->state == TCBS_LISTEN)
@@ -388,6 +416,7 @@ static long tcp_select(struct in_data *data, short mode, long proc)
 		if (tcp_canread(data) > 0)
 			return 1;
 
+#ifdef NOTYET /* 556fc16f285c103fe63ce724821bee7631ce0a72 */
 		switch (tcb->state)
 		{
 		case TCBS_SYNSENT:
@@ -396,6 +425,10 @@ static long tcp_select(struct in_data *data, short mode, long proc)
 		default:
 			return 1;
 		}
+#else
+		if (tcb->state != TCBS_ESTABLISHED)
+			return 1;
+#endif
 
 		return so_rselect(so, proc);
 
@@ -408,7 +441,7 @@ static long tcp_select(struct in_data *data, short mode, long proc)
 
 		case TCBS_ESTABLISHED:
 		case TCBS_CLOSEWAIT:
-			if (data->err || so->flags & SO_CANTSNDMORE)
+			if (data->err || (so->flags & SO_CANTSNDMORE))
 				return 1;
 			return tcp_canwrite(data) ? 1 : so_wselect(so, proc);
 		default:
@@ -468,13 +501,17 @@ static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, 
 		{
 			if (nonblock)
 			{
+#ifdef NOTYET /* 3535e0d6a8f193c27ae189e5ca7eaf618e0641ba */
 				if (offset == 0)
 				{
 					DEBUG(("tcp_send: EAGAIN"));
 					offset = EAGAIN;
 				}
-
 				return offset;
+#else
+				DEBUG(("tcp_send: EAGAIN"));
+				return offset != 0 ? offset : EAGAIN;
+#endif
 			}
 
 			if (sleep(IO_Q, (long) data->sock))
@@ -490,7 +527,7 @@ static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, 
 				return r;
 			}
 
-			if (data->sock && data->sock->flags & SO_CANTSNDMORE)
+			if (data->sock && (data->sock->flags & SO_CANTSNDMORE))
 			{
 				DEBUG(("tcp_send: shut down"));
 				p_kill(p_getpid(), SIGPIPE);
@@ -508,7 +545,11 @@ static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, 
 		}
 		avail = MIN(avail, size - offset);
 
+		while (bios_sema)
+			p_kernel->appl_yield();
+		in_tcp_send = 1;
 		r = tcp_output(tcb, iov, niov, avail, offset, flags & MSG_OOB ? TCPF_URG : 0);
+		in_tcp_send = 0;
 
 		if (r < 0)
 		{
@@ -537,7 +578,7 @@ static void tcp_dropsegs(struct tcb *tcb)
 	if (SEQLT(tcb->seq_read, min))
 		min = tcb->seq_read;
 
-	for (b = q->qfirst; b && TH(b)->flags & TCPF_FREEME; b = nextb)
+	for (b = q->qfirst; b && (TH(b)->f.f.hdr & TCPF_FREEME); b = nextb)
 	{
 		min = SEQNXT(b);
 		if ((nextb = b->next) != 0)
@@ -587,7 +628,7 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	long readnxt;
 	long *seq;
 	struct in_dataq *q;
-	short urgflag;
+	unsigned short urgflag;
 	short oobinline;
 	short mask;
 	BUF *b;
@@ -620,11 +661,11 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 
 	if (data->flags & IN_OOBINLINE)
 	{
-		mask = TCPF_FREEME;
+		mask = TCPF_FREEME << 8;
 		oobinline = 1;
 	} else
 	{
-		mask = TCPF_FREEME | TCPF_URG;
+		mask = (TCPF_FREEME << 8) | TCPF_URG;
 		oobinline = 0;
 	}
 
@@ -644,7 +685,7 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 		 * NORMAL and not in OOBINLINE mode; next unread segment
 		 * when reading NORMAL and OOBINLINE).
 		 */
-		while (b && (TH(b)->flags ^ urgflag) & mask && SEQLE(SEQ1ST(b), readnxt))
+		while (b && (((TH(b)->f.flags & 0xfff) ^ urgflag) & mask) && SEQLE(SEQ1ST(b), readnxt))
 		{
 			readnxt = SEQNXT(b);
 			b = b->next;
@@ -684,21 +725,21 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 			return r;
 		}
 
-		if (data->sock && data->sock->flags & SO_CANTRCVMORE)
+		if (data->sock && (data->sock->flags & SO_CANTRCVMORE))
 		{
 			DEBUG(("tcp_recv: shut down"));
 			return 0;
 		}
 	}
 
-	urgflag = TH(b)->flags & TCPF_URG;
+	urgflag = TH(b)->f.f.flags & TCPF_URG;
 	for (copied = offset = 0; b && size > 0; b = b->next)
 	{
 		/*
 		 * Don't pass the boundary between nonurgent and
 		 * urgent data
 		 */
-		if ((TH(b)->flags & TCPF_URG) != urgflag)
+		if ((TH(b)->f.f.flags & TCPF_URG) != urgflag)
 			break;
 
 		/*
@@ -710,7 +751,7 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 		/*
 		 * Skip already read urgent data
 		 */
-		if (TH(b)->flags & TCPF_FREEME)
+		if (TH(b)->f.f.hdr & TCPF_FREEME)
 		{
 			readnxt = SEQNXT(b);
 			continue;
@@ -738,7 +779,7 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 		 * Mark the segment for deletion
 		 */
 		if (!(flags & MSG_PEEK) && SEQLE(SEQNXT(b), readnxt))
-			TH(b)->flags |= TCPF_FREEME;
+			TH(b)->f.f.hdr |= TCPF_FREEME;
 	}
 
 	if (!(flags & MSG_PEEK))
@@ -753,7 +794,7 @@ static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	{
 		struct sockaddr_in in;
 
-		*addrlen = MIN((ushort) * addrlen, sizeof(in));
+		*addrlen = MIN(*addrlen, (short)sizeof(in));
 		in.sin_family = AF_INET;
 		in.sin_addr.s_addr = data->dst.addr;
 		in.sin_port = data->dst.port;
@@ -837,6 +878,10 @@ static long tcp_getsockopt(struct in_data *data, short level, short optname, cha
 	return EOPNOTSUPP;
 }
 
+#ifdef __PUREC__
+#pragma warn -par /* using UNUSED here generates slightly different code */
+#endif
+
 static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
@@ -844,7 +889,6 @@ static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
 	struct tcb *tcb;
 	ulong pktlen;
 
-	UNUSED(iface);
 	pktlen = (long) buf->dend - (long) tcph;
 	if (pktlen < TCP_MINLEN)
 	{
@@ -882,12 +926,14 @@ static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
 	 * update time of last receive on this connection
 	 */
 	tcb->last_recv = GETTIME();
-	if (tcph->flags & TCPF_URG)
+	if (tcph->f.f.flags & TCPF_URG)
 		tcp_rcvurg(tcb, buf);
 	if (tcp_valid(tcb, buf))
 	{
-		if (tcph->hdrlen > 5 && tcb->state >= TCBS_SYNRCVD)
+#ifdef NOTYET /* commented out?? */
+		if (TCPH_HDRLEN(tcph) > 5 && tcb->state >= TCBS_SYNRCVD)
 			tcp_options(tcb, tcph);
+#endif
 		(*tcb_state[tcb->state]) (tcb, buf);
 		return 0;
 	}
@@ -967,6 +1013,7 @@ static long tcp_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr
 
 void tcp_init(void)
 {
+	tcpd_init();
 	in_proto_register(IPPROTO_TCP, &tcp_proto);
 }
 
@@ -979,7 +1026,7 @@ static long tcp_canreadurg(struct in_data *data, long *urgseq)
 	BUF *b;
 
 	b = data->rcv.qfirst;
-	while (b && (TH(b)->flags & (TCPF_URG | TCPF_FREEME)) != TCPF_URG)
+	while (b && (TH(b)->f.b.flags & (TCPF_URG | (TCPF_FREEME << 8))) != TCPF_URG)
 		b = b->next;
 
 	if (!b)
@@ -999,7 +1046,7 @@ long tcp_canread(struct in_data *data)
 	long readnxt;
 	long nbytes;
 	long cando;
-	short urgflag;
+	unsigned short urgflag;
 	BUF *b;
 
 	if (tcb->state == TCBS_LISTEN)
@@ -1012,7 +1059,7 @@ long tcp_canread(struct in_data *data)
 
 	if (!(data->flags & IN_OOBINLINE))
 	{
-		while (b && TH(b)->flags & (TCPF_URG | TCPF_FREEME) && SEQLE(SEQ1ST(b), readnxt))
+		while (b && TH(b)->f.b.flags & (TCPF_URG | (TCPF_FREEME << 8)) && SEQLE(SEQ1ST(b), readnxt))
 		{
 			readnxt = SEQNXT(b);
 			b = b->next;
@@ -1021,22 +1068,22 @@ long tcp_canread(struct in_data *data)
 	if (!b || SEQGT(SEQ1ST(b), readnxt))
 		return 0;
 
-	urgflag = TH(b)->flags & TCPF_URG;
+	urgflag = TH(b)->f.f.flags & TCPF_URG;
 	for (nbytes = 0; b; b = b->next)
 	{
-		if ((TH(b)->flags & TCPF_URG) != urgflag)
+		if ((TH(b)->f.f.flags & TCPF_URG) != urgflag)
 			break;
 
 		if (SEQLT(readnxt, SEQ1ST(b)))
 			break;
 
-		if (TH(b)->flags & TCPF_FREEME)
+		if (TH(b)->f.b.flags & (TCPF_FREEME << 8))
 		{
 			readnxt = SEQNXT(b);
 			continue;
 		}
 
-		if (urgflag && data->flags & IN_OOBINLINE && SEQLT(readnxt, tcb->seq_uread) && SEQLT(tcb->seq_uread, SEQNXT(b)))
+		if (urgflag && (data->flags & IN_OOBINLINE) && SEQLT(readnxt, tcb->seq_uread) && SEQLT(tcb->seq_uread, SEQNXT(b)))
 			readnxt = tcb->seq_uread;
 
 		cando = SEGLEN(b) - (readnxt - SEQ1ST(b));

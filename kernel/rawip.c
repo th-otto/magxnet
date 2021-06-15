@@ -276,6 +276,7 @@ static long rip_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	{
 		int i;
 
+#ifdef NOTYET /* 3535e0d6a8f193c27ae189e5ca7eaf618e0641ba */
 		if (nonblock)
 		{
 			DEBUG(("rip_recv: EAGAIN"));
@@ -287,6 +288,13 @@ static long rip_recv(struct in_data *data, const struct iovec *iov, short niov, 
 			DEBUG(("rip_recv: shut down"));
 			return 0;
 		}
+#else
+		if (nonblock || (so->flags & SO_CANTRCVMORE))
+		{
+			DEBUG(("rip_recv: shut down"));
+			return 0;
+		}
+#endif
 
 		i = sleep(IO_Q, (long) so);
 		if (i)

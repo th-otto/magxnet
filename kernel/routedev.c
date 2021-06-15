@@ -46,20 +46,19 @@ MX_DDEV cdecl_routedev GNU_ASM_NAME("cdecl_routedev") = {
 	0, /* putc */
 };
 
-static char const route_dev_name[] = "u:\\dev\\route";
-static const char *cannot_install = "Cannot install device %S\r\n";
+static char const routedev_name[] = "u:\\dev\\route";
 
 long routedev_init(void)
 {
 	long r;
 
-	r = Dcntl(DEV_M_INSTALL, route_dev_name, (long) &routedev);
+	r = Dcntl(DEV_M_INSTALL, routedev_name, (long) &routedev);
 	if (r < 0)
 	{
 		char message[200];
 
-		sprintf_params[0] = (long)route_dev_name;
-		p_kernel->_sprintf(message, cannot_install, sprintf_params);
+		sprintf_params[0] = (long)routedev_name;
+		p_kernel->_sprintf(message, "Cannot install device %S\r\n", sprintf_params);
 		(void) Cconws(message);
 
 		return -1;
@@ -88,8 +87,10 @@ static long routedev_read(MX_DOSFD *f, long nbytes, void *buf)
 				;
 		}
 
+#ifdef NOTYET /* commented out?? */
 		if (j >= RT_HASH_SIZE)
 			break;
+#endif
 
 		if (rt == NULL)
 			break;

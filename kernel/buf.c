@@ -35,7 +35,7 @@ static short buf_free_block(void);
 static long failed_allocs = 0;
 static long mem_used = 0;
 static BUF pool[BUF_NSPLIT + 1];
-static TIMEOUT *tmout = NULL;
+static TIMEOUT *buf_tmout = NULL;
 
 
 static short buf_add_block(void)
@@ -65,10 +65,10 @@ static short buf_add_block(void)
 	mem_used += new->buflen;
 	spl(sr);
 
-	if (tmout)
+	if (buf_tmout)
 	{
-		cancelroottimeout(tmout);
-		tmout = 0;
+		cancelroottimeout(buf_tmout);
+		buf_tmout = 0;
 	}
 
 	return 0;
@@ -80,7 +80,7 @@ static void addmem(PROC *proc, long arg)
 {
 	UNUSED(proc);
 	UNUSED(arg);
-	tmout = 0;
+	buf_tmout = 0;
 	buf_add_block();
 }
 
@@ -334,8 +334,8 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 	{
 		if (mode == BUF_ATOMIC)
 		{
-			if (!tmout)
-				tmout = addroottimeout(0, (void cdecl (*)(struct proc *, long))addmem, 1);
+			if (!buf_tmout)
+				buf_tmout = addroottimeout(0, (void cdecl (*)(struct proc *, long))addmem, 1);
 			failed_allocs++;
 			spl(sr);
 			return 0;

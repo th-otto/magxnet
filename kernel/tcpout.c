@@ -398,10 +398,12 @@ static BUF *tcp_mkseg(struct tcb *tcb, ulong size)
 	tcph = (struct tcp_dgram *) b->dstart;
 	tcph->srcport = tcb->data->src.port;
 	tcph->dstport = tcb->data->dst.port;
-	tcph->flags = 0;
+	tcph->f.flags = 0;
 	tcph->seq = tcb->snd_nxt;
 	tcph->ack = tcb->rcv_nxt;
+#ifdef TODO
 	tcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
+#endif
 	tcph->window = 0;
 	tcph->urgptr = 0;
 	tcph->chksum = 0;
@@ -454,7 +456,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 			 * seg:  |....|
 			 * win: |....|
 			 */
-			if (TH(b)->flags & TCPF_FIN)
+			if (TH(b)->f.flags & TCPF_FIN)
 				--seqnxt;
 			todo -= seqnxt - wndnxt;
 			cut |= TCPF_FIN;
@@ -471,7 +473,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 		memcpy(nb->dstart, b->dstart, TCP_HDRLEN(TH(b)));
 		nb->dend += TCP_HDRLEN(TH(b));
 
-		if (TH(b)->flags & TCPF_SYN)
+		if (TH(b)->f.flags & TCPF_SYN)
 			seq1st++;
 
 		offs = wnd1st - seq1st;
@@ -482,7 +484,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 			 * seg: |.....|
 			 * win:  |...|
 			 */
-			if (TH(b)->flags & TCPF_FIN)
+			if (TH(b)->f.flags & TCPF_FIN)
 				--seqnxt;
 			todo -= seqnxt - wndnxt;
 			cut |= TCPF_FIN;
@@ -492,7 +494,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 
 		tcph->seq = wnd1st;
 	}
-	tcph->flags &= ~cut;
+	tcph->f.f.flags &= ~cut;
 
 	if (SEQGT(tcph->seq + (nb->dend - nb->dstart) - TCP_HDRLEN(tcph), wndnxt))
 	{
@@ -526,7 +528,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 		&& ((tcph2 = TH(b2)), 1)
 		&& ((seqnxt = tcph2->seq + nretrans), 1)
 		&& SEQLE(seqnxt, tcb->snd_wndack + tcb->snd_wnd)
-		&& !((tcph->flags ^ tcph2->flags) & (TCPF_URG | TCPF_SYN | TCPF_FIN)))
+		&& !((tcph->f.flags ^ tcph2->f.flags) & (TCPF_URG | TCPF_SYN | TCPF_FIN)))
 	{
 		/*
 		 * Ok, add the bytes and advance the send
@@ -549,12 +551,12 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 	{
 		BUF *buf = b;
 
-		while (buf && !(TH(buf)->flags & TCPF_URG))
+		while (buf && !(TH(buf)->f.f.flags & TCPF_URG))
 			buf = buf->next;
 
 		if (buf)
 		{
-			tcph->flags |= TCPF_URG;
+			tcph->f.f.flags |= TCPF_URG;
 			tcph->urgptr = (ushort) (SEQ1ST(buf) + DATLEN(buf) - tcph->seq);
 		}
 	}
@@ -821,7 +823,7 @@ static short tcp_probe(struct tcb *tcb)
 	if (b)
 	{
 		tcph = (struct tcp_dgram *) b->dstart;
-		tcph->flags = TCPF_ACK;
+		tcph->f.f.flags = TCPF_ACK;
 
 		/*
 		 * was tcb->snd_una - 1
@@ -832,12 +834,12 @@ static short tcp_probe(struct tcb *tcb)
 		{
 			BUF *buf = tcb->data->snd.qfirst;
 
-			while (buf && !(TH(buf)->flags & TCPF_URG))
+			while (buf && !(TH(buf)->f.f.flags & TCPF_URG))
 				buf = buf->next;
 
 			if (buf)
 			{
-				tcph->flags |= TCPF_URG;
+				tcph->f.f.flags |= TCPF_URG;
 				tcph->urgptr = (ushort) (SEQ1ST(buf) + DATLEN(buf) - tcph->seq);
 			}
 		}
@@ -949,7 +951,7 @@ static short canretrans(struct tcb *tcb)
  */
 static long cancombine(struct tcb *tcb, BUF *buf, short flags)
 {
-	if (buf && SEQLE(tcb->snd_max, SEQ1ST(buf)) && !((flags ^ TH(buf)->flags) & TCPF_URG) && !(flags & TCPF_SYN))
+	if (buf && SEQLE(tcb->snd_max, SEQ1ST(buf)) && !((flags ^ TH(buf)->f.flags) & TCPF_URG) && !(flags & TCPF_SYN))
 		return buf->info - DATLEN(buf);
 
 	return 0;
@@ -996,7 +998,7 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 		}
 
 		tcph = TH(b);
-		tcph->flags = TCPF_ACK | (flags & TCPF_PSH);
+		tcph->f.f.flags = TCPF_ACK | (flags & TCPF_PSH);
 		tcph->window = tcp_rcvwnd(tcb, 1);
 
 		tcph->chksum = tcp_checksum(tcph, tcb->data->src.addr, tcb->data->dst.addr, TCP_MINLEN);
@@ -1040,7 +1042,7 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 				break;
 			}
 			tcph = TH(b);
-			tcph->flags = flags & ~(TCPF_SYN | TCPF_FIN);
+			tcph->f.f.flags = flags & ~(TCPF_SYN | TCPF_FIN);
 			tcph->seq = tcb->seq_write;
 			tcph->urgptr = 0;
 
@@ -1052,17 +1054,21 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 
 			if (first && flags & TCPF_SYN)
 			{
-				tcph->flags |= TCPF_SYN;
+				tcph->f.f.flags |= TCPF_SYN;
 				tcb->seq_write++;
 				/*
 				 * Add maximum segment size TCP option
 				 */
+#ifdef TODO
 				tcph->hdrlen += (unsigned int)(sizeof(mss_opt) / 4);
+#endif
 				mss_opt.mss = tcb->rcv_mss;
 				memcpy(b->dend, &mss_opt, sizeof(mss_opt));
 				b->dend += sizeof(mss_opt);
 			} else
-				tcph->flags |= TCPF_ACK;
+			{
+				tcph->f.f.flags |= TCPF_ACK;
+			}
 
 			/*
 			 * Enqueue the segment.
@@ -1093,11 +1099,11 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 			 */
 			tcph->urgptr += r;
 			tcb->seq_write += r;
-			tcph->flags |= TCPF_PSH;
+			tcph->f.f.flags |= TCPF_PSH;
 		}
-		if (len == 0 && flags & TCPF_FIN)
+		if (len == 0 && (flags & TCPF_FIN))
 		{
-			tcph->flags |= TCPF_FIN;
+			tcph->f.f.flags |= TCPF_FIN;
 			tcb->seq_write++;
 
 			/*

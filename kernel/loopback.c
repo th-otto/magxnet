@@ -12,7 +12,9 @@ static long cdecl loop_close(struct netif *);
 static long cdecl loop_output(struct netif *, BUF *, const char *, short, short);
 static long cdecl loop_ioctl(struct netif *, short, long);
 
-static struct netif if_loopback = {
+static struct netif if_loopback
+#ifdef NOTYET
+	= {
 	"lo",
 	0,
 	IFF_LOOPBACK | IFF_BROADCAST
@@ -51,7 +53,9 @@ static struct netif if_loopback = {
 	NULL,
 	0,
 	{ 0, 0 }
-};
+}
+#endif
+;
 
 
 static long cdecl loop_open(struct netif *nif)
@@ -66,7 +70,7 @@ static long cdecl loop_close(struct netif *nif)
 	return 0;
 }
 
-static long cdecl loop_output(struct netif *nif, BUF * buf, const char *hwaddr, short hwlen, short pktype)
+static long cdecl loop_output(struct netif *nif, BUF *buf, const char *hwaddr, short hwlen, short pktype)
 {
 	long r;
 
@@ -79,7 +83,7 @@ static long cdecl loop_output(struct netif *nif, BUF * buf, const char *hwaddr, 
 		 * Add 4 byte dummy header containing the address
 		 * family for the packet type.
 		 */
-		long af = (pktype == PKTYPE_IP) ? AF_INET : AF_UNSPEC;
+		long af = pktype == PKTYPE_IP ? AF_INET : AF_UNSPEC;
 
 		buf->dstart -= 4;
 		*(long *) buf->dstart = af;
@@ -87,13 +91,13 @@ static long cdecl loop_output(struct netif *nif, BUF * buf, const char *hwaddr, 
 		buf->dstart += 4;
 	}
 
-	r = if_input(&if_loopback, buf, 0, pktype);
-	if (r)
+	if ((r = if_input(&if_loopback, buf, 0, pktype)) != 0)
+	{
 		nif->in_errors++;
-	else
-		nif->in_packets++;
-
-	return r;
+		return r;
+	}
+	nif->in_packets++;
+	return 0;
 }
 
 static long cdecl loop_ioctl(struct netif *nif, short cmd, long arg)
@@ -121,5 +125,22 @@ static long cdecl loop_ioctl(struct netif *nif, short cmd, long arg)
 
 void loopback_init(void)
 {
+	/* FIXME: runtime init completely unneeded */
+	strcpy(if_loopback.name, "lo");
+	if_loopback.unit = 0;
+	if_loopback.metric = 0;
+	if_loopback.flags = IFF_LOOPBACK | IFF_BROADCAST;
+	if_loopback.mtu = 2 * 8192;
+	if_loopback.timer = 0;
+	if_loopback.hwtype = HWTYPE_NONE;
+	if_loopback.rcv.maxqlen = IF_MAXQ;
+	if_loopback.snd.maxqlen = IF_MAXQ;
+	if_loopback.open = loop_open;
+	if_loopback.close = loop_close;
+	if_loopback.output = loop_output;
+	if_loopback.ioctl = loop_ioctl;
+	if_loopback.timeout = 0;
+	if_loopback.data = NULL;
+	
 	if_register(&if_loopback);
 }

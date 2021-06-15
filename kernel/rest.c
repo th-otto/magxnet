@@ -14,6 +14,11 @@
 #include "asm_spl.h"
 
 
+void tcpd_init(void)
+{
+}
+
+
 void x1c39c(void)
 {
 }
