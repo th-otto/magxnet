@@ -79,7 +79,11 @@ struct tcb *tcb_alloc(void)
 	 * greater than TCP_MSS) and is updated if we receive a max
 	 * segment size option.
 	 */
+#ifdef NOTYET
 	tcb->snd_cwnd = tcb->snd_mss;
+#else
+	tcb->snd_cwnd = TCP_MSS;
+#endif
 	tcb->snd_thresh = 65536L;
 
 	return tcb;
@@ -199,7 +203,7 @@ long tcp_sndrst(BUF *ibuf)
 	BUF *obuf;
 
 	itcph = (struct tcp_dgram *) IP_DATA(ibuf);
-	if (itcph->f.f.flags & TCPF_RST)
+	if (itcph->f.b.flags & TCPF_RST)
 		return 0;
 
 	obuf = buf_alloc(TCP_MINLEN + TCP_RESERVE, TCP_RESERVE, BUF_NORMAL);
@@ -213,20 +217,18 @@ long tcp_sndrst(BUF *ibuf)
 	otcph->srcport = itcph->dstport;
 	otcph->dstport = itcph->srcport;
 
-	if (itcph->f.f.flags & TCPF_ACK)
+	if (itcph->f.b.flags & TCPF_ACK)
 	{
 		otcph->seq = itcph->ack;
-		otcph->f.f.flags = TCPF_RST;
+		otcph->f.b.flags = TCPF_RST;
 	} else
 	{
 		otcph->seq = 0;
-		otcph->f.f.flags = TCPF_RST | TCPF_ACK;
+		otcph->f.b.flags = TCPF_RST | TCPF_ACK;
 	}
 
 	otcph->ack = itcph->seq + tcp_seglen(ibuf, itcph);
-#ifdef TODO
-	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
-#endif
+	otcph->f.b.hdrlen = (unsigned int)(TCP_MINLEN / 4);
 	otcph->window = 0;
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
@@ -247,7 +249,7 @@ long tcp_sndack(struct tcb *tcb, BUF *ibuf)
 	long wndlast;
 	BUF *obuf;
 
-	if (itcph->f.f.flags & TCPF_RST)
+	if (itcph->f.b.flags & TCPF_RST)
 		return 0;
 
 	wndlast = tcb->snd_wndack + tcb->snd_wnd;
@@ -266,10 +268,8 @@ long tcp_sndack(struct tcb *tcb, BUF *ibuf)
 	otcph->dstport = itcph->srcport;
 	otcph->seq = SEQLE(tcb->snd_nxt, wndlast) ? tcb->snd_nxt : wndlast;
 	otcph->ack = tcb->rcv_nxt;
-#ifdef TODO
-	otcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
-#endif
-	otcph->f.f.flags = TCPF_ACK;
+	otcph->f.b.hdrlen = (unsigned int)(TCP_MINLEN / 4);
+	otcph->f.b.flags = TCPF_ACK;
 	otcph->window = tcp_rcvwnd(tcb, 1);
 	otcph->urgptr = 0;
 	otcph->chksum = 0;
@@ -406,7 +406,7 @@ long tcp_mss(struct tcb *tcb, ulong faddr, long maxmss)
 		 * MSS at most half of our send window, please.
 		 */
 		if (2 * mss > tcb->data->snd.maxdatalen)
-			mss = tcb->data->snd.maxdatalen / 2;
+			mss = tcb->data->snd.maxdatalen >> 1;
 
 		route_deref(rt);
 	}
@@ -571,18 +571,6 @@ ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort 
 	return (short) (~sum & 0xffff);
 }
 
-#else
-
-ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort len)
-{
-	/* TODO */
-	(void)dgram;
-	(void)len;
-	(void)srcadr;
-	(void)dstadr;
-	return 0;
-}
-
 #endif
 
 void tcp_dump(BUF *buf)
@@ -602,7 +590,7 @@ void tcp_dump(BUF *buf)
 		   tcph->flags & TCPF_RST ? "RST " : "",
 		   tcph->flags & TCPF_SYN ? "SYN " : "",
 		   tcph->flags & TCPF_FIN ? "FIN " : "",
-		   tcph->hdrflags & TCPF_FREEME ? "FRE " :
+		   tcph->f.f.hdr & TCPF_FREEME ? "FRE " :
 		   ""));
 	DEBUG(("tcpdump: window = %u, chksum = %u, urgptr = %u", tcph->window, tcph->chksum, tcph->urgptr));
 }

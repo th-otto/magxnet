@@ -125,6 +125,18 @@ ushort udp_checksum(struct udp_dgram *dgram, in_addr_t srcadr, in_addr_t dstadr)
 #endif
 
 #ifndef __GNUC__
+ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort len)
+{
+	/* TODO */
+	(void)dgram;
+	(void)len;
+	(void)srcadr;
+	(void)dstadr;
+	return 0;
+}
+#endif
+
+#ifndef __GNUC__
 /* BUG: is exported via netinfo and must be cdecl */
 short chksum(void *buf, short nwords)
 {

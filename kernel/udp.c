@@ -535,7 +535,7 @@ static long udp_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr
 		buf_deref(buf, BUF_NORMAL);
 		return 0;
 	}
-	KAYDEBUG(("udp_error: destination (%lx, %x) unreachable", daddr, uh->dstport));
+	DEBUG(("udp_error: destination (%lx, %x) unreachable", daddr, uh->dstport));
 
 	data->err = icmp_errno(type, code);
 	so_wakersel(data->sock);

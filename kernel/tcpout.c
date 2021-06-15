@@ -11,6 +11,7 @@
 
 #include "iov.h"
 #include "tcputil.h"
+#include "mxkernel.h"
 
 
 /*
@@ -117,7 +118,7 @@ static void tcbos_idle(struct tcb *tcb, short event)
 
 			event_add(&tcb->timer_evt, tmout, wakeme, (long) tcb);
 
-			KAYDEBUG(("tcpout: port %d: IDLE -> %s", tcb->data->src.port, ostate_names[tcb->ostate]));
+			DEBUG(("tcpout: port %d: IDLE -> %s", tcb->data->src.port, ostate_names[tcb->ostate]));
 
 			break;
 		}
@@ -127,94 +128,93 @@ static void tcbos_idle(struct tcb *tcb, short event)
 static void tcbos_xmit(struct tcb *tcb, short event)
 {
 	long tmout;
+#ifdef DEV_DEBUG
 	long delay;
 	long inq = 0;
+#endif
 
 	switch (event)
 	{
 	case TCBOE_SEND:
-		{
-			if (SEQLT(tcb->snd_nxt, tcb->seq_write))
-				tcp_sndhead(tcb);
-			break;
-		}
+		if (SEQLT(tcb->snd_nxt, tcb->seq_write))
+			tcp_sndhead(tcb);
+		break;
+
 	case TCBOE_WNDOPEN:
-		{
-			if (SEQLT(tcb->snd_nxt, tcb->seq_write))
-				tcp_sndhead(tcb);
-		}
-		/* FALLTHROUGH */
+		if (SEQLT(tcb->snd_nxt, tcb->seq_write))
+			tcp_sndhead(tcb);
+		/* fall through */
+
 	case TCBOE_WNDCLOSE:
+		if (!canretrans(tcb))
 		{
-			if (!canretrans(tcb))
-			{
-				tcb->persist_tmo = tcb->retrans_tmo;
-				tcb->ostate = TCBOS_PERSIST;
-				tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
-
-				KAYDEBUG(("tcpout: port %d: XMIT -> PERSIST", tcb->data->src.port));
-			}
-			break;
-		}
-	case TCBOE_ACKRCVD:
-		{
-			delay = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
-
-			tcp_dropdata(tcb);
-			if (SEQGE(tcb->snd_una, tcb->seq_write))
-			{
-				event_del(&tcb->timer_evt);
-				tcb->ostate = TCBOS_IDLE;
-				tcb->flags &= ~TCBF_ACKVALID;
-
-				KAYDEBUG(("tcpout: port %d: XMIT -> IDLE", tcb->data->src.port));
-				break;
-			}
-
-			tcb->retrans_tmo = tmout = tcp_timeout(tcb);
-			if (canretrans(tcb))
-			{
-				long atmout = tcp_atimeout(tcb);
-
-				tmout -= DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
-				if (tmout < atmout)
-					tmout = atmout;
-				inq = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
-			}
-
-			KAYDEBUG(("a %4ld ms; t %4ld ms; q %4ld ms; mt %4ld ms",
-					  delay * EVTGRAN, tmout * EVTGRAN, inq * EVTGRAN, tcp_atimeout(tcb) * EVTGRAN));
-
-			event_reset(&tcb->timer_evt, tmout);
-			break;
-		}
-	case TCBOE_TIMEOUT:
-		{
-			KAYDEBUG(("tcpout: port %d: XMIT -> RETRANS", tcb->data->src.port));
-
-			delay = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
-			KAYDEBUG(("tcpout: timeout after %4ld ms", delay * EVTGRAN));
-
-			tcb->ostate = TCBOS_RETRANS;
+			tcb->persist_tmo = tcb->retrans_tmo;
+			tcb->ostate = TCBOS_PERSIST;
 			tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
-			if (tcb->dupacks >= TCP_DUPTHRESH)
-				tcb->dupacks = TCP_DUPTHRESH - 1;
-			/*
-			 * be careful, tcp_retrans () may destroy tcb.
-			 */
-			tcp_retrans(tcb);
+
+			DEBUG(("tcpout: port %d: XMIT -> PERSIST", tcb->data->src.port));
+		}
+		break;
+
+	case TCBOE_ACKRCVD:
+#ifdef DEV_DEBUG
+		delay = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
+#endif
+
+		tcp_dropdata(tcb);
+		if (SEQGE(tcb->snd_una, tcb->seq_write))
+		{
+			event_del(&tcb->timer_evt);
+			tcb->ostate = TCBOS_IDLE;
+			tcb->flags &= ~TCBF_ACKVALID;
+
+			DEBUG(("tcpout: port %d: XMIT -> IDLE", tcb->data->src.port));
 			break;
 		}
-	}
 
-	UNUSED(inq);
-	UNUSED(delay);
+		tcb->retrans_tmo = tmout = tcp_timeout(tcb);
+		if (canretrans(tcb))
+		{
+			long atmout = tcp_atimeout(tcb);
+
+			tmout -= DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
+			if (tmout < atmout)
+				tmout = atmout;
+#ifdef DEV_DEBUG
+			inq = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
+#endif
+		}
+
+		DEBUG(("a %4ld ms; t %4ld ms; q %4ld ms; mt %4ld ms",
+				  delay * EVTGRAN, tmout * EVTGRAN, inq * EVTGRAN, tcp_atimeout(tcb) * EVTGRAN));
+
+		event_reset(&tcb->timer_evt, tmout);
+		break;
+
+	case TCBOE_TIMEOUT:
+		DEBUG(("tcpout: port %d: XMIT -> RETRANS", tcb->data->src.port));
+
+#ifdef DEV_DEBUG
+		delay = DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
+#endif
+		DEBUG(("tcpout: timeout after %4ld ms", delay * EVTGRAN));
+
+		tcb->ostate = TCBOS_RETRANS;
+		tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
+		if (tcb->dupacks >= TCP_DUPTHRESH)
+			tcb->dupacks = TCP_DUPTHRESH - 1;
+		/*
+		 * be careful, tcp_retrans () may destroy tcb.
+		 */
+		tcp_retrans(tcb);
+		break;
+	}
 }
 
 static void tcbos_retrans(struct tcb *tcb, short event)
 {
 	struct in_dataq *q;
-	long nsegs;
+	short nsegs;
 	long tmout;
 
 	switch (event)
@@ -225,109 +225,106 @@ static void tcbos_retrans(struct tcb *tcb, short event)
 		 */
 		tcp_retrans(tcb);
 		break;
+
 	case TCBOE_WNDCLOSE:
+		if (!canretrans(tcb))
 		{
-			if (!canretrans(tcb))
-			{
-				tcb->persist_tmo = tcb->retrans_tmo;
-				tcb->ostate = TCBOS_PERSIST;
+			tcb->persist_tmo = tcb->retrans_tmo;
+			tcb->ostate = TCBOS_PERSIST;
 
-				KAYDEBUG(("tcpout: port %d: RETRANS -> PERSIST", tcb->data->src.port));
-			}
-			break;
+			DEBUG(("tcpout: port %d: RETRANS -> PERSIST", tcb->data->src.port));
 		}
+		break;
+
 	case TCBOE_DUPACK:
-		{
 #ifdef USE_DUPLICATE_ACKS
-			/*
-			 * Duplicate acks are a good measurement for how many
-			 * segments have arrived at the receiver (but out of
-			 * order).
-			 * We use this information to resend some segments and
-			 * keep up the congestion window this way.
-			 */
-			if (tcb->dupacks >= TCP_DUPTHRESH && canretrans(tcb))
+		/*
+		 * Duplicate acks are a good measurement for how many
+		 * segments have arrived at the receiver (but out of
+		 * order).
+		 * We use this information to resend some segments and
+		 * keep up the congestion window this way.
+		 */
+		if (tcb->dupacks >= TCP_DUPTHRESH && canretrans(tcb))
+		{
+			BUF *b = tcb->data->snd.qfirst;
+			short i = tcb->dupacks;
+
+			while (b && --i >= TCP_DUPTHRESH)
+				b = b->next;
+
+			if (b && SEQLE(SEQ1ST(b) + tcp_seglen(b, TH(b)), tcb->snd_nxt))
 			{
-				BUF *b = tcb->data->snd.qfirst;
-				short i = tcb->dupacks;
-
-				while (b && --i >= TCP_DUPTHRESH)
-					b = b->next;
-
-				if (b && SEQLE(SEQ1ST(b) + tcp_seglen(b, TH(b)), tcb->snd_nxt))
-				{
-					i = (tcb->dupacks == TCP_DUPTHRESH) ? tcb->nretrans : 0;
-					DEBUG(("tcbos_retrans: resending..."));
-					tcp_sndseg(tcb, b, i, tcb->snd_una, tcb->snd_nxt);
-				}
+				i = (tcb->dupacks == TCP_DUPTHRESH) ? tcb->nretrans : 0;
+				DEBUG(("tcbos_retrans: resending..."));
+				tcp_sndseg(tcb, b, i, tcb->snd_una, tcb->snd_nxt);
 			}
+		}
 #endif /* USE_DUPLICATE_ACKS */
+		break;
+
+	case TCBOE_ACKRCVD:
+		nsegs = tcp_dropdata(tcb);
+		if (SEQGE(tcb->snd_una, tcb->seq_write))
+		{
+			event_del(&tcb->timer_evt);
+			tcb->ostate = TCBOS_IDLE;
+
+			DEBUG(("tcpout: port %d: RETRANS -> IDLE", tcb->data->src.port));
 			break;
 		}
-	case TCBOE_ACKRCVD:
-		{
-			nsegs = tcp_dropdata(tcb);
-			if (SEQGE(tcb->snd_una, tcb->seq_write))
-			{
-				event_del(&tcb->timer_evt);
-				tcb->ostate = TCBOS_IDLE;
-
-				KAYDEBUG(("tcpout: port %d: RETRANS -> IDLE", tcb->data->src.port));
-				break;
-			}
 #ifdef USE_DROPPED_SEGMENT_DETECTION
-			/*
-			 * Since we append the number of retransmits so far for
-			 * this segment in bytes to every retransmitted segment 
-			 * we can determine the reason of the timeout from the
-			 * first ack for this segment, ie. if
-			 * 1) the timeout was to short or
-			 * 2) the segment or its ack was dropped
-			 *
-			 * In case 2) we want to reset the backoff, in case 1)
-			 * we keep the backoff until the next rtt measurement.
-			 */
-			if (nsegs == 1 && (q = &tcb->data->snd)->qfirst && tcb->snd_una - SEQ1ST(q->qfirst) >= TCP_DROPTHRESH)
-			{
-				DEBUG(("tcbos_retrans: resetting backoff"));
-				tcb->backoff = 0;
-			}
+		/*
+		 * Since we append the number of retransmits so far for
+		 * this segment in bytes to every retransmitted segment 
+		 * we can determine the reason of the timeout from the
+		 * first ack for this segment, ie. if
+		 * 1) the timeout was to short or
+		 * 2) the segment or its ack was dropped
+		 *
+		 * In case 2) we want to reset the backoff, in case 1)
+		 * we keep the backoff until the next rtt measurement.
+		 */
+		if (nsegs == 1 && (q = &tcb->data->snd)->qfirst && tcb->snd_una - SEQ1ST(q->qfirst) >= TCP_DROPTHRESH)
+		{
+			DEBUG(("tcbos_retrans: resetting backoff"));
+			tcb->backoff = 0;
+		}
 #endif /* USE_DROPPED_SEGMENT_DETECTION */
 
-			if (SEQGE(tcb->snd_una, tcb->snd_nxt))
+		if (SEQGE(tcb->snd_una, tcb->snd_nxt))
+		{
+			/*
+			 * everything sent has been acked:
+			 * restart transmitting normaly
+			 */
+			if (tcb->snd_cwnd > tcb->snd_thresh)
+				tcb->snd_thresh = tcb->snd_cwnd;
+			tcb->snd_cwnd = tcb->snd_mss;
+
+			if (SEQLT(tcb->snd_nxt, tcb->seq_write))
+				tcp_sndhead(tcb);
+
+			DEBUG(("tcpout: port %d: RETRANS -> XMIT", tcb->data->src.port));
+
+			tcb->ostate = TCBOS_XMIT;
+			tcb->retrans_tmo = tcp_timeout(tcb);
+			event_reset(&tcb->timer_evt, tcb->retrans_tmo);
+		} else
+		{
+			/*
+			 * something has been acked, but not everything.
+			 */
+			tcb->retrans_tmo = tmout = tcp_timeout(tcb);
+			if (canretrans(tcb))
 			{
-				/*
-				 * everything sent has been acked:
-				 * restart transmitting normaly
-				 */
-				if (tcb->snd_cwnd > tcb->snd_thresh)
-					tcb->snd_thresh = tcb->snd_cwnd;
-				tcb->snd_cwnd = tcb->snd_mss;
-
-				if (SEQLT(tcb->snd_nxt, tcb->seq_write))
-					tcp_sndhead(tcb);
-
-				KAYDEBUG(("tcpout: port %d: RETRANS -> XMIT", tcb->data->src.port));
-
-				tcb->ostate = TCBOS_XMIT;
-				tcb->retrans_tmo = tcp_timeout(tcb);
-				event_reset(&tcb->timer_evt, tcb->retrans_tmo);
-			} else
-			{
-				/*
-				 * something has been acked, but not everything.
-				 */
-				tcb->retrans_tmo = tmout = tcp_timeout(tcb);
-				if (canretrans(tcb))
-				{
-					tmout -= DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
-					if (tmout < 1)
-						tmout = 1;
-				}
-				event_reset(&tcb->timer_evt, tmout);
+				tmout -= DIFTIME(tcb->data->snd.qfirst->info, GETTIME());
+				if (tmout < 1)
+					tmout = 1;
 			}
-			break;
+			event_reset(&tcb->timer_evt, tmout);
 		}
+		break;
 	}
 }
 
@@ -336,62 +333,62 @@ static void tcbos_persist(struct tcb *tcb, short event)
 	switch (event)
 	{
 	case TCBOE_TIMEOUT:
+		/*
+		 * sender SWS: receiver might have shrunk his
+		 * receivce buffers...
+		 */
+		if (tcb->snd_wnd > 0)
 		{
-			/*
-			 * sender SWS: receiver might have shrunk his
-			 * receivce buffers...
-			 */
-			if (tcb->snd_wnd > 0)
-			{
-				KAYDEBUG(("tcbos_persists: SSWS override timeout"));
+			DEBUG(("tcbos_persists: SSWS override timeout"));
 
-				tcb->snd_wndmax = tcb->snd_wnd;
-				tcp_sndhead(tcb);
-				if (canretrans(tcb))
-				{
-					tcb->ostate = TCBOS_XMIT;
-					tcb->retrans_tmo = tcp_timeout(tcb);
-					event_add(&tcb->timer_evt, tcb->retrans_tmo, wakeme, (long) tcb);
-
-					KAYDEBUG(("tcpout: port %d: PERSIST -> XMIT", tcb->data->src.port));
-					break;
-				} else
-					tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
-			}
-			/*
-			 * be careful, tcp_probe () may destroy tcb.
-			 */
-			tcp_probe(tcb);
-			break;
-		}
-	case TCBOE_ACKRCVD:
-		{
-			tcp_dropdata(tcb);
-			if (SEQGE(tcb->snd_una, tcb->seq_write))
-			{
-				event_del(&tcb->timer_evt);
-				tcb->ostate = TCBOS_IDLE;
-
-				KAYDEBUG(("tcpout: port %d: PERSIST -> IDLE", tcb->data->src.port));
-			}
-			break;
-		}
-	case TCBOE_WNDOPEN:
-		{
-			if (SEQLT(tcb->snd_nxt, tcb->seq_write))
-				tcp_sndhead(tcb);
-
+			tcb->snd_wndmax = tcb->snd_wnd;
+			tcp_sndhead(tcb);
 			if (canretrans(tcb))
 			{
-				KAYDEBUG(("tcpout: port %d: PERSIST -> XMIT", tcb->data->src.port));
-
 				tcb->ostate = TCBOS_XMIT;
 				tcb->retrans_tmo = tcp_timeout(tcb);
-				event_reset(&tcb->timer_evt, tcb->retrans_tmo);
+				event_add(&tcb->timer_evt, tcb->retrans_tmo, wakeme, (long) tcb);
+
+				DEBUG(("tcpout: port %d: PERSIST -> XMIT", tcb->data->src.port));
+				break;
 			} else
+			{
 				tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
-			break;
+			}
 		}
+		/*
+		 * be careful, tcp_probe () may destroy tcb.
+		 */
+		tcp_probe(tcb);
+		break;
+
+	case TCBOE_ACKRCVD:
+		tcp_dropdata(tcb);
+		if (SEQGE(tcb->snd_una, tcb->seq_write))
+		{
+			event_del(&tcb->timer_evt);
+			tcb->ostate = TCBOS_IDLE;
+
+			DEBUG(("tcpout: port %d: PERSIST -> IDLE", tcb->data->src.port));
+		}
+		break;
+
+	case TCBOE_WNDOPEN:
+		if (SEQLT(tcb->snd_nxt, tcb->seq_write))
+			tcp_sndhead(tcb);
+
+		if (canretrans(tcb))
+		{
+			DEBUG(("tcpout: port %d: PERSIST -> XMIT", tcb->data->src.port));
+
+			tcb->ostate = TCBOS_XMIT;
+			tcb->retrans_tmo = tcp_timeout(tcb);
+			event_reset(&tcb->timer_evt, tcb->retrans_tmo);
+		} else
+		{
+			tcb->flags &= ~(TCBF_DORTT | TCBF_ACKVALID);
+		}
+		break;
 	}
 }
 
@@ -417,12 +414,10 @@ static BUF *tcp_mkseg(struct tcb *tcb, ulong size)
 	tcph = (struct tcp_dgram *) b->dstart;
 	tcph->srcport = tcb->data->src.port;
 	tcph->dstport = tcb->data->dst.port;
-	tcph->f.flags = 0;
+	tcph->f.f.flags = 0;
 	tcph->seq = tcb->snd_nxt;
 	tcph->ack = tcb->rcv_nxt;
-#ifdef TODO
-	tcph->hdrlen = (unsigned int)(TCP_MINLEN / 4);
-#endif
+	tcph->f.f.hdr = (unsigned int)(TCP_MINLEN / 4) << 4;
 	tcph->window = 0;
 	tcph->urgptr = 0;
 	tcph->chksum = 0;
@@ -446,7 +441,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 	BUF *b2;
 	short cut = 0;
 
-	todo = (ulong) (b->dend - b->dstart);
+	todo = b->dend - b->dstart;
 	nb = buf_alloc(TCP_RESERVE + todo, TCP_RESERVE / 2, BUF_NORMAL);
 	if (!nb)
 	{
@@ -458,9 +453,12 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 	seq1st = SEQ1ST(b);
 	seqnxt = seq1st + tcp_seglen(b, TH(b));
 
-#if 0
+#ifndef NOTYET /* f368d48a64af8eedaa18708d9337395992e4fab4 */
 	if (SEQLE(wndnxt, seq1st) || SEQLE(seqnxt, wnd1st))
+	{
 		FATAL(("tcp_sndseg: seg (%ld %ld) outside wnd (%ld %ld)", seq1st, seqnxt, wnd1st, wndnxt));
+		return -1;
+	}
 #endif
 
 	if (!SEQLT(seq1st, wnd1st))
@@ -475,7 +473,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 			 * seg:  |....|
 			 * win: |....|
 			 */
-			if (TH(b)->f.flags & TCPF_FIN)
+			if (TH(b)->f.f.flags & TCPF_FIN)
 				--seqnxt;
 			todo -= seqnxt - wndnxt;
 			cut |= TCPF_FIN;
@@ -488,11 +486,13 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 		 * seg: |...
 		 * win:  |...
 		 */
-		cut |= TCPF_SYN;
-		memcpy(nb->dstart, b->dstart, TCP_HDRLEN(TH(b)));
-		nb->dend += TCP_HDRLEN(TH(b));
+		long hdrlen = (TH(b)->f.f.hdr >> 4) * 4; /* TCP_HDRLEN(TH(b)) */
 
-		if (TH(b)->f.flags & TCPF_SYN)
+		cut |= TCPF_SYN;
+		memcpy(nb->dstart, b->dstart, hdrlen);
+		nb->dend += hdrlen;
+
+		if (TH(b)->f.f.flags & TCPF_SYN)
 			seq1st++;
 
 		offs = wnd1st - seq1st;
@@ -503,7 +503,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 			 * seg: |.....|
 			 * win:  |...|
 			 */
-			if (TH(b)->f.flags & TCPF_FIN)
+			if (TH(b)->f.f.flags & TCPF_FIN)
 				--seqnxt;
 			todo -= seqnxt - wndnxt;
 			cut |= TCPF_FIN;
@@ -518,6 +518,7 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 	if (SEQGT(tcph->seq + (nb->dend - nb->dstart) - TCP_HDRLEN(tcph), wndnxt))
 	{
 		FATAL(("tcp_sndseg: seg (%ld) exceed wnd (%ld)", tcph->seq + (nb->dend - nb->dstart) - TCP_HDRLEN(tcph), wndnxt));
+		return -1;
 	}
 
 #if 0
@@ -547,14 +548,26 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 		&& ((tcph2 = TH(b2)), 1)
 		&& ((seqnxt = tcph2->seq + nretrans), 1)
 		&& SEQLE(seqnxt, tcb->snd_wndack + tcb->snd_wnd)
-		&& !((tcph->f.flags ^ tcph2->f.flags) & (TCPF_URG | TCPF_SYN | TCPF_FIN)))
+		&& !((tcph->f.f.flags ^ tcph2->f.f.flags) & (TCPF_URG | TCPF_SYN | TCPF_FIN)))
 	{
 		/*
 		 * Ok, add the bytes and advance the send
 		 * sequence pointer if necessary.
 		 */
 		DEBUG(("tcp_sndseg: adding %d bytes", nretrans));
+#ifdef NOMORE
 		memcpy(nb->dend, TCP_DATA(tcph2), nretrans);
+#else
+		{
+			char *src = TCP_DATA(tcph2);
+			char *dst = nb->dend;
+			short i = nretrans;
+			do
+			{
+				*dst++ = *src++;
+			} while (--i != 0);
+		}
+#endif
 		nb->dend += nretrans;
 		if (SEQLT(tcb->snd_max, seqnxt))
 			tcb->snd_max = seqnxt;
@@ -585,9 +598,24 @@ static long tcp_sndseg(struct tcb *tcb, BUF *b, short nretrans, long wnd1st, lon
 	/*
 	 * Everything acked now
 	 */
+	in_tcp_send = 1;
 	tcb->flags &= ~TCBF_DELACK;
-	return ip_send(tcb->data->src.addr, tcb->data->dst.addr, nb, IPPROTO_TCP, 0, &tcb->data->opts);
+	todo = ip_send(tcb->data->src.addr, tcb->data->dst.addr, nb, IPPROTO_TCP, 0, &tcb->data->opts);
+	in_tcp_send = 0;
+#ifdef __PUREC__
+	/* XXX
+	   result already in d0, but can't convince compiler to omit a superflous move */
+#pragma warn -rvl
+#else
+	return todo;
+#endif
 }
+
+#ifdef __PUREC__
+#pragma warn .rvl
+#endif
+
+
 
 /*
  * Update the round trip time mean and deviation. Note that tcb->rtt is scaled
@@ -709,7 +737,7 @@ static long tcp_sndhead(struct tcb *tcb)
 	long rttseq = 0;
 	long stamp;
 	struct in_dataq *q = &tcb->data->snd;
-	short sent = 0;
+	long sent = 0;
 	long r;
 	BUF *b = q->qlast;
 
@@ -746,13 +774,15 @@ static long tcp_sndhead(struct tcb *tcb)
 	/*
 	 * Send the segments that fall into the window
 	 */
-	for (; b; b = b->next)
+	for (; b; )
 	{
+#ifdef NOTYET /* f368d48a64af8eedaa18708d9337395992e4fab4 */
 		seqnxt = SEQ1ST(b) + tcp_seglen(b, TH(b));
 		stamp = GETTIME();
 
 		if (SEQLE(wndnxt, SEQ1ST(b)) || SEQLE(seqnxt, tcb->snd_nxt))
 			break;
+#endif
 
 		/*
 		 * See if the segment should be sent:
@@ -762,6 +792,8 @@ static long tcp_sndhead(struct tcb *tcb)
 		 */
 		if (!(SEQLE(seqnxt, wndnxt) || (SEQLT(tcb->snd_nxt, wndnxt) && 2 * (wndnxt - tcb->snd_nxt) > tcb->snd_wndmax)))
 			break;
+
+		stamp = GETTIME();
 		/*
 		 * If no outstanding data and nothing can be sent, reduce
 		 * backoff. This works ok because we know this `lost'
@@ -793,11 +825,18 @@ static long tcp_sndhead(struct tcb *tcb)
 			tcb->snd_max = tcb->snd_nxt;
 
 		b->info = stamp;
+#ifndef NOTYET
+		/* hmpf? */
+		b = b->next;
+		if (b)
+			seqnxt = SEQ1ST(b) + tcp_seglen(b, TH(b));
+#endif
 	}
 
-	KAYDEBUG(("sw %5ld; cw %5ld; ew %5ld; uw %5ld; av %5ld",
+	DEBUG(("sw %5ld; cw %5ld; ew %5ld; uw %5ld; av %5ld",
 			  tcb->snd_wnd, tcb->snd_cwnd,
 			  wndnxt - tcb->snd_wndack, tcb->snd_nxt - tcb->snd_wndack, tcb->seq_write - tcb->snd_wndack));
+
 
 	/*
 	 * Schedule an RTT measurement
@@ -819,7 +858,7 @@ static short tcp_probe(struct tcb *tcb)
 	struct tcp_dgram *tcph;
 	BUF *b;
 
-	KAYDEBUG(("tcp_probe: port %d: sending probe", tcb->data->src.port));
+	DEBUG(("tcp_probe: port %d: sending probe", tcb->data->src.port));
 
 	/*
 	 * If peer does not respond then close connection
@@ -862,9 +901,14 @@ static short tcp_probe(struct tcb *tcb)
 				tcph->urgptr = (ushort) (SEQ1ST(buf) + DATLEN(buf) - tcph->seq);
 			}
 		}
+#ifndef NOTYET /* f368d48a64af8eedaa18708d9337395992e4fab4 */
+		tcph->chksum = 0;
+#endif
+		in_tcp_send = 1;
 		tcph->chksum = tcp_checksum(tcph, tcb->data->src.addr, tcb->data->dst.addr, TCP_MINLEN + 1);
 
 		ip_send(tcb->data->src.addr, tcb->data->dst.addr, b, IPPROTO_TCP, 0, &tcb->data->opts);
+		in_tcp_send = 0;
 	} else
 	{
 		DEBUG(("do_probe: no memory to probe"));
@@ -890,7 +934,7 @@ static short tcp_retrans(struct tcb *tcb)
 	long r;
 	BUF *b;
 
-	KAYDEBUG(("tcp_retrans: port %d: sending %dnd retransmit", tcb->data->src.port, tcb->nretrans + 1));
+	DEBUG(("tcp_retrans: port %d: sending %dnd retransmit", tcb->data->src.port, tcb->nretrans + 1));
 
 	if (++tcb->nretrans > TCP_MAXRETRY)
 	{
@@ -965,6 +1009,8 @@ static short canretrans(struct tcb *tcb)
  * Exported functions for other modules.
  */
 
+
+#ifdef NOTYET
 /*
  * Can the segment in `buf` be concatenated with more data?
  */
@@ -975,11 +1021,13 @@ static long cancombine(struct tcb *tcb, BUF *buf, short flags)
 
 	return 0;
 }
+#endif
+
 
 /*
  * TCP maximum segment size option we send with every SYN segment.
  */
-static struct
+static struct _mss_opt
 {
 	char code;
 	char len;
@@ -996,7 +1044,7 @@ static struct
  */
 long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, long offset, short flags)
 {
-	struct tcp_dgram *tcph = NULL;
+	struct tcp_dgram *tcph;
 	struct in_dataq *q = &tcb->data->snd;
 	short first = 1;
 	long ret = 0;
@@ -1035,7 +1083,16 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 	do
 	{
 		b = q->qlast;
+#ifdef NOYET
 		if ((r = cancombine(tcb, b, flags)) > 0)
+#else
+		/* inline version of cancombine */
+		if (b && SEQLE(tcb->snd_max, SEQ1ST(b)) && !((flags ^ TH(b)->f.f.flags) & TCPF_URG) && !(flags & TCPF_SYN))
+			r = b->info - DATLEN(b);
+		else
+			r = 0;
+		if (r > 0)
+#endif
 		{
 			tcph = TH(b);
 			if (r > len)
@@ -1071,18 +1128,19 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 			b->info = effmss - TCP_MAXRETRY;
 			b->dend = tcph->data;
 
-			if (first && flags & TCPF_SYN)
+			if (first && (flags & TCPF_SYN))
 			{
 				tcph->f.f.flags |= TCPF_SYN;
 				tcb->seq_write++;
 				/*
 				 * Add maximum segment size TCP option
 				 */
-#ifdef TODO
-				tcph->hdrlen += (unsigned int)(sizeof(mss_opt) / 4);
-#endif
+				tcph->f.b.hdrlen += (unsigned int)(sizeof(mss_opt) / 4);
 				mss_opt.mss = tcb->rcv_mss;
-				memcpy(b->dend, &mss_opt, sizeof(mss_opt));
+				if ((long)b->dend & 1)
+					memcpy(b->dend, &mss_opt, sizeof(mss_opt));
+				else
+					*((struct _mss_opt *)b->dend) = mss_opt;
 				b->dend += sizeof(mss_opt);
 			} else
 			{
@@ -1163,12 +1221,13 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
  */
 long tcp_timeout(struct tcb *tcb)
 {
-	ulong tmout;
+	long tmout;
 
 	tmout = (tcb->rtt >> 3) + tcb->rttdev;
-	if (tmout > (0x7ffffffful >> TCP_MAXRETRY))
+	if ((unsigned long)tmout > (0x7ffffffful >> TCP_MAXRETRY))
+	{
 		tmout = TCP_MAXRETRANS;
-	else
+	} else
 	{
 		tmout <<= tcb->backoff;
 		if (tmout < TCP_MINRETRANS)
@@ -1211,7 +1270,7 @@ long tcp_rcvwnd(struct tcb *tcb, short wnd_update)
 	{
 		minwnd = tcb->rcv_wnd - tcb->rcv_nxt;
 		if (space < minwnd)
-			return minwnd;
+			space = minwnd; /* hmpf? */
 
 		if (wnd_update)
 			tcb->rcv_wnd = tcb->rcv_nxt + space;

@@ -45,11 +45,12 @@ timer.c
 tcp.c
 tcpin.c
 tcpout.c
+tcputil.c
+tcpsig.c
 
 arpdev.c
 arp.c
 masquera.c
-tcpsig.c
 bpf.c
 bpfasm.s
 bpf_filt.c
@@ -58,7 +59,6 @@ inetdev.c
 ifload.c
 ifeth.c
 rawip.c
-tcputil.c
 
 rest.c
 x28.s

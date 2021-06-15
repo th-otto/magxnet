@@ -180,7 +180,6 @@ struct dom_ops
 };
 
 #define DEBUG(x)
-#define KAYDEBUG(x)
 #define ALERT(x)
 #define TRACE(x)
 #define FATAL(x)
