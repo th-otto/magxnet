@@ -121,8 +121,6 @@ static __inline__ void arp_deref (struct arp_entry *are)
 	if (--are->links <= 0)
 		arp_free(are);
 }
-#else
-#define arp_deref(are) if (--(are)->links == 0) arp_free(are) /* BUG: <= */
 #endif
 
 

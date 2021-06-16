@@ -9,9 +9,9 @@
 
 #include <iovec.h>
 
-long iov2buf_cpy (char *, long, const struct iovec *, short, long);
-long buf2iov_cpy (char *, long, const struct iovec *, short, long);
-long iov_size (const struct iovec *iov, short n);
+long iov2buf_cpy(char *, long, const struct iovec *, short, long);
+long buf2iov_cpy(char *, long, const struct iovec *, short, long);
+long iov_size(const struct iovec *iov, short n);
 
 
 # endif /* _sockets_iov_h */

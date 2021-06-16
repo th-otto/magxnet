@@ -27,6 +27,7 @@ OBJS = \
 	tcpin.o \
 	tcpout.o \
 	tcpsig.o \
+	tcpdinit.o \
 	tcputil.o \
 	timer.o \
 	buf.o \

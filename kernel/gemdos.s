@@ -72,7 +72,9 @@
 				ENDMOD
 
 				.globl Mshrink
+				.globl _Mshrink
 				MODULE	Mshrink
+_Mshrink:
 				pea		(a2)				
 				move.l	d0,-(a7)
 				pea		(a0)

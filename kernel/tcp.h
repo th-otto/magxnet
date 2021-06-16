@@ -226,6 +226,7 @@ extern struct in_proto tcp_proto;
 
 
 void	tcpd_init(void);
+void x1bd00(long);
 void	tcp_init(void);
 long	tcp_canread(struct in_data *data);
 long	tcp_canwrite(struct in_data *data);

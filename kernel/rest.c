@@ -14,11 +14,6 @@
 #include "asm_spl.h"
 
 
-void tcpd_init(void)
-{
-}
-
-
 void x1c39c(void)
 {
 }
@@ -58,6 +53,12 @@ void wakeselect(long proc)
 {
 	/* NOT IMPLEMENTED YET */
 	UNUSED(proc);
+}
+
+
+void x1bd00(long arg)
+{
+	UNUSED(arg);
 }
 
 

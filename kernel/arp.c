@@ -45,6 +45,14 @@ static long put_praddr(struct hwaddr *, struct sockaddr *, short);
 struct arp_entry *arptab[ARP_HASHSIZE];
 struct arp_entry *rarptab[ARP_HASHSIZE];
 
+#ifndef __GNUC__
+static void arp_deref(struct arp_entry *are)
+{
+	if (--are->links == 0)
+		arp_free(are);
+}
+#endif
+
 
 static short arp_hash(unsigned char *addr, short len)
 {

@@ -89,18 +89,19 @@ MX_DDEV cdecl_inetdev GNU_ASM_NAME("cdecl_inetdev") = {
 };
 
 static char const inet_dev_name[] = "u:\\dev\\inet";
-static const char *cannot_install = "Cannot install device %S\r\n";
+static char const cannot_install[] = "Cannot install device %S\r\n";
 
 long inetdev_init(void)
 {
 	long r;
-
-	r = Dcntl(DEV_M_INSTALL, inet_dev_name, (long) &inetdev);
+	const char *name = inet_dev_name;
+	
+	r = Dcntl(DEV_M_INSTALL, name, (long) &inetdev);
 	if (r < 0)
 	{
 		char message[200];
 
-		sprintf_params[0] = (long)inet_dev_name;
+		sprintf_params[0] = (long)name;
 		p_kernel->_sprintf(message, cannot_install, sprintf_params);
 		(void) Cconws(message);
 

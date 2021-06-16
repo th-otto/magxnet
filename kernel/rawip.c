@@ -71,6 +71,33 @@ struct in_proto rip_proto = {
 #pragma warn -rch /* for p_geteuid */
 #endif
 
+
+/*
+ * For GNU-C, this function is usually inlined,
+ * but does not have to be
+ */
+/* FIXME: duplicate */
+#define iov_size rip_iov_size
+#define IOV_MAX 16
+static long iov_size(const struct iovec *iov, short n)
+{
+	long size;
+
+	if (n <= 0 || n > IOV_MAX)
+		return -1;
+	
+	for (size = 0; n; ++iov, --n)
+	{
+		if ((long)iov->iov_len < 0)
+			return -1;
+		
+		size += iov->iov_len;
+	}
+	
+	return size;
+}
+
+
 static long rip_attach(struct in_data *data)
 {
 	if (p_geteuid() != 0)
@@ -240,10 +267,14 @@ static long rip_send(struct in_data *data, const struct iovec *iov, short niov, 
 		r = ip_send(data->src.addr, dstaddr, buf, data->protonum, ipflags, &data->opts);
 	}
 
+#ifdef NOTYET /* 3535e0d6a8f193c27ae189e5ca7eaf618e0641ba */
 	if (r == 0)
 		r = copied;
 
 	return r;
+#else
+	return r ? r : copied;
+#endif
 }
 
 
@@ -325,7 +356,7 @@ static long rip_recv(struct in_data *data, const struct iovec *iov, short niov, 
 	{
 		struct sockaddr_in in;
 
-		*addrlen = MIN((ushort) * addrlen, sizeof(struct sockaddr_in));
+		*addrlen = MIN(*addrlen, (short)sizeof(struct sockaddr_in));
 		in.sin_family = AF_INET;
 		in.sin_addr.s_addr = IP_SADDR(buf);
 		in.sin_port = 0;

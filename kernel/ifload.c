@@ -10,6 +10,8 @@
 /* Keep netinfo.h from defining it */
 #define NETINFO
 #include "netinfo.h"
+#include "timeout.h"
+#include "kerinfo.h"
 
 #include "bpf.h"
 #include "inet.h"
@@ -47,7 +49,6 @@ struct netinfo netinfo = {
 
 	{ 0, 0, 0, 0 }
 };
-
 
 #if 0
 static long xif_module_init(void *initfunc, struct kerinfo *k, struct netinfo *n)
@@ -90,14 +91,56 @@ static long load_xif(struct basepage *b, const char *name, short *class, short *
 #endif
 
 
+#ifdef __PUREC__
+short _Mshrink(short zero, void *ptr, long size);
+#endif
+
 void if_load(void)
 {
 	_DTA *old_dta;
+	static char curpath[128];
+	static _DTA mydta;
+	struct kerinfo *kernelinfo;
+	long r;
+	static const char *magic_extension_dir = "\\gemsys\\magic\\xtension";
+	PD *pd;
+	long cdecl (*init)(struct kerinfo *, struct netinfo *);
 	
 	old_dta = Fgetdta();
-	
+	Dgetpath(curpath, 0);
+	Fsetdta(&mydta);
+	netinfo.fname = mydta.dta_name;
+
+	kernelinfo = (struct kerinfo *)init_kerinfo();
 	(void) Cconws("Loading interfaces:\r\n");
-	
+	if (Dgetdrv() < 2)
+		Dsetdrv(2);
+	r = Dsetpath(magic_extension_dir);
+	if (r == 0)
+		r = Fsfirst("*.mif", FA_CHANGED | FA_HIDDEN | FA_SYSTEM);
+	while (r == 0)
+	{
+		pd = (PD *)Pexec(3, mydta.dta_name, "", NULL);
+		if ((long)pd >= 0)
+		{
+			
+#ifdef __PUREC__
+			/* uses binding with explicit hidden arg */
+			_Mshrink(0, pd, pd->p_tlen + pd->p_dlen + pd->p_blen + 0x200);
+#else
+			Mshrink(pd, pd->p_tlen + pd->p_dlen + pd->p_blen + 0x200);
+#endif
+			init = (long cdecl (*)(struct kerinfo *, struct netinfo *))pd->p_tbase;
+			if (strcmp(mydta.dta_name, "SLIP.MIF") == 0)
+				netinfo.reserved[0] = (long)pd;
+			if (init(kernelinfo, &netinfo) != 0)
+			{
+				/* FIXME: must also free pd->p_env */
+				Mfree(pd);
+			}
+		}
+		r = Fsnext();
+	}
+	Dsetpath(curpath);
 	Fsetdta(old_dta);
-	netinfo.reserved[0] = 0;
 }

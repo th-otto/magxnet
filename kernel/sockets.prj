@@ -47,18 +47,20 @@ tcpin.c
 tcpout.c
 tcputil.c
 tcpsig.c
+tcpdinit.c
+inetasm.s
+inetdev.c
+ifload.c
+rawip.c
+arp.c
 
 arpdev.c
-arp.c
 masquera.c
 bpf.c
 bpfasm.s
 bpf_filt.c
-inetasm.s
-inetdev.c
-ifload.c
 ifeth.c
-rawip.c
+kerinfo.c
 
 rest.c
 x28.s

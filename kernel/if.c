@@ -652,7 +652,12 @@ long if_send(struct netif *nif, BUF *buf, ulong nexthop, short isbrcst)
 			} else
 				ret = if_enqueue(&are->outq, buf, IF_PRIORITIES - 1);
 
+#ifdef NOTYET
 			arp_deref(are);
+#else
+			if (--(are)->links == 0)
+				arp_free(are);
+#endif
 			return ret;
 
 		default:
