@@ -48,6 +48,8 @@ OBJS = \
 	ifload.o \
 	ifeth.o \
 	rawip.o \
+	kerinfo.o \
+	mintutil.o\
 	x28.o \
 	rest.o \
 	$(empty)

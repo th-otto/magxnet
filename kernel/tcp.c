@@ -466,7 +466,7 @@ static long tcp_select(struct in_data *data, short mode, long proc)
 
 
 static long tcp_send(struct in_data *data, const struct iovec *iov, short niov, short nonblock,
-	 short flags, const struct sockaddr_in *addr, short addrlen)
+	short flags, const struct sockaddr_in *addr, short addrlen)
 {
 	struct tcb *tcb = data->pcb;
 	long size;
@@ -618,7 +618,7 @@ static void tcp_dropsegs(struct tcb *tcb)
 
 
 static long tcp_recv(struct in_data *data, const struct iovec *iov, short niov, short nonblock,
-	 short flags, struct sockaddr_in *addr, short *addrlen)
+	short flags, struct sockaddr_in *addr, short *addrlen)
 {
 	struct tcb *tcb = data->pcb;
 	long size;

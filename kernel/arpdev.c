@@ -87,8 +87,13 @@ long arpdev_read(MX_DOSFD *fp, long nbytes, void *buf)
 				;
 		}
 
+#ifdef NOTYET
 		if (j >= ARP_HASHSIZE)
 			break;
+#else
+		if (are == NULL)
+			break;
+#endif
 
 		mint_bzero(&info, sizeof(info));
 

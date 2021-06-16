@@ -75,8 +75,8 @@
  */
 ulong bpf_filter(struct bpf_insn *pc, unsigned char *p, ulong wirelen, ulong buflen)
 {
-	long A,
-	 X;
+	long A;
+	long X;
 	ulong k;
 	long mem[BPF_MEMWORDS];
 
@@ -84,7 +84,7 @@ ulong bpf_filter(struct bpf_insn *pc, unsigned char *p, ulong wirelen, ulong buf
 		/*
 		 * No filter means accept all.
 		 */
-		return (ulong) - 1;
+		return (ulong) -1;
 
 	A = 0;
 	X = 0;
@@ -316,8 +316,8 @@ ulong bpf_filter(struct bpf_insn *pc, unsigned char *p, ulong wirelen, ulong buf
  */
 long bpf_validate(struct bpf_insn *f, long len)
 {
-	register int i;
-	register struct bpf_insn *p;
+	int i;
+	struct bpf_insn *p;
 
 	for (i = 0; i < len; i++)
 	{

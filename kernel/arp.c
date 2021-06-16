@@ -14,26 +14,8 @@
 #include "if.h"
 #include "bpf.h"
 
-static struct arp_entry *arp_alloc(void);
-static short arp_hash(unsigned char *, short);
-static void arp_remove(struct arp_entry *);
-static void rarp_remove(struct arp_entry *);
-static void rarp_put(struct arp_entry *);
-static char *arp_myaddr(struct netif *, short);
-static void arp_sendreq(struct arp_entry *);
 static void arp_timeout(long);
-static void arp_dosend(struct netif *, BUF *, short);
-static void arp_sendq(struct arp_entry *);
 
-static long get_praddr(struct hwaddr *, struct sockaddr *, short *);
-static long get_hwaddr(struct hwaddr *, struct sockaddr *, short *);
-static long put_hwaddr(struct hwaddr *, struct sockaddr *, short);
-
-#ifdef notused
-static void arp_put(struct arp_entry *);
-static void arp_dump(struct arp_entry *);
-static long put_praddr(struct hwaddr *, struct sockaddr *, short);
-#endif
 
 #ifdef __PUREC__
 #pragma warn -rch /* for p_geteuid */
@@ -54,15 +36,15 @@ static void arp_deref(struct arp_entry *are)
 #endif
 
 
-static short arp_hash(unsigned char *addr, short len)
+static short arp_hash(const unsigned char *addr, short len)
 {
 	ulong v;
 
-	v = *(ulong *) addr;
+	v = *(const ulong *) addr;
 	if (len < 4)
 		v >>= (32 - (len << 3));
 
-	return v % ARP_HASHSIZE;
+	return (unsigned short)v % ARP_HASHSIZE;
 }
 
 /*
@@ -266,7 +248,11 @@ static void arp_sendreq(struct arp_entry *are)
 
 		DEBUG(("arp_send: timeout after %d retries", are->retries - 1));
 		arp_remove(are);
+#ifdef NOTYET /* 67647d3df1575131d7dc85ee2f7e51262bbc2875 */
 		if (flags & ATF_HWCOM)
+#else
+		if (flags & ATF_HWCOM) {}
+#endif
 			rarp_remove(are);
 		return;
 	}
@@ -303,7 +289,7 @@ static void arp_sendreq(struct arp_entry *are)
 	arp_dosend(are->nif, arpbuf, PKTYPE_ARP);
 }
 
-void arp_timeout(long arg)
+static void arp_timeout(long arg)
 {
 	struct arp_entry *are = (struct arp_entry *) arg;
 
@@ -343,17 +329,36 @@ struct arp_entry *arp_lookup(short flags, struct netif *nif, short type, short l
 	struct arp_entry *are;
 	short idx;
 
+#ifdef NOTYET
 	idx = arp_hash((unsigned char *) addr, len);
+#else
+	/* arp_hash inlined */
+	{
+		ulong v;
+	
+		v = *(const ulong *) addr;
+		if (len < 4)
+			v >>= (32 - (len << 3));
+	
+		idx = (unsigned short)v % ARP_HASHSIZE;
+	}
+#endif
 	for (are = arptab[idx]; are; are = are->prnext)
 	{
-		if (are->flags & ATF_PRCOM &&
+		if ((are->flags & ATF_PRCOM) &&
 			are->prtype == (ushort)type &&
 			(!nif || are->nif == nif) &&
-			memcmp(addr, are->praddr.adr.bytes, len) == 0)
+#if defined(NOTYET) || defined(__GNUC__)
+			memcmp(addr, are->praddr.adr.bytes, len) == 0
+#else
+			/* BUG: len is not neccesarily == sizeof(long) */
+			*((const unsigned long *)addr) == *((const unsigned long *)are->praddr.adr.bytes)
+#endif
+			)
 			break;
 	}
 
-	if ((are && (++are->links, 1)) || flags & ARLK_NOCREAT || !nif)
+	if ((are && (++are->links, 1)) || (flags & ARLK_NOCREAT) || !nif)
 		return are;
 
 	are = arp_alloc();
@@ -368,7 +373,12 @@ struct arp_entry *arp_lookup(short flags, struct netif *nif, short type, short l
 
 	are->prtype = type;
 	are->praddr.len = len;
-	memcpy(are->praddr.adr.bytes, addr, len);
+#if !defined(NOTYET) && !defined(__GNUC__)
+	if (len == 4)
+		*((unsigned long *)are->praddr.adr.bytes) = *((const unsigned long *)addr);
+	else
+#endif
+		memcpy(are->praddr.adr.bytes, addr, len);
 
 	are->nif = nif;
 
@@ -676,7 +686,7 @@ static long put_hwaddr(struct hwaddr *hwaddr, struct sockaddr *sockaddr, short t
 	shw->shw_family = AF_LINK;
 	shw->shw_type = type;
 	shw->shw_len = hwaddr->len;
-	memcpy(shw->shw_addr, hwaddr->adr.bytes, MIN(sizeof(shw->shw_addr), (unsigned short)hwaddr->len));
+	memcpy(shw->shw_addr, hwaddr->adr.bytes, MIN((long)sizeof(shw->shw_addr), hwaddr->len));
 
 	return 0;
 }
@@ -687,114 +697,98 @@ static long put_hwaddr(struct hwaddr *hwaddr, struct sockaddr *sockaddr, short t
 long arp_ioctl(short cmd, void *arg)
 {
 	struct arp_req *areq = (struct arp_req *) arg;
+	struct arp_entry *are;
+	struct netif *nif;
+	struct route *rt;
+	struct hwaddr praddr;
+	struct hwaddr hwaddr;
+	short prtype;
+	short hwtype;
 
 	switch (cmd)
 	{
 	case SIOCSARP:
+		if (p_geteuid() != 0)
+			return EACCES;
+
+		if (get_praddr(&praddr, &areq->praddr, &prtype) || get_hwaddr(&hwaddr, &areq->hwaddr, &hwtype))
+			return EINVAL;
+
+		if (prtype != ARPRTYPE_IP)
+			return EAFNOSUPPORT;
+		/*
+		 * Get interface to attach arp entry to
+		 */
+		rt = route_get(praddr.adr.longs[0]);	/* (*(long *)praddr.addr); */
+		if (rt == 0 || (rt->flags & RTF_GATEWAY))
 		{
-			struct arp_entry *are;
-			struct netif *nif;
-			struct route *rt;
-			struct hwaddr praddr;
-			struct hwaddr hwaddr;
-			short prtype;
-			short hwtype;
-
-			if (p_geteuid() != 0)
-				return EACCES;
-
-			if (get_praddr(&praddr, &areq->praddr, &prtype) || get_hwaddr(&hwaddr, &areq->hwaddr, &hwtype))
-				return EINVAL;
-
-			if (prtype != ARPRTYPE_IP)
-				return EAFNOSUPPORT;
-			/*
-			 * Get interface to attach arp entry to
-			 */
-			rt = route_get(praddr.adr.longs[0]);	/* (*(long *)praddr.addr); */
-			if (rt == 0 || rt->flags & RTF_GATEWAY)
+			if (rt)
 			{
-				if (rt)
-				{
-					route_deref(rt);
-				}
-				return ENETUNREACH;
+				route_deref(rt);
 			}
-			nif = rt->nif;
-			route_deref(rt);
-
-			/*
-			 * Lookup/create arp entry
-			 */
-			are = arp_lookup(ARLK_NORESOLV, nif, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
-			if (!are)
-				return ENOMEM;
-
-			rarp_remove(are);
-			are->hwtype = hwtype;
-			are->hwaddr = hwaddr;
-			are->flags |= ATF_HWCOM;
-			are->flags &= ~ATF_USRMASK;
-			are->flags |= areq->flags & ATF_USRMASK;
-			rarp_put(are);
-			event_del(&are->tmout);
-			if (!(are->flags & ATF_PERM))
-				event_add(&are->tmout, ARP_EXPIRE, arp_timeout, (long) are);
-			/*
-			 * Send all accumulated packets (if any)
-			 */
-			arp_sendq(are);
-			arp_deref(are);
-
-			return 0;
+			return ENETUNREACH;
 		}
+		nif = rt->nif;
+		route_deref(rt);
+
+		/*
+		 * Lookup/create arp entry
+		 */
+		are = arp_lookup(ARLK_NORESOLV, nif, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
+		if (!are)
+			return ENOMEM;
+
+		rarp_remove(are);
+		are->hwtype = hwtype;
+		are->hwaddr = hwaddr;
+		are->flags |= ATF_HWCOM;
+		are->flags &= ~ATF_USRMASK;
+		are->flags |= areq->flags & ATF_USRMASK;
+		rarp_put(are);
+		event_del(&are->tmout);
+		if (!(are->flags & ATF_PERM))
+			event_add(&are->tmout, ARP_EXPIRE, arp_timeout, (long) are);
+		/*
+		 * Send all accumulated packets (if any)
+		 */
+		arp_sendq(are);
+		arp_deref(are);
+		return 0;
+
 	case SIOCDARP:
-		{
-			struct arp_entry *are;
-			struct hwaddr praddr;
-			short prtype;
+		if (p_geteuid() != 0)
+			return EACCES;
 
-			if (p_geteuid() != 0)
-				return EACCES;
+		if (get_praddr(&praddr, &areq->praddr, &prtype))
+			return EINVAL;
 
-			if (get_praddr(&praddr, &areq->praddr, &prtype))
-				return EINVAL;
+		are = arp_lookup(ARLK_NOCREAT, 0, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
+		if (!are)
+			return ENOENT;
 
-			are = arp_lookup(ARLK_NOCREAT, 0, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
-			if (!are)
-				return ENOENT;
+		arp_remove(are);
+		rarp_remove(are);
+		arp_deref(are);
+		return 0;
 
-			arp_remove(are);
-			rarp_remove(are);
-			arp_deref(are);
-
-			return 0;
-		}
 	case SIOCGARP:
+		if (get_praddr(&praddr, &areq->praddr, &prtype))
+			return EINVAL;
+
+		are = arp_lookup(ARLK_NOCREAT, 0, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
+		if (!are || !(are->flags & ATF_HWCOM))
 		{
-			struct arp_entry *are;
-			struct hwaddr praddr;
-			short prtype;
-
-			if (get_praddr(&praddr, &areq->praddr, &prtype))
-				return EINVAL;
-
-			are = arp_lookup(ARLK_NOCREAT, 0, ARPRTYPE_IP, praddr.len, (char *) praddr.adr.bytes);
-			if (!are || !(are->flags & ATF_HWCOM))
+			if (are)
 			{
-				if (are)
-				{
-					arp_deref(are);
-				}
-				return ENOENT;
+				arp_deref(are);
 			}
-
-			put_hwaddr(&are->hwaddr, &areq->hwaddr, are->hwtype);
-			areq->flags = are->flags;
-			arp_deref(are);
-
-			return 0;
+			return ENOENT;
 		}
+
+		put_hwaddr(&are->hwaddr, &areq->hwaddr, are->hwtype);
+		areq->flags = are->flags;
+		arp_deref(are);
+		return 0;
 	}
 
 	return ENOSYS;

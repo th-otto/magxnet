@@ -50,6 +50,7 @@ struct netinfo netinfo = {
 	{ 0, 0, 0, 0 }
 };
 
+
 #if 0
 static long xif_module_init(void *initfunc, struct kerinfo *k, struct netinfo *n)
 {

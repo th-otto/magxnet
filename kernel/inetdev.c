@@ -115,8 +115,8 @@ long inetdev_init(void)
 static long inetdev_read(MX_DOSFD *fp, long nbytes, void *buf)
 {
 	struct in_data *inp = NULL;
-	struct inet_info info,
-	*infop = (struct inet_info *) buf;
+	struct inet_info info;
+	struct inet_info *infop = (struct inet_info *) buf;
 	struct _datas *datap;
 	ulong space;
 	int i;

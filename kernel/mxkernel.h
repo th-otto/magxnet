@@ -53,6 +53,7 @@ void *ker_mshrink(void *block, LONG newlen);
 /*
  * FIXME: only for binary comparison.
  * FIXME2: should really call OS instead
+ * (Pgeteuid available since magic 1999/12/30)
  */
 static short p_geteuid(void) 0x7000; /* moveq #0,d0 */
 #else

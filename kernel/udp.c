@@ -189,7 +189,7 @@ static long udp_select(struct in_data *data, short mode, long proc)
 
 
 static long udp_send(struct in_data *data, const struct iovec *iov, short niov, short nonblock,
-	 short flags, const struct sockaddr_in *addr, short addrlen)
+	short flags, const struct sockaddr_in *addr, short addrlen)
 {
 	struct udp_dgram *uh;
 	BUF *buf;
@@ -292,7 +292,7 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 
 
 static long udp_recv(struct in_data *data, const struct iovec *iov, short niov, short nonblock,
-	 short flags, struct sockaddr_in *addr, short *addrlen)
+	short flags, struct sockaddr_in *addr, short *addrlen)
 {
 	struct udp_dgram *uh;
 	struct socket *so = data->sock;

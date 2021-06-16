@@ -60,8 +60,6 @@ static long cdecl bpf_datime(MX_DOSFD *, short *, short);
 static long cdecl bpf_ioctl(MX_DOSFD *, short, void *);
 static long cdecl bpf_delete(MX_DOSFD *, MX_DOSDIR *dir);
 
-static struct bpf *bpf_create(void);
-static void bpf_release(struct bpf *);
 static long bpf_attach(struct bpf *, struct ifreq *);
 static void bpf_reset(struct bpf *);
 static long bpf_sfilter(struct bpf *, struct bpf_program *);
@@ -87,20 +85,6 @@ MX_DDEV cdecl_bpf_dev GNU_ASM_NAME("cdecl_bpf_dev") = {
 /******************************************************************************/
 /*** ---------------------------------------------------------------------- ***/
 /******************************************************************************/
-
-/*
- * BPF initialization
- */
-void bpf_init(void)
-{
-	long r;
-
-	r = Dcntl(DEV_M_INSTALL, "u:\\dev\\bpf0", (long) &bpf_dev);
-	if (!r || r == ENOSYS)
-		(void) Cconws("Cannot install BPF device\r\n");
-}
-
-/*** ---------------------------------------------------------------------- ***/
 
 static struct bpf *allbpfs = 0;
 
@@ -135,7 +119,13 @@ static void bpf_release(struct bpf *bpf)
 	struct bpf **prev;
 	ushort sr;
 
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
+#endif
 	if_flushq(&bpf->recvq);
 	if (bpf->flags & BPF_OPEN)
 	{
@@ -156,6 +146,7 @@ static void bpf_release(struct bpf *bpf)
 		{
 			spl(sr);
 			FATAL("bpf_release: bpf not in list!");
+			/* BUG: missing return */
 		}
 	}
 	spl(sr);
@@ -193,7 +184,13 @@ static long bpf_attach(struct bpf *bpf, struct ifreq *ifr)
 {
 	ushort sr;
 
+#ifdef __PUREC__
+	/* only for binary equivalence; might as well use splhigh() */
+	sr = getsr();
+	setipl7();
+#else
 	sr = splhigh();
+#endif
 	if (bpf->flags & BPF_OPEN)
 	{
 		struct bpf *bpf2;
@@ -294,7 +291,13 @@ static long bpf_sfilter(struct bpf *bpf, struct bpf_program *prog)
 	{
 		if (prog->bf_len != 0)
 			return EINVAL;
+#ifdef __PUREC__
+		/* only for binary equivalence; might as well use splhigh() */
+		sr = getsr();
+		setipl7();
+#else
 		sr = splhigh();
+#endif
 		bpf->prog = 0;
 		bpf->proglen = 0;
 		bpf_reset(bpf);
@@ -315,7 +318,13 @@ static long bpf_sfilter(struct bpf *bpf, struct bpf_program *prog)
 
 	if (bpf_validate(nprog, prog->bf_len))
 	{
+#ifdef __PUREC__
+		/* only for binary equivalence; might as well use splhigh() */
+		sr = getsr();
+		setipl7();
+#else
 		sr = splhigh();
+#endif
 		bpf->prog = nprog;
 		bpf->proglen = prog->bf_len;
 		bpf_reset(bpf);
@@ -336,7 +345,8 @@ static volatile short have_tmout;
 /*
  * top half input handler.
  */
-static void cdecl bpf_handler(PROC *proc, long arg)
+/* BUG: not declared cdecl */
+static void bpf_handler(PROC *proc, long arg)
 {
 	struct bpf *bpf;
 
@@ -345,7 +355,15 @@ static void cdecl bpf_handler(PROC *proc, long arg)
 	have_tmout = 0;
 	for (bpf = allbpfs; bpf; bpf = bpf->link)
 	{
-		ushort sr = splhigh();
+		ushort sr;
+		
+#ifdef __PUREC__
+		/* only for binary equivalence; might as well use splhigh() */
+		sr = getsr();
+		setipl7();
+#else
+		sr = splhigh();
+#endif
 
 		if (bpf->flags & BPF_WAKE)
 		{
@@ -355,7 +373,9 @@ static void cdecl bpf_handler(PROC *proc, long arg)
 			if (bpf->rsel)
 				wakeselect(bpf->rsel);
 		} else
+		{
 			spl(sr);
+		}
 	}
 }
 
@@ -368,11 +388,11 @@ static void cdecl bpf_handler(PROC *proc, long arg)
 long cdecl bpf_input(struct netif *nif, BUF *buf)
 {
 	struct bpf *bpf;
-	ulong caplen;
-	ulong pktlen;
-	ulong snaplen;
-	ulong ticks;
-	ulong align;
+	long caplen;
+	long pktlen;
+	long snaplen;
+	long ticks;
+	long align;
 	struct bpf_hdr *hp;
 	BUF *buf2;
 	ushort sr;
@@ -388,7 +408,7 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 			continue;
 
 		caplen = BPF_HDRLEN + MIN(snaplen, pktlen);
-		if (caplen > BPF_READBUF - BPF_ALIGNMENT)
+		if (caplen > BPF_READBUF - (long)BPF_ALIGNMENT)
 			caplen = BPF_READBUF - BPF_ALIGNMENT;
 
 		/*
@@ -396,7 +416,13 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 		 * priority may grap the buffer and manipulate the dend
 		 * and dstart pointer while we are on them.
 		 */
+#ifdef __PUREC__
+		/* only for binary equivalence; might as well use splhigh() */
+		sr = getsr();
+		setipl7();
+#else
 		sr = splhigh();
+#endif
 		if ((buf2 = bpf->recvq.qlast[IF_PRIORITIES - 1]) != NULL &&
 			BUF_TRAIL_SPACE(buf2) >= caplen + BPF_ALIGNMENT + BPF_RESERVE / 2)
 		{
@@ -422,7 +448,13 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 				++bpf->in_drop;
 				continue;
 			}
+#ifdef __PUREC__
+			/* only for binary equivalence; might as well use splhigh() */
+			sr = getsr();
+			setipl7();
+#else
 			sr = splhigh();
+#endif
 			if (if_enqueue(&bpf->recvq, buf2, IF_PRIORITIES - 1))
 			{
 				spl(sr);
@@ -441,9 +473,11 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 		{
 			have_tmout = 1;
 			spl(sr);
-			addroottimeout(0, bpf_handler, 1);
+			addroottimeout(0, (void cdecl (*)(struct proc *, long))bpf_handler, 1);
 		} else
+		{
 			spl(sr);
+		}
 
 		ticks = (GETTIME() - bpf->s_ticks) * 5;
 		hp->bh_tstamp.tv_sec = bpf->s_time + ticks / 1000;
@@ -463,6 +497,20 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 /*** ---------------------------------------------------------------------- ***/
 /******************************************************************************/
 
+/*
+ * BPF initialization
+ */
+void bpf_init(void)
+{
+	long r;
+
+	r = Dcntl(DEV_M_INSTALL, "u:\\dev\\bpf0", (long) &bpf_dev);
+	if (r < 0)
+		(void) Cconws("Cannot install BPF device\r\n");
+}
+
+/*** ---------------------------------------------------------------------- ***/
+
 #ifdef __PUREC__
 #pragma warn -rch /* for p_geteuid */
 #endif
@@ -474,17 +522,18 @@ static long cdecl bpf_open(MX_DOSFD *fp)
 {
 	struct bpf *bpf;
 
+#ifdef NOTYET
 	if (p_geteuid() != 0)
 		return EACCES;
+#endif
 
 	bpf = bpf_create();
-	if (!bpf)
+	if ((fp->fd_user1 = (long) bpf) == 0)
 		return ENOMEM;
 
 	bpf->s_time = unixtime(Tgettime(), Tgetdate());
 	bpf->s_ticks = GETTIME();
 
-	fp->fd_user1 = (long) bpf;
 	return 0;
 }
 
@@ -664,7 +713,13 @@ static long cdecl bpf_ioctl(MX_DOSFD *fp, short cmd, void *arg)
 		/*
 		 * flush in-queue
 		 */
+#ifdef __PUREC__
+		/* only for binary equivalence; might as well use splhigh() */
+		sr = getsr();
+		setipl7();
+#else
 		sr = splhigh();
+#endif
 		bpf_reset(bpf);
 		spl(sr);
 		return 0;
@@ -692,10 +747,14 @@ static long cdecl bpf_ioctl(MX_DOSFD *fp, short cmd, void *arg)
 		 */
 		if (bpf->flags & BPF_OPEN)
 		{
-#if 0
 			struct ifreq *ifr = (struct ifreq *) arg;
 
+#if 0
 			ksprintf(ifr->ifr_name, "%s%d", bpf->nif->name, bpf->nif->unit);
+#else
+			sprintf_params[0] = (long)bpf->nif->name;
+			sprintf_params[1] = bpf->nif->unit;
+			p_kernel->_sprintf(ifr->ifr_name, "%S%L", sprintf_params);
 #endif
 			return 0;
 		}
@@ -719,6 +778,7 @@ static long cdecl bpf_ioctl(MX_DOSFD *fp, short cmd, void *arg)
 		 * get read timeout
 		 */
 		*(long *) arg = bpf->tmout * EVTGRAN;
+		/* BUG: missing return */
 
 	case BIOCGSTATS:
 		((struct bpf_stat *) arg)->bs_recv = bpf->in_pkts;
@@ -733,7 +793,7 @@ static long cdecl bpf_ioctl(MX_DOSFD *fp, short cmd, void *arg)
 
 	case BIOCVERSION:
 		/*
-		 * get verion info
+		 * get version info
 		 */
 		((struct bpf_version *) arg)->bv_major = BPF_MAJOR_VERSION;
 		((struct bpf_version *) arg)->bv_minor = BPF_MINOR_VERSION;
@@ -778,39 +838,43 @@ static long cdecl bpf_close(MX_DOSFD *fp)
 
 /*** ---------------------------------------------------------------------- ***/
 
-static long cdecl bpf_stat(MX_DOSFD *fp, MAGX_UNSEL *unsel, short rwflag, long appl)
-{
-	struct bpf *bpf = (struct bpf *) fp->fd_user1;
-
-	UNUSED(unsel);
-	switch (rwflag)
-	{
-	case O_RDONLY:
-		if (bpf->recvq.qfirst[IF_PRIORITIES - 1])
-			return 1;
-		if (bpf->rsel == 0)
-		{
-			bpf->rsel = appl;
-			return 0;
-		}
-		return 2;
-
-	case O_WRONLY:
-		return 1;
-
-	case O_RDWR:
-		return 0;
-	}
-
-	return 0;
-}
-
-/*** ---------------------------------------------------------------------- ***/
-
 static long cdecl bpf_delete(MX_DOSFD *f, MX_DOSDIR *dir)
 {
 	/* Nothing to do */
 	UNUSED(f);
 	UNUSED(dir);
 	return 0;
+}
+
+/*** ---------------------------------------------------------------------- ***/
+
+static long cdecl bpf_stat(MX_DOSFD *fp, MAGX_UNSEL *unsel, short rwflag, long appl)
+{
+	struct bpf *bpf = (struct bpf *) fp->fd_user1;
+	long r;
+	
+	switch (rwflag)
+	{
+	case O_RDONLY:
+		if (bpf->recvq.qfirst[IF_PRIORITIES - 1])
+			r = 1;
+		if (bpf->rsel == 0)
+		{
+			bpf->rsel = appl;
+			r = 0;
+		}
+		r = 0;
+		/* BUG: falls through */
+
+	case O_WRONLY:
+		r = 1;
+		/* BUG: falls through */
+
+	case O_RDWR:
+		r = 0;
+		break;
+	}
+	if (unsel != NULL)
+		unsel->unsel.status = r;
+	return r;
 }

@@ -53,13 +53,14 @@ inetdev.c
 ifload.c
 rawip.c
 arp.c
-
 arpdev.c
-masquera.c
+ifeth.c
 bpf.c
 bpfasm.s
 bpf_filt.c
-ifeth.c
+mintutil.c
+
+masquera.c
 kerinfo.c
 
 rest.c

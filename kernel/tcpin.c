@@ -887,8 +887,8 @@ static long tcp_addseg(struct in_dataq *q, BUF *buf)
  */
 static short tcp_sndwnd(struct tcb *tcb, struct tcp_dgram *tcph)
 {
-	long owlast,
-	 wlast;
+	long owlast;
+	long wlast;
 
 	if (!(tcph->f.f.flags & TCPF_ACK))
 		return -1;
@@ -993,13 +993,13 @@ static long tcp_ack(struct tcb *tcb, BUF *buf, short update_sndwnd)
 
 long tcp_rcvurg(struct tcb *tcb, BUF *buf)
 {
-	struct tcp_dgram *utcph,
-	*tcph;
-	long urgptr,
-	 urglen,
-	 datalen,
-	 hdrlen,
-	 nxt;
+	struct tcp_dgram *utcph;
+	struct tcp_dgram *tcph;
+	long urgptr;
+	long urglen;
+	long datalen;
+	long hdrlen;
+	long nxt;
 	BUF *ubuf;
 
 	tcph = (struct tcp_dgram *) IP_DATA(buf);

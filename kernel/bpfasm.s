@@ -34,7 +34,7 @@ bpf_dev:
  .dc.l	bpf_dev_close
  .dc.l	bpf_dev_read
  .dc.l	bpf_dev_write
- .dc.l	bpf_dev_stat
+ .dc.l	0
  .dc.l	bpf_dev_seek
  .dc.l	bpf_dev_datime
  .dc.l	bpf_dev_ioctl

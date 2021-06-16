@@ -34,14 +34,6 @@ void x1c022(void)
 }
 
 
-int sleep(int queue, long cond)
-{
-	UNUSED(queue);
-	UNUSED(cond);
-	return 0;
-}
-
-
 void wake(int queue, long cond)
 {
 	/* NOT IMPLEMENTED YET */

@@ -279,7 +279,7 @@ static long rip_send(struct in_data *data, const struct iovec *iov, short niov, 
 
 
 static long rip_recv(struct in_data *data, const struct iovec *iov, short niov, short nonblock, short flags,
-	 struct sockaddr_in *addr, short *addrlen)
+	struct sockaddr_in *addr, short *addrlen)
 {
 	struct socket *so = data->sock;
 	long size;
