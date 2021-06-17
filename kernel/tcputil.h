@@ -55,6 +55,7 @@ void		tcp_dump	(BUF *);
 short tcp_finished (struct tcb *tcb);
 
 long tcp_datalen (BUF *buf, struct tcp_dgram *tcph);
+void small_memcpy(void *dst, const void *src, size_t len);
 
 
 # endif /* _tcputil_h */

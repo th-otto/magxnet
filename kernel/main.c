@@ -41,7 +41,7 @@ static long get_jar(void)
 }
 
 
-static long *get_cookie(long id, long *value)
+long *get_cookie(long id, long *value)
 {
 	long *jar;
 	
@@ -63,7 +63,7 @@ static long *get_cookie(long id, long *value)
 }
 
 
-static int install_cookie(long *values)
+int install_cookie(long *values)
 {
 	unsigned long *jar;
 	int size;

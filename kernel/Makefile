@@ -52,7 +52,7 @@ OBJS = \
 	mintutil.o \
 	timeout.o \
 	timeouts.o \
-	rest.o \
+	ifinput.o \
 	$(empty)
 
 # OBJS += masqasm.o
@@ -67,6 +67,8 @@ EVAL_MSHORT = \
 
 sockets.dev: $(OBJS) $(SOCKLIB_DEP)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(SOCKLIB)
+
+ifinput.o: ifinput.c
 
 clean::
 	rm -f *.o *.pdb *.prg *.ttp *.map $(PROGRAMS)

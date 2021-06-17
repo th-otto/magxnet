@@ -186,6 +186,9 @@ struct dom_ops
 #define FORCE(x)
 
 
+long *get_cookie(long id, long *value);
+int install_cookie(long *values);
+
 extern const char *socket_devname;
 
 void printstr(const char *str);

@@ -8,6 +8,7 @@
 #include "sockets.h"
 #include "masquera.h"
 #include <stdlib.h>
+#include "sockdev.h"
 
 #include "mxkernel.h"
 #include "icmp.h"
@@ -26,20 +27,7 @@
 #define offset(seq_num) (after((seq_num), db_record->seq) ? db_record->offs : db_record->prev_offs)
 
 
-MASQ_GLOBAL_INFO masq = {
-	MASQ_MAGIC,
-	MASQ_VERSION,
-	0,
-	0,
-	MASQ_DEFRAG_ALL,
-	200UL * 60 * 1,
-	200UL * 60 * 60,
-	200UL * 255 * 2,
-	200UL * 60 * 1,
-	200UL * 60 * 1,
-	{ 0 },
-	NULL
-};
+MASQ_GLOBAL_INFO masq;
 
 static int ftp_modifier(BUF **buf, ulong localaddr);
 
@@ -58,23 +46,45 @@ void masq_init(void)
 {
 	int i;
 
+	cookie.masq = &masq;
+	
 #ifdef MASQUERADE_SUPPORT
 	masqdev_init();
 #endif
 
+	masq.magic = MASQ_MAGIC;
+	masq.version = MASQ_VERSION;
+	
+#ifndef NOTYET
 	for (i = 0; i < MASQ_NUM_PORTS; i++)
 		masq.port_db[i] = NULL;
-
+	masq.redirection_db = NULL;
+	masq.mask = 0;
+	masq.addr = 0;
+#endif
+	masq.flags = MASQ_DEFRAG_ALL;
+	masq.tcp_first_timeout = 200UL * 60 * 1;
+	masq.tcp_ack_timeout = 200UL * 60 * 60;
+	masq.tcp_fin_timeout = 200UL * 255 * 2;
+	masq.udp_timeout = 200UL * 60 * 1;
+	masq.icmp_timeout = 200UL * 60 * 1;
+	
 	MBDEBUG(("masq_init: initialisation finished"));
 
+#ifdef NOTYET
 	(void) Cconws("IP  masquerading by Mario Becroft, 1999.\r\n");
 	(void) Cconws("FTP masquerading support by Torsten Lang, 1999.\r\n");
+#endif
 }
 
 
+#ifdef __PUREC__
+#pragma warn -par /* using UNUSED here generates slightly different code */
+#endif
+
 BUF *masq_ip_input(struct netif *nif, BUF *buf)
 {
-	struct ip_dgram *iph = (struct ip_dgram *) buf->dstart;
+	struct ip_dgram *iph = (struct ip_dgram *) (buf)->dstart;
 	struct ip_dgram *orig_iph = iph;
 	ushort src_port = 0;
 	ushort dst_port = 0;
@@ -87,9 +97,13 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 	short addrtype;
 	struct sockaddr_in *in;
 
+#ifndef __PUREC__
 	UNUSED(nif);
+#endif
+#ifdef NOTYET /* commented out?? */
 	if (!(masq.flags & MASQ_ENABLED))
 		return buf;
+#endif
 
 	MBDEBUG(("masq_ip_input: incoming datagram"));
 	if (masq.flags & MASQ_DEFRAG_ALL)
@@ -115,10 +129,12 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 	MBDEBUG(("masq_ip_input: got route"));
 
 	if (iph->proto == IPPROTO_TCP)
+	{
 		src_port = tcph->dstport;
-	else if (iph->proto == IPPROTO_UDP)
+	} else if (iph->proto == IPPROTO_UDP)
+	{
 		src_port = uh->dstport;
-	else if (iph->proto == IPPROTO_ICMP)
+	} else if (iph->proto == IPPROTO_ICMP)
 	{
 		switch (icmph->type)
 		{
@@ -143,13 +159,18 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 				uh = (struct udp_dgram *) orig_iph->data;
 				src_port = uh->srcport;
 			} else
+			{
 				return buf;
+			}
 			break;
 		default:
 			src_port = 0;				/* Other incoming messages should not be modified */
+			break;
 		}
 	} else
+	{
 		return buf;						/* We do not understand other protocols */
+	}
 
 	MBDEBUG(("masq_ip_input: port is %u", src_port));
 	if (addrtype == IPADDR_LOCAL
@@ -185,13 +206,13 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 				db_record->seq = tcph->ack;
 			}
 			tcph->dstport = db_record->masq_port;
-			tcph->ack -= offset(tcph->ack - db_record->offs);
+			tcph->ack -= offset(tcph->ack /* - db_record->offs */); /* ??? commented out? */
 			tcph->chksum = 0;
 			tcph->chksum = tcp_checksum(tcph, iph->saddr, db_record->masq_addr, (long) buf->dend - (long) tcph);
 
-			if (tcph->f.f.flags & TCPF_SYN)
+			if (tcph->f.b.flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
-			if ((tcph->f.f.flags & TCPF_FIN) || (tcph->f.f.flags & TCPF_RST))
+			if ((tcph->f.b.flags & TCPF_FIN) || (tcph->f.b.flags & TCPF_RST))
 				db_record->timeout = masq.tcp_fin_timeout;
 		} else if (iph->proto == IPPROTO_UDP)
 		{
@@ -223,7 +244,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 				if (orig_iph->proto == IPPROTO_TCP)
 				{
 					tcph->srcport = db_record->masq_port;
-					tcph->seq -= offset(tcph->seq - db_record->offs);
+					tcph->seq -= offset(tcph->seq /* - db_record->offs */); /* commented out? */
 					tcph->chksum = 0;
 					/*tcph->chksum = tcp_checksum(tcph, orig_iph->saddr, orig_iph->daddr, (long)buf->dend - (long)tcph); */
 					orig_iph->saddr = db_record->masq_addr;
@@ -311,8 +332,9 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			}
 			/* 07/01/99 TL end support for data modification */
 		} else if (iph->proto == IPPROTO_UDP)
+		{
 			src_port = uh->srcport;
-		else if (iph->proto == IPPROTO_ICMP)
+		} else if (iph->proto == IPPROTO_ICMP)
 		{
 			switch (icmph->type)
 			{
@@ -384,9 +406,9 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 			tcph->chksum = 0;
 			tcph->chksum = tcp_checksum(tcph, localaddr, iph->daddr, (long) buf->dend - (long) tcph);
 
-			if (tcph->f.f.flags & TCPF_SYN)
+			if (tcph->f.b.flags & TCPF_SYN)
 				db_record->timeout = masq.tcp_ack_timeout;
-			if ((tcph->f.f.flags & TCPF_FIN) || (tcph->f.f.flags & TCPF_RST))
+			if ((tcph->f.b.flags & TCPF_FIN) || (tcph->f.b.flags & TCPF_RST))
 				db_record->timeout = masq.tcp_fin_timeout;
 		} else if (iph->proto == IPPROTO_UDP)
 		{
@@ -427,6 +449,7 @@ BUF *masq_ip_input(struct netif *nif, BUF *buf)
 	return buf;
 }
 
+
 PORT_DB_RECORD *find_port_record(ulong addr, ushort src_port, ushort dst_port, unsigned char proto)
 {
 	int i;
@@ -459,10 +482,14 @@ PORT_DB_RECORD *new_port_record(void)
 			record = kmalloc(sizeof(*record));
 			if (record)
 			{
+#ifdef NOTYET /* ab1b17532e20957ac784fb1de496297b899636b8 */
 				mint_bzero(record, sizeof(*record));
 				record->num = i;
-
 				masq.port_db[i] = record;
+#else
+				masq.port_db[i] = record;
+				record->num = i;
+#endif
 			} else
 			{
 				MBDEBUG(("masq_ip_input: ALERT: could not allocate storage for new record"));
@@ -501,7 +528,9 @@ PORT_DB_RECORD *new_redirection(void)
 	record = kmalloc(sizeof(*record));
 	if (record)
 	{
+#ifdef NOTYET /* ab1b17532e20957ac784fb1de496297b899636b8 */
 		mint_bzero(record, sizeof(*record));
+#endif
 
 		record->next_port = masq.redirection_db;
 		masq.redirection_db = record;
@@ -535,16 +564,13 @@ PORT_DB_RECORD *find_redirection(ushort port)
 {
 	PORT_DB_RECORD *record;
 
-	record = masq.redirection_db;
-	while (record)
+	for (record = masq.redirection_db; record != NULL; record = record->next_port)
 	{
 		if (record->num == port)
-			break;
-
-		record = record->next_port;
+			return record;
 	}
 
-	return record;
+	return NULL;
 }
 
 PORT_DB_RECORD *find_redirection_by_masq_port(ushort port)
@@ -555,12 +581,12 @@ PORT_DB_RECORD *find_redirection_by_masq_port(ushort port)
 	while (record)
 	{
 		if (record->masq_port == port)
-			break;
+			return record;
 
 		record = record->next_port;
 	}
 
-	return record;
+	return NULL;
 }
 
 /* 07/01/99 TL ftp support */
@@ -654,9 +680,10 @@ static int ftp_modifier(BUF **buf, ulong localaddr)
 			local_port = MASQ_BASE_PORT + new_db_record->num;
 			new_db_record->modified = MASQ_TIME;
 		} else if ((new_db_record = find_port_record(iph->saddr, ftp_port, 0, iph->proto)) != NULL)
+		{
 			/* This was a retry, so find the previously created entry */
 			local_port = MASQ_BASE_PORT + new_db_record->num;
-		else
+		} else
 		{
 			/* This should NOT happen */
 			buf_deref(*buf, BUF_NORMAL);
@@ -664,8 +691,8 @@ static int ftp_modifier(BUF **buf, ulong localaddr)
 			return 0;
 		}
 
-#if 0
-		tmpbuf_len = ksprintf(tmpbuf,
+		/* FIXME: use p_kernel->_sprintf here? */
+		tmpbuf_len = sprintf(tmpbuf,
 							  "%ld,%ld,%ld,%ld,%ld,%ld",
 							  (localaddr >> 24) & 255,
 							  (localaddr >> 16) & 255,
@@ -673,11 +700,6 @@ static int ftp_modifier(BUF **buf, ulong localaddr)
 							  localaddr & 255,
 							  (ulong) ((local_port >> 8) & 255),
 							  (ulong) (local_port & 255));
-#else
-		(void)local_port;
-		(void)localaddr;
-		tmpbuf_len = 0;
-#endif
 		/* recalculate datagram length */
 		delta = tmpbuf_len - ((long) data - (long) data_start);
 		iph->length += delta;

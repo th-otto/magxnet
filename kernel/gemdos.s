@@ -62,21 +62,15 @@
 
 				.globl Pterm
 				MODULE	Pterm
-				pea		(a2)
 				move.w	d0,-(a7)
 				move.w	#$4C,-(a7)
 				trap #1
-				addq.w	#4,a7
-				move.l	(a7)+,a2
-				rts
 				ENDMOD
 
-				.globl Mshrink
 				.globl _Mshrink
-				MODULE	Mshrink
-_Mshrink:
+				MODULE	_Mshrink
 				pea		(a2)				
-				move.l	d0,-(a7)
+				move.l	d1,-(a7)
 				pea		(a0)
 				move.w	d0,-(a7)
 				move.w	#$4A,-(a7)

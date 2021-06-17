@@ -93,7 +93,9 @@ static long load_xif(struct basepage *b, const char *name, short *class, short *
 
 
 #ifdef __PUREC__
+/* uses binding with explicit hidden arg */
 short _Mshrink(short zero, void *ptr, long size);
+#define Mshrink(ptr, size) _Mshrink(0, ptr, size)
 #endif
 
 void if_load(void)
@@ -125,12 +127,7 @@ void if_load(void)
 		if ((long)pd >= 0)
 		{
 			
-#ifdef __PUREC__
-			/* uses binding with explicit hidden arg */
-			_Mshrink(0, pd, pd->p_tlen + pd->p_dlen + pd->p_blen + 0x200);
-#else
 			Mshrink(pd, pd->p_tlen + pd->p_dlen + pd->p_blen + 0x200);
-#endif
 			init = (long cdecl (*)(struct kerinfo *, struct netinfo *))pd->p_tbase;
 			if (strcmp(mydta.dta_name, "SLIP.MIF") == 0)
 				netinfo.reserved[0] = (long)pd;

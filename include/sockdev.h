@@ -11,7 +11,7 @@ struct magxnet_cookie {
 	struct sockdev *dev_table;
 	void *o40;
 	long o44;
-	long o48;
+	void *masq;
 };
 
 
@@ -33,3 +33,7 @@ struct sockdev {
 	long input_avail;
 	long output_avail;
 };
+
+#ifdef __KERNEL__
+extern struct magxnet_cookie cookie;
+#endif

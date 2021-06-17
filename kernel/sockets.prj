@@ -60,12 +60,12 @@ bpfasm.s
 bpf_filt.c
 mintutil.c
 timeout.c
-
-masquera.c
-kerinfo.c
-
-rest.c
+chksum.s
+ifinput.s
 timeouts.s
+kerinfo.c
+masquera.c
+
 
 pcstdli2.lib
 

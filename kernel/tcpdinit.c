@@ -19,7 +19,9 @@ extern void tcpd_thread(long arg);
 #define O_GLOBAL 0x1000
 
 #ifdef __PUREC__
+/* uses binding with explicit hidden arg */
 short _Mshrink(short zero, void *ptr, long size);
+#define Mshrink(ptr, size) _Mshrink(0, ptr, size)
 #endif
 
 
@@ -35,12 +37,7 @@ void tcpd_init(void)
 		tcpd_fd += 100;
 	Fchmod(tcpd_pipe_name, 0600);
 	pd = (PD *)Pexec(5, NULL, (char *)tcpd_thread, NULL);
-#ifdef __PUREC__
-	/* uses binding with explicit hidden arg */
-	_Mshrink(0, pd, 0x300);
-#else
 	Mshrink(pd, 0x300);
-#endif
 	pd->p_tbase = (void *)tcpd_thread;
 	pd->p_hitpa = (char *)pd + 0x300;
 	Pexec(104, "tcpd", pd, NULL);

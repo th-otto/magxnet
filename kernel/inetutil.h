@@ -58,5 +58,4 @@ struct in_data *	in_data_lookup_next (struct in_data *,
 short chksum (void *, short);
 void			sa_copy (struct sockaddr *, struct sockaddr *);
 
-
 # endif /* _inetutil_h */

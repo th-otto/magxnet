@@ -254,9 +254,9 @@ struct kerinfo
 	 *
 	 * same as canceltimeout() but for root timeouts
 	 */
-	TIMEOUT * _cdecl (*addtimeout)(long, void _cdecl (*)(PROC *, long arg));
+	TIMEOUT * _cdecl (*addtimeout)(long, to_func *);
 	void	_cdecl (*canceltimeout)(TIMEOUT *);
-	TIMEOUT * _cdecl (*addroottimeout)(long, void _cdecl (*)(PROC *, long arg), ushort);
+	TIMEOUT * _cdecl (*addroottimeout)(long, to_func *, ushort);
 	void	_cdecl (*cancelroottimeout)(TIMEOUT *);
 
 

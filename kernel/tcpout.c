@@ -1138,7 +1138,11 @@ long tcp_output(struct tcb *tcb, const struct iovec *iov, short niov, long len, 
 				tcph->f.b.hdrlen += (unsigned int)(sizeof(mss_opt) / 4);
 				mss_opt.mss = tcb->rcv_mss;
 				if ((long)b->dend & 1)
+#ifdef __PUREC__
+					small_memcpy(b->dend, &mss_opt, sizeof(mss_opt));
+#else
 					memcpy(b->dend, &mss_opt, sizeof(mss_opt));
+#endif
 				else
 					*((struct _mss_opt *)b->dend) = mss_opt;
 				b->dend += sizeof(mss_opt);

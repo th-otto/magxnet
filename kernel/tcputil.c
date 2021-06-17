@@ -437,7 +437,7 @@ ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort 
 		"\taddxw	d0, %0\n"
 #endif
 		: "=d"(sum)
-		:"g"(srcadr), "d"(dstadr), "i"(IPPROTO_TCP), "d"(len), "0"(sum)
+		: "g"(srcadr), "d"(dstadr), "i"(IPPROTO_TCP), "d"(len), "0"(sum)
 #ifdef __mcoldfire__
 		: "d0", "d1", "cc"
 #else
@@ -509,7 +509,8 @@ ushort tcp_checksum(struct tcp_dgram *dgram, ulong srcadr, ulong dstadr, ushort 
 #endif
 		"2:\n"
 		: "=d"(sum), "=a"(dgram)
-		: "g"(len), "0"(sum), "1"(dgram):"d0", "d1", "d2", "d3", "d4", "cc");
+		: "g"(len), "0"(sum), "1"(dgram)
+		: "d0", "d1", "d2", "d3", "d4", "cc");
 
 	/*
 	 * Add in extra word, byte (if len not multiple of 4).

@@ -306,7 +306,7 @@ short cdecl chksum(void *buf, short nwords)
 
 #else
 
-/* implemenented in chksum.s */
+/* implemented in chksum.s */
 
 #endif
 
