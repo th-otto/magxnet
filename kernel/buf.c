@@ -130,7 +130,7 @@ static void gc(PROC *proc, long arg)
 		DEBUG(("NET: mem used: %ldk before, %ldk after garbage coll.", mem / 1024, mem_used / 1024));
 	}
 
-	addroottimeout(GC_TIMEOUT, (void cdecl (*)(struct proc *, long))gc, 0);
+	addroottimeout(GC_TIMEOUT, gc, 0);
 }
 
 
@@ -160,7 +160,7 @@ long buf_init(void)
 		return -1;
 	}
 
-	addroottimeout(GC_TIMEOUT, (void cdecl (*)(struct proc *, long))gc, 0);
+	addroottimeout(GC_TIMEOUT, gc, 0);
 	return 0;
 }
 
@@ -335,7 +335,7 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		if (mode == BUF_ATOMIC)
 		{
 			if (!buf_tmout)
-				buf_tmout = addroottimeout(0, (void cdecl (*)(struct proc *, long))addmem, 1);
+				buf_tmout = addroottimeout(0, addmem, 1);
 			failed_allocs++;
 			spl(sr);
 			return 0;

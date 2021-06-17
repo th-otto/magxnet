@@ -59,12 +59,13 @@ bpf.c
 bpfasm.s
 bpf_filt.c
 mintutil.c
+timeout.c
 
 masquera.c
 kerinfo.c
 
 rest.c
-x28.s
+timeouts.s
 
 pcstdli2.lib
 

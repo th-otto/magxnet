@@ -3,7 +3,7 @@ struct magxnet_cookie {
 	const char *author;
 	unsigned long magic;
 	long (*init_timer)(void);
-	void (*o16)(void);
+	void (*checkalarms)(void);
 	BASEPAGE *base;
 	long (*Fopen)(const char *filename);
 	short (*Fclose)(short fd);

@@ -307,7 +307,7 @@ void if_doinput(PROC *proc, long arg)
 #ifdef NOTYET
 		if_input(0, 0, 100, 0);
 #else
-		tmout = addroottimeout(60, (void cdecl (*)(struct proc *, long))if_doinput, 1);
+		tmout = addroottimeout(60, if_doinput, 1);
 #endif
 	}
 
@@ -356,7 +356,7 @@ static void if_slowtimeout(PROC *proc, long arg)
 			(*nif->timeout) (nif);
 	}
 
-	addroottimeout(IF_SLOWTIMEOUT, (void cdecl (*)(struct proc *, long))if_slowtimeout, 0);
+	addroottimeout(IF_SLOWTIMEOUT, if_slowtimeout, 0);
 }
 
 
@@ -419,7 +419,7 @@ long cdecl if_register(struct netif *nif)
 	allinterfaces = nif;
 	if (nif->timeout && !have_timeout)
 	{
-		addroottimeout(IF_SLOWTIMEOUT, (void cdecl (*)(struct proc *, long))if_slowtimeout, 0);
+		addroottimeout(IF_SLOWTIMEOUT, if_slowtimeout, 0);
 		have_timeout = 1;
 	}
 

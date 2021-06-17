@@ -49,8 +49,9 @@ OBJS = \
 	ifeth.o \
 	rawip.o \
 	kerinfo.o \
-	mintutil.o\
-	x28.o \
+	mintutil.o \
+	timeout.o \
+	timeouts.o \
 	rest.o \
 	$(empty)
 

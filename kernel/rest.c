@@ -13,69 +13,7 @@
 #include "masquera.h"
 #include "asm_spl.h"
 
-
-void x1c39c(void)
-{
-}
-
-
-void x1c022(void)
-{
-	so_connect(0, 0, 0, 0, 0); /* XXX */
-	so_register(0, 0);
-	so_rselect(0, 0);
-	so_wselect(0, 0);
-	so_xselect(0, 0);
-	iov2buf_cpy(0, 0, 0, 0, 0);
-	buf2iov_cpy(0, 0, 0, 0, 0);
-	dummydev_init(0, 0);
-	/* install packetfilter */
-	bpf_init();
-}
-
-
-void wake(int queue, long cond)
-{
-	/* NOT IMPLEMENTED YET */
-	UNUSED(queue);
-	UNUSED(cond);
-}
-
-void wakeselect(long proc)
-{
-	/* NOT IMPLEMENTED YET */
-	UNUSED(proc);
-}
-
-
-void x1bd00(long arg)
-{
-	UNUSED(arg);
-}
-
-
-TIMEOUT *cdecl addroottimeout(long delta, void cdecl (*func)(struct proc *, long), ushort flags)
-{
-	(void)delta;
-	(void)func;
-	(void)flags;
-	return 0;
-}
-
-
-void cdecl cancelroottimeout(TIMEOUT *which)
-{
-	(void)which;
-}
-
-
-long cdecl unixtime(unsigned short time, unsigned short date)
-{
-	(void)time;
-	(void)date;
-	return 0;
-}
-
+void dispose_old_timeouts(void);
 
 
 short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
@@ -98,7 +36,7 @@ short cdecl if_input(struct netif *nif, BUF *buf, long delay, short type)
 	}
 
 	if (tmout == 0)
-		tmout = addroottimeout(delay, (void cdecl (*)(struct proc *, long))if_doinput, 1);
+		tmout = addroottimeout(delay, if_doinput, 1);
 
 	spl(sr);
 
@@ -136,6 +74,16 @@ short chksum(void *buf, short nwords)
 	/* TODO */
 	(void)buf;
 	(void)nwords;
+	so_connect(0, 0, 0, 0, 0); /* XXX */
+	so_rselect(0, 0);
+	so_wselect(0, 0);
+	so_xselect(0, 0);
+	iov2buf_cpy(0, 0, 0, 0, 0);
+	buf2iov_cpy(0, 0, 0, 0, 0);
+	dummydev_init(0, 0);
+	/* install packetfilter */
+	bpf_init();
+	dispose_old_timeouts();
 	return 0;
 }
 #endif

@@ -83,7 +83,7 @@ static void check_events(PROC *proc, long arg2)
 
 	if (ep)
 	{
-		nexttimeout = addroottimeout(ep->delta * EVTGRAN, (void cdecl (*)(struct proc *, long))check_events, 0);
+		nexttimeout = addroottimeout(ep->delta * EVTGRAN, check_events, 0);
 		if (!nexttimeout)
 		{
 			FATAL("timer: out of kernel memory");
@@ -137,7 +137,7 @@ static void event_insert(struct event *ep, long delta)
 		if (nexttimeout)
 			cancelroottimeout(nexttimeout);
 
-		nexttimeout = addroottimeout(delta * EVTGRAN, (void cdecl (*)(struct proc *, long))check_events, 0);
+		nexttimeout = addroottimeout(delta * EVTGRAN, check_events, 0);
 		if (!nexttimeout)
 		{
 			FATAL("timer: out of kernel memory");

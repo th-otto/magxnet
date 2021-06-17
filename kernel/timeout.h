@@ -17,6 +17,7 @@ typedef struct timeout TIMEOUT;
 typedef struct proc PROC;
 struct proc { int dummy; };
 
+/* BUG: in MiNT, this is cdecl */
 typedef void to_func (PROC *, long arg);
 
 struct timeout
@@ -29,13 +30,24 @@ struct timeout
 	long	arg;		/**< Argument to the function which gets called.	*/
 };
 
-extern TIMEOUT *tmout;
+struct timeout_pool {
+	struct timeout_pool *next;
+	char inuse;
+	TIMEOUT tmout;
+};
 
-TIMEOUT *addtimeout(struct proc *p, long delta, void (*func)(struct proc *, long));
-TIMEOUT *addtimeout_curproc(long delta, void (*func)(struct proc *, long));
-TIMEOUT *cdecl addroottimeout(long delta, void cdecl (*func)(struct proc *, long), ushort flags);
-void cancelalltimeouts (void);
-void canceltimeout(TIMEOUT *which);
+extern TIMEOUT *tmout;
+extern struct timeout_pool timeout_pool[128];
+
+void timeout_init(struct timeout_pool *pool, size_t size, size_t elemsize) GNU_ASM_NAME("timeout_init");
+TIMEOUT *timeout_alloc(void) GNU_ASM_NAME("timeout_alloc");
+void checkalarms(void);
+
+TIMEOUT *cdecl addtimeout(struct proc *p, long delta, to_func *func);
+TIMEOUT *addtimeout_curproc(long delta, to_func *func);
+TIMEOUT *cdecl addroottimeout(long delta, to_func *func, ushort flags);
+void cdecl cancelalltimeouts(void);
+void cdecl canceltimeout(TIMEOUT *which);
 void cdecl cancelroottimeout(TIMEOUT *which);
 
 

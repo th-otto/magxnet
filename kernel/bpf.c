@@ -473,7 +473,7 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 		{
 			have_tmout = 1;
 			spl(sr);
-			addroottimeout(0, (void cdecl (*)(struct proc *, long))bpf_handler, 1);
+			addroottimeout(0, bpf_handler, 1);
 		} else
 		{
 			spl(sr);

@@ -397,7 +397,7 @@ install_bios_handler:
 	move.l     8(a7),a1
 	.ENDC
 	movem.l    d1-d2/a0-a2,-(a7)
-	move.l     a0,x11968
+	move.l     a0,p_checkalarms
 	move.l     a1,x1196c
 	move.l     #-1,-(a7)
 	move.w     #0x45,-(a7) /* get old bios trap */
@@ -573,7 +573,7 @@ save_slice:
 	.dc.w 0
 x11964:
 	.dc.l 0
-x11968:
+p_checkalarms:
 	.dc.l 0
 x1196c:
 	.dc.l 0

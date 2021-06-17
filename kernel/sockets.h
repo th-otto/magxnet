@@ -186,23 +186,13 @@ struct dom_ops
 #define FORCE(x)
 
 
-struct x28 {
-	struct x28 *next;
-	char inuse;
-	char o6[22];
-};
-
 extern const char *socket_devname;
-extern struct x28 x28_pool[128];
 
 void printstr(const char *str);
 extern MX_DDEV cdecl_socket_dev GNU_ASM_NAME("cdecl_socket_dev");
 extern MX_DDEV socket_dev GNU_ASM_NAME("socket_dev");
 
-void x28_init(struct x28 *pool, size_t size, size_t elemsize) GNU_ASM_NAME("x28_init");
 void inet4_init(void);
-void x1c022(void);
-void x1c39c(void);
 void install_bios_handler(void *, void *) GNU_ASM_NAME("install_bios_handler");
 
 extern struct dom_ops *alldomains;
