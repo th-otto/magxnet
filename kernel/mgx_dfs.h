@@ -32,6 +32,11 @@
 typedef struct _mx_dosfd MX_DOSFD;
 typedef struct _mx_dosdir MX_DOSDIR;
 
+/*
+ * Note: callbacks here reflect the prototypes used in the C-Code.
+ * The kernel will pass the parameters in registers,
+ * and the device drivers need to use an assembler wrapper.
+ */
 typedef struct _mx_ddev {
      LONG cdecl (*ddev_open)(MX_DOSFD *f);
      LONG cdecl (*ddev_close)(MX_DOSFD *f);

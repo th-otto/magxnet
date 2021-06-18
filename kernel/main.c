@@ -9,12 +9,17 @@
 #define SuperToUser(sp) Super((void *)(sp))
 #endif
 
-MX_KERNEL *p_kernel_copy;
-long x1f1dc;
-long x1f1e0;
-long x1f1e4;
+/*
+ * maybe intended to be used by someone else,
+ * but nowhere referenced
+ */
+static struct {
+	MX_KERNEL *p_kernel;
+	long res[3];
+} magic_struct;
+
 MX_KERNEL *p_kernel;
-long cookie_values[2];
+static long cookie_values[2];
 struct magxnet_cookie cookie;
 #define TIMEOUT_POOLSIZE 128
 struct timeout_pool timeout_pool[TIMEOUT_POOLSIZE + 1];
@@ -147,7 +152,7 @@ int main(void)
 	r = Dcntl(DEV_M_INSTALL, socket_devname, (long)&socket_dev);
 	if (r < 0)
 		return (int)r;
-	p_kernel_copy = p_kernel;
+	magic_struct.p_kernel = p_kernel;
 	timeout_init(timeout_pool, TIMEOUT_POOLSIZE * sizeof(struct timeout_pool), sizeof(timeout_pool[0]));
 	cookie.version = MSG_VERSION;
 	cookie.author = "Vassilis Papathanassiou";
