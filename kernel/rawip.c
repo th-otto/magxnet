@@ -37,8 +37,8 @@ static long rip_shutdown(struct in_data *, short);
 static long rip_setsockopt(struct in_data *, short, short, char *, long);
 static long rip_getsockopt(struct in_data *, short, short, char *, long *);
 
-static long rip_error(short, short, BUF *, ulong, ulong);
-static long rip_input(struct netif *, BUF *, ulong, ulong);
+static long rip_error(short, short, BUF *, in_addr_t, in_addr_t);
+static long rip_input(struct netif *, BUF *, in_addr_t, in_addr_t);
 
 struct in_proto rip_proto = {
 	IPPROTO_RAW,
@@ -424,7 +424,7 @@ static long rip_getsockopt(struct in_data *data, short level, short optname, cha
  * We assume that rip_input() is the last handler in the chain.
  */
 
-static long rip_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
+static long rip_input(struct netif *iface, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	short proto;
 	short found = 0;
@@ -487,7 +487,7 @@ static long rip_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
  * Note that `saddr' is our address, ie the source address of the packet
  * that caused the icmp reply.
  */
-static long rip_error(short type, short code, BUF *buf, ulong saddr, ulong daddr)
+static long rip_error(short type, short code, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	UNUSED(type);
 	UNUSED(code);

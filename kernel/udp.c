@@ -188,6 +188,10 @@ static long udp_select(struct in_data *data, short mode, long proc)
 }
 
 
+#ifdef __PUREC__
+#pragma warn -par /* using UNUSED here generates slightly different code */
+#endif
+
 static long udp_send(struct in_data *data, const struct iovec *iov, short niov, short nonblock,
 	short flags, const struct sockaddr_in *addr, short addrlen)
 {
@@ -201,8 +205,10 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 	ushort dstport;
 	short ipflags = 0;
 
+#ifndef __PUREC__
 	UNUSED(nonblock);
 	UNUSED(addrlen);
+#endif
 	if (flags & ~MSG_DONTROUTE)
 	{
 		DEBUG(("udp_send: invalid flags"));
@@ -286,8 +292,7 @@ static long udp_send(struct in_data *data, const struct iovec *iov, short niov, 
 	DEBUG(("udp_send: dstaddr = 0x%lx", dstaddr));
 
 	r = ip_send(data->src.addr, dstaddr, buf, IPPROTO_UDP, ipflags, &data->opts);
-	r = (r ? r : copied);
-	return r; /* XXX slightly different code */
+	return r ? r : copied;
 }
 
 

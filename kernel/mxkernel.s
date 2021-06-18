@@ -18,9 +18,9 @@
 
 hz_200 = 0x4ba
 
-	.xref in_tcp_send
-	.xref x1ef60
-	.xref x1ef64
+	.globl in_tcp_send
+	.xref tlist
+	.xref expire_list
 	.globl bios_sema
 
 	.text
@@ -489,7 +489,7 @@ ret_from_bios:
 	move.w     d0,sr
 	move.w     in_tcp_send,d0
 	bne        ret_b10
-	lea.l      x1ef60,a2
+	lea.l      tlist,a2
 ret_b1:
 	move.l     (a2),d1
 	beq.s      ret_b3
@@ -518,7 +518,7 @@ ret_b2:
 	jsr        (a4)
 	bra.s      ret_b1
 ret_b3:
-	lea.l      x1ef64,a2
+	lea.l      expire_list,a2
 	move.l     (a2),d1
 	beq.s      ret_b10
 	move.w     sr,d4
@@ -615,3 +615,5 @@ my_kernel:
 	.globl real_p_kernel
 real_p_kernel:
 	.dc.l 0
+
+	

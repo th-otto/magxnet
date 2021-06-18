@@ -22,7 +22,7 @@ struct udp_dgram
 extern struct in_proto udp_proto;
 
 void	udp_init (void);
-ushort	udp_checksum (struct udp_dgram *dgram, ulong srcadr, ulong dstadr);
+ushort	udp_checksum (struct udp_dgram *dgram, in_addr_t srcadr, in_addr_t dstadr);
 
 
 # endif /* _udp_h */

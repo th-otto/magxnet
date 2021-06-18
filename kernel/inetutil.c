@@ -207,8 +207,8 @@ struct in_data *in_data_lookup(struct in_data *datas, in_addr_t srcaddr, in_port
 /*
  * Incrementally search the next matching data
  */
-struct in_data *in_data_lookup_next(struct in_data *datas, ulong srcaddr, ushort srcport,
-	ulong dstaddr, ushort dstport, short wildcard)
+struct in_data *in_data_lookup_next(struct in_data *datas, in_addr_t srcaddr, in_port_t srcport,
+	in_addr_t dstaddr, in_port_t dstport, short wildcard)
 {
 	struct in_data *d;
 

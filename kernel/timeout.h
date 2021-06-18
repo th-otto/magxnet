@@ -37,7 +37,6 @@ struct timeout_pool {
 };
 
 extern TIMEOUT *tmout;
-extern struct timeout_pool timeout_pool[128];
 
 void timeout_init(struct timeout_pool *pool, size_t size, size_t elemsize) GNU_ASM_NAME("timeout_init");
 TIMEOUT *timeout_alloc(void) GNU_ASM_NAME("timeout_alloc");

@@ -25,9 +25,9 @@
 /* This gets implicitly initialized to zero, thus the flags are
  * set up correctly.
  */
-static TIMEOUT timeouts[TIMEOUTS];
-TIMEOUT *tlist = NULL;
-TIMEOUT *expire_list = NULL;
+static TIMEOUT timeouts[TIMEOUTS] = { { 0, 0, 0, 0, 0, 0 } }; /* FIXME: why initialized? */
+TIMEOUT *tlist GNU_ASM_NAME("tlist") = NULL;
+TIMEOUT *expire_list GNU_ASM_NAME("expire_list") = NULL;
 
 /* Number of ticks after that an expired timeout is considered to be old
  * and disposed automatically.

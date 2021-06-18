@@ -16,14 +16,11 @@ long x1f1e4;
 MX_KERNEL *p_kernel;
 long cookie_values[2];
 struct magxnet_cookie cookie;
-struct timeout_pool timeout_pool[128];
+#define TIMEOUT_POOLSIZE 128
+struct timeout_pool timeout_pool[TIMEOUT_POOLSIZE + 1];
 const char *socket_devname = "u:\\dev\\socket";
 typedef void (*init_func)(void);
 static init_func init_funcs[] = { inet4_init, bpf_init, 0 };
-
-short in_tcp_send;
-void *x1ef60 GNU_ASM_NAME("x1ef60");
-void *x1ef64 GNU_ASM_NAME("x1ef64");
 
 
 
@@ -151,7 +148,7 @@ int main(void)
 	if (r < 0)
 		return (int)r;
 	p_kernel_copy = p_kernel;
-	timeout_init(timeout_pool, sizeof(timeout_pool), sizeof(timeout_pool[0]));
+	timeout_init(timeout_pool, TIMEOUT_POOLSIZE * sizeof(struct timeout_pool), sizeof(timeout_pool[0]));
 	cookie.version = MSG_VERSION;
 	cookie.author = "Vassilis Papathanassiou";
 	cookie.magic = 0x4D475853L; /* 'MGXS' */
@@ -201,6 +198,6 @@ static void print_banner(void)
 #endif
 		"\r\n";
 	printstr(str);
-	str = "\275 1998-2003  Vassilis Papathanassiou \r\n\r\n";
+	str = "\275 1998-2003  Vassilis Papathanassiou \n\r\n\r";
 	printstr(str);
 }

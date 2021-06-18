@@ -37,9 +37,9 @@
 # include "inet.h"
 
 
-short port_inuse (struct in_data *, ushort port);
-struct in_data * port_find (struct in_data *, ushort port);
-struct in_data * port_find_with_addr (struct in_data *, ushort port, ulong addr);
+short port_inuse (struct in_data *, in_port_t port);
+struct in_data * port_find (struct in_data *, in_port_t port);
+struct in_data * port_find_with_addr (struct in_data *, in_port_t port, in_addr_t addr);
 ushort port_alloc (struct in_data *);
 
 

@@ -266,13 +266,13 @@ void if_doinput(PROC *proc, long arg)
 
 		for (todo = nif->rcv.maxqlen; todo; --todo)
 		{
-			register BUF *buf;
+			BUF *buf;
 
 			buf = if_dequeue(&nif->rcv);
 			if (!buf)
 				break;
 
-			switch ((short) buf->info)
+			switch ((unsigned short) buf->info)
 			{
 			case PKTYPE_IP:
 				ip_input(nif, buf);

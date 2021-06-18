@@ -2,7 +2,7 @@
 	.globl old_etv_timer
 
 	.globl uninstall_xbra
-	.xref x1ef60
+	.xref tlist
 
 timer_c   = 0x114
 etv_timer = 0x400
@@ -14,7 +14,7 @@ etv_timer = 0x400
 old_etv_timer:
 	.dc.l 0
 new_etv_timer:
-	move.l     x1ef60,d0
+	move.l     tlist,d0
 	beq.s      new_etv_timer1
 	movea.l    d0,a0
 	moveq.l    #20,d0

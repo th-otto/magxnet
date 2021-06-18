@@ -68,6 +68,7 @@ long routedev_init(void)
 }
 
 
+/* BUG: not declared cdecl */
 static long routedev_read(MX_DOSFD *f, long nbytes, void *buf)
 {
 	struct route *rt = NULL;

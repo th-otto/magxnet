@@ -16,10 +16,11 @@
 
 static Func dos_tab[DOS_MAX];
 static Func bios_tab[12];
+char x210e6[80]; /* xbios_tab? unused */
 
 static long cdecl enosys(void)
 {
-	return -ENOSYS;
+	return ENOSYS;
 }
 
 
@@ -42,7 +43,7 @@ static struct kerinfo kernelinfo =
 {
 	1 /* MINT_MAJ_VERSION */,
 	15 /* MINT_MIN_VERSION */,
-	0755 /* DEFAULT_MODE */,
+	0666 /* DEFAULT_MODE */,
 	2, /* MINT_KVERSION */
 	bios_tab,
 	dos_tab,
@@ -90,7 +91,7 @@ static struct kerinfo kernelinfo =
 	NULL, /* loops_per_sec */
 	0, /* get_toscookie */
 
-	0, /* so_register */
+	0, /* so_register */ /* why are those not exported? */
 	0, /* so_unregister */
 	0, /* so_release */
 	0, /* so_sockpair */
@@ -179,7 +180,19 @@ static void cdecl m_kfree(void *ptr)
 }
 
 
+#if defined(__GNUC__) && !defined(__MSHORT__)
+struct ssystem_args {
+	short mode;
+	ulong arg1;
+	ulong arg2;
+};
+#define mode args.mode
+#define arg1 args.arg1
+#define arg2 args.arg2
+static long cdecl sys_s_system(struct ssystem_args args)
+#else
 static long cdecl sys_s_system(short mode, ulong arg1, ulong arg2)
+#endif
 {
 	long r = E_OK;
 	long values[2];
@@ -206,13 +219,28 @@ static long cdecl sys_s_system(short mode, ulong arg1, ulong arg2)
 		break;
 	}
 	return r;
+#undef mode
+#undef arg1
+#undef arg2
 }
 
 
+#if defined(__GNUC__) && !defined(__MSHORT__)
+struct fwrite_args {
+	short fd;
+	long count;
+	const void *buf;
+};
+static long cdecl sys_f_write(struct fwrite_args args)
+{
+	return Fwrite(args.fd, args.count, args.buf);
+}
+#else
 static long cdecl sys_f_write(short fd, long count, const void *buf)
 {
 	return Fwrite(fd, count, buf);
 }
+#endif
 
 
 /* FIXME: should return pointer */

@@ -48,12 +48,12 @@ short			in_data_find (short, struct in_data *);
 void			in_data_put (struct in_data *);
 void			in_data_remove (struct in_data *);
 struct in_data *	in_data_lookup (struct in_data *,
-				ulong, ushort,
-				ulong, ushort);
+				in_addr_t, in_port_t,
+				in_addr_t, in_port_t);
 
 struct in_data *	in_data_lookup_next (struct in_data *,
-				ulong, ushort,
-				ulong, ushort, short);
+				in_addr_t, in_port_t,
+				in_addr_t, in_port_t, short);
 
 short chksum (void *, short);
 void			sa_copy (struct sockaddr *, struct sockaddr *);

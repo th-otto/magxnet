@@ -6,7 +6,7 @@
 #include <fcntl.h>
 
 extern short tcpd_fd;
-extern const char *tcpd_pipe_name;
+const char *tcpd_pipe_name = "u:\\pipe\\tcpd";
 
 
 extern void tcpd_thread(long arg);
@@ -36,7 +36,7 @@ void tcpd_init(void)
 	if (tcpd_fd < 100)
 		tcpd_fd += 100;
 	Fchmod(tcpd_pipe_name, 0600);
-	pd = (PD *)Pexec(5, NULL, (char *)tcpd_thread, NULL);
+	pd = (PD *)Pexec(5, NULL, "", NULL);
 	Mshrink(pd, 0x300);
 	pd->p_tbase = (void *)tcpd_thread;
 	pd->p_hitpa = (char *)pd + 0x300;

@@ -51,9 +51,9 @@ short cdecl eth_remove_hdr(BUF *buf)
 	struct eth_dgram *ep = (struct eth_dgram *) buf->dstart;
 	long len;
 	long nlen;
-	short type;
+	unsigned short type;
 
-	type = (ep->proto >= 1536) ? ep->proto : ETHPROTO_8023;
+	type = ep->proto >= 1536 ? ep->proto : ETHPROTO_8023;
 	buf->dstart += sizeof(*ep);
 
 	DEBUG(("eth_remove_hdr( buf=0x%lx, type=%d )", (unsigned long) buf, type));

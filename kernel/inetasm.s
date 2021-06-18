@@ -15,6 +15,7 @@
 
      .globl inetdev
      .xref cdecl_inetdev
+     .xref cdecl_dummydev
 
 	.include "mgx_dfs.inc"
 	.include "socket.inc"
@@ -190,7 +191,7 @@ inetdev_datime:
  .ENDC
  move.l	a1,-(sp)
  move.l	a0,-(sp)
- move.l	cdecl_inetdev+ddev_datime,a0
+ move.l	cdecl_dummydev+ddev_datime,a0 /* FIXME: should be cdecl_inetdev */
  jsr		(a0)
  .IFEQ MSHORT
  lea		12(sp),sp
@@ -214,7 +215,7 @@ inetdev_ioctl:
  move.w   d0,-(sp)                 /* cmd */
  .ENDC
  move.l   a0,-(sp)                 /* MX_DOSFD */
- move.l	cdecl_inetdev+ddev_ioctl,a0
+ move.l	cdecl_dummydev+ddev_ioctl,a0 /* FIXME: should be cdecl_inetdev */
  jsr      (a0)
  .IFEQ MSHORT
  lea		12(sp),sp
@@ -232,7 +233,7 @@ inetdev_ioctl:
 inetdev_delete:
  move.l	a1,-(sp)
  move.l	a0,-(sp)
- move.l	cdecl_inetdev+ddev_delete,a0
+ move.l	cdecl_dummydev+ddev_delete,a0 /* FIXME: should be cdecl_inetdev */
  jsr		(a0)
  addq.l	#8,sp
  rts
@@ -256,7 +257,7 @@ inetdev_getc:
  move.w   d0,-(sp)                 /* mode */
  .ENDC
  move.l   a0,-(sp)                 /* MX_DOSFD */
- move.l	cdecl_inetdev+ddev_getc,a0
+ move.l	cdecl_dummydev+ddev_getc,a0 /* FIXME: should be cdecl_inetdev */
  jsr      (a0)
  .IFEQ MSHORT
  addq.l   #8,sp
@@ -286,7 +287,7 @@ inetdev_getline:
  move.l   d1,-(sp)                 /* size */
  move.l   a1,-(sp)                 /* buf */
  move.l   a0,-(sp)                 /* MX_DOSFD */
- move.l	cdecl_inetdev+ddev_getline,a0
+ move.l	cdecl_dummydev+ddev_getline,a0 /* FIXME: should be cdecl_inetdev */
  jsr      (a0)
  .IFEQ MSHORT
  lea	  16(sp),sp
@@ -314,7 +315,7 @@ inetdev_putc:
  move.w   d0,-(sp)                 /* mode */
  .ENDC
  move.l   a0,-(sp)                 /* MX_DOSFD */
- move.l	cdecl_inetdev+ddev_putc,a0
+ move.l	cdecl_dummydev+ddev_putc,a0 /* FIXME: should be cdecl_inetdev */
  jsr      (a0)
  .IFEQ MSHORT
  lea	  12(sp),sp

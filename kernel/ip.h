@@ -126,7 +126,7 @@ struct in_ip_ops;
 void	ip_register (struct in_ip_ops *);
 in_addr_t	ip_netmask (in_addr_t);
 void	ip_input (struct netif *, BUF *);
-long	ip_send (ulong, ulong, BUF *, short, short, struct ip_options *);
+long	ip_send (in_addr_t, in_addr_t, BUF *, short, short, struct ip_options *);
 long	ip_output (BUF *);
 
 BUF *	ip_defrag (BUF *);

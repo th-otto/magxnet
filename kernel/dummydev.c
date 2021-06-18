@@ -26,7 +26,7 @@ MX_DDEV cdecl_dummydev GNU_ASM_NAME("cdecl_dummydev") = {
 };
 
 const char *cannot_install = "Cannot install device %S\r\n";
-long sprintf_params[4];
+long sprintf_params[10];
 
 /* in assembler part */
 extern MX_DDEV dummydev GNU_ASM_NAME("dummydev");

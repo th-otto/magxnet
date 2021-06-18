@@ -44,12 +44,14 @@ static long tcp_shutdown(struct in_data *, short);
 static long tcp_setsockopt(struct in_data *, short, short, char *, long);
 static long tcp_getsockopt(struct in_data *, short, short, char *, long *);
 
-static long tcp_error(short, short, BUF *, ulong, ulong);
-static long tcp_input(struct netif *, BUF *, ulong, ulong);
+static long tcp_error(short, short, BUF *, in_addr_t, in_addr_t);
+static long tcp_input(struct netif *, BUF *, in_addr_t, in_addr_t);
 
 static void tcp_dropsegs(struct tcb *);
 static long tcp_canreadurg(struct in_data *, long *);
 static long tcp_canaccept(struct in_data *);
+
+short in_tcp_send = 0;
 
 struct in_proto tcp_proto = {
 	IPPROTO_TCP,
@@ -882,7 +884,7 @@ static long tcp_getsockopt(struct in_data *data, short level, short optname, cha
 #pragma warn -par /* using UNUSED here generates slightly different code */
 #endif
 
-static long tcp_input(struct netif *iface, BUF *buf, ulong saddr, ulong daddr)
+static long tcp_input(struct netif *iface, BUF *buf, in_addr_t saddr, in_addr_t daddr)
 {
 	struct tcp_dgram *tcph = (struct tcp_dgram *) IP_DATA(buf);
 	struct in_data *data;

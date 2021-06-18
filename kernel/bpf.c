@@ -52,8 +52,8 @@ struct bpf
 static long cdecl bpf_open(MX_DOSFD *);
 static long cdecl bpf_close(MX_DOSFD *);
 /* ugly hack here: function is not cdecl */
-static long bpf_read(MX_DOSFD *, long, void *);
-static long bpf_write(MX_DOSFD *, long, void *);
+static long bpf_read(MX_DOSFD *, void *, long);
+static long bpf_write(MX_DOSFD *, void *, long);
 static long cdecl bpf_stat(MX_DOSFD *, MAGX_UNSEL *unsel, short rwflag, long /* APPL * */ appl);
 static long cdecl bpf_lseek(MX_DOSFD *, long, short);
 static long cdecl bpf_datime(MX_DOSFD *, short *, short);
@@ -408,7 +408,7 @@ long cdecl bpf_input(struct netif *nif, BUF *buf)
 			continue;
 
 		caplen = BPF_HDRLEN + MIN(snaplen, pktlen);
-		if (caplen > BPF_READBUF - (long)BPF_ALIGNMENT)
+		if ((unsigned long)caplen > BPF_READBUF - BPF_ALIGNMENT)
 			caplen = BPF_READBUF - BPF_ALIGNMENT;
 
 		/*
@@ -542,7 +542,9 @@ static long cdecl bpf_open(MX_DOSFD *fp)
 /*
  * Passed data contains the MAC header!
  */
-static long bpf_write(MX_DOSFD *fp, long nbytes, void *buf)
+/* BUG: not declared cdecl */
+/* BUG: arguments swapped */
+static long bpf_write(MX_DOSFD *fp, void *buf, long nbytes)
 {
 	struct bpf *bpf = (struct bpf *) fp->fd_user1;
 	short daddrlen;
@@ -621,7 +623,9 @@ static void wakemeup(long arg)
  * N + bh_hdrlen + ALIGN4(bh_caplen)	: struct bpf_hdr  #2
  * ...
  */
-static long bpf_read(MX_DOSFD *fp, long nbytes, void *buf)
+/* BUG: not declared cdecl */
+/* BUG: arguments swapped */
+static long bpf_read(MX_DOSFD *fp, void *buf, long nbytes)
 {
 	struct bpf *bpf = (struct bpf *) fp->fd_user1;
 	BUF *b;

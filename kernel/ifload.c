@@ -105,7 +105,7 @@ void if_load(void)
 	static _DTA mydta;
 	struct kerinfo *kernelinfo;
 	long r;
-	static const char *magic_extension_dir = "\\gemsys\\magic\\xtension";
+	static const char *magic_extension_dir = "\\gemsys\\magic\\xtension\\";
 	PD *pd;
 	long cdecl (*init)(struct kerinfo *, struct netinfo *);
 	
@@ -115,7 +115,7 @@ void if_load(void)
 	netinfo.fname = mydta.dta_name;
 
 	kernelinfo = (struct kerinfo *)init_kerinfo();
-	(void) Cconws("Loading interfaces:\r\n");
+	printstr("Loading interfaces:\n\r");
 	if (Dgetdrv() < 2)
 		Dsetdrv(2);
 	r = Dsetpath(magic_extension_dir);

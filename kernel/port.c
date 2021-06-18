@@ -17,7 +17,7 @@
  * Return true if port `port' is currently in use in the protocol
  * `sock' belongs to.
  */
-short port_inuse(struct in_data *sock, ushort port)
+short port_inuse(struct in_data *sock, in_port_t port)
 {
 	struct in_data *data;
 
@@ -33,7 +33,7 @@ short port_inuse(struct in_data *sock, ushort port)
 /*
  * Find the first socket with local port `port'.
  */
-struct in_data *port_find(struct in_data *sock, ushort port)
+struct in_data *port_find(struct in_data *sock, in_port_t port)
 {
 	struct in_data *data;
 

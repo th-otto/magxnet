@@ -78,8 +78,9 @@ bpf_dev_close:
 
 bpf_dev_read:
  .IFNE GNUC
- move.l	a1,-(sp)
+/* BUG: arguments swapped */
  move.l	d0,-(sp)
+ move.l	a1,-(sp)
  move.l	a0,-(sp)
  move.l	cdecl_bpf_dev+ddev_read,a0
  jsr		(a0)
@@ -99,8 +100,9 @@ bpf_dev_read:
 
 bpf_dev_write:
  .IFNE GNUC
- move.l	a1,-(sp)
+/* BUG: arguments swapped */
  move.l	d0,-(sp)
+ move.l	a1,-(sp)
  move.l	a0,-(sp)
  move.l	cdecl_bpf_dev+ddev_write,a0
  jsr		(a0)

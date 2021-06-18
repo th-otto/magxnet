@@ -19,7 +19,7 @@ static struct {
 } signals[20];
 short tcpd_fd;
 static char tcpd_c;
-const char *tcpd_pipe_name = "u:\\pipe\\tcpd";
+extern const char *tcpd_pipe_name;
 
 
 void tcp_sendsig(struct tcb *tcb, short sig)

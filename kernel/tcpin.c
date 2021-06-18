@@ -53,6 +53,7 @@ void (*tcb_state[])(struct tcb *, BUF *) = {
 	tcbs_closing,
 	tcbs_timewait
 };
+short x1e790 = 0; /* unused */
 
 
 /*

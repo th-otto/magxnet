@@ -381,7 +381,7 @@ BUF *cdecl buf_alloc(ulong size, ulong reserve, short mode)
 		{
 			spl(sr);
 			FATAL(("%i > BUF_NSPLIT, buflen = %lu", i, nxtbuf->buflen));
-			(void) sprintf("%i > BUF_NSPLIT, buflen = %lu\r\n", (void *)(long)i, nxtbuf->buflen); /* BUG: leftover debug */
+			(void) sprintf("%i > BUF_NSPLIT, buflen = %lu", (void *)(long)i, nxtbuf->buflen); /* BUG: leftover debug */
 			return NULL;
 		}
 

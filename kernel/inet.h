@@ -68,9 +68,9 @@ struct in_ip_ops
 	short			proto;
 	struct in_ip_ops	*next;
 	long	(*error)	(short type, short code, BUF *,
-				ulong sadr, ulong dadr);
-	long	(*input) 	(struct netif *, BUF *, ulong sadr,
-				ulong dadr);
+				in_addr_t sadr, in_addr_t dadr);
+	long	(*input) 	(struct netif *, BUF *, in_addr_t sadr,
+				in_addr_t dadr);
 };	
 
 struct in_proto

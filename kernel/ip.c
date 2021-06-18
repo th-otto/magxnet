@@ -484,7 +484,7 @@ void ip_input(struct netif *nif, BUF *buf)
 	 */
 	pktlen = (long) buf->dend - (long) buf->dstart;
 
-	if ((unsigned short)pktlen < IP_MINLEN || pktlen != (short)iph->length)
+	if (pktlen < (short)IP_MINLEN || pktlen != (short)iph->length)
 	{
 		DEBUG(("ip_input: invalid packet length"));
 		buf_deref(buf, BUF_NORMAL);

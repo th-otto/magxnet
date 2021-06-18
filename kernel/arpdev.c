@@ -36,7 +36,11 @@ MX_DDEV cdecl_arpdev GNU_ASM_NAME("cdecl_arpdev") = {
 	/* ugly hack here: function is not cdecl */
 	(long cdecl (*)(MX_DOSFD *, long, void *))arpdev_read,
 	dummydev_write,
+#ifdef NOTYET
 	dummydev_stat,
+#else
+	0,
+#endif
 	dummydev_lseek,
 	dummydev_datime,
 	dummydev_ioctl,
@@ -67,6 +71,7 @@ long arpdev_init(void)
 }
 
 
+/* BUG: not declared cdecl */
 long arpdev_read(MX_DOSFD *fp, long nbytes, void *buf)
 {
 	struct arp_info info;
