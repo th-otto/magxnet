@@ -206,7 +206,7 @@ void so_sockpair(struct socket *so1, struct socket *so2);
 long so_connect(struct socket *server, struct socket *client, short backlog, short nonblock, short wakeup);
 long so_free(struct socket *so);
 void so_register(short domain, struct dom_ops *ops);
-#define so_free(sock) so_release(sock)
+#define so_free(sock) so_release(sock), p_kernel->mfree(sock)
 
 #define IO_Q 3
 

@@ -204,7 +204,6 @@ static void tcbs_listen(struct tcb *tcb, BUF *buf)
 		DEBUG(("tcp_listen: cannot connect to server"));
 		ntcb->state = TCBS_CLOSED;
 		so_free(so);
-		p_kernel->mfree(so);
 		tcp_sndrst(buf);
 		buf_deref(buf, BUF_NORMAL);
 		return;
@@ -310,7 +309,6 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF *buf)
 			
 			tcb->state = TCBS_CLOSED;
 			so_free(so);
-			p_kernel->mfree(so);
 		} else
 		{
 			tcb_reset(tcb, ECONNRESET);
@@ -330,7 +328,6 @@ static void tcbs_synrcvd(struct tcb *tcb, BUF *buf)
 			
 			tcb->state = TCBS_CLOSED;
 			so_free(so);
-			p_kernel->mfree(so);
 		} else
 		{
 			tcb_reset(tcb, ECONNRESET);

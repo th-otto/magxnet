@@ -131,7 +131,6 @@ static long tcp_abort(struct in_data *data, short ostate)
 		struct socket *so = data->sock;
 		DEBUG(("tcp_abort: freeing connecting socket"));
 		so_free(so);
-		p_kernel->mfree(so);
 	}
 
 	return 0;

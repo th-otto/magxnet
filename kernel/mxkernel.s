@@ -423,7 +423,7 @@ install_bios1:
 	trap       #13
 	addq.l     #8,a7
 	movem.l    (a7)+,d1-d2/a0-a2
-	move.l     a7,x11964
+	move.l     a7,save_sp
 	rts
 
 	.dc.l 0x58425241 /* 'XBRA' */
@@ -571,7 +571,7 @@ bios_sema:
 save_slice:
 	.dc.w 1
 	.dc.w 0
-x11964:
+save_sp:
 	.dc.l 0
 p_checkalarms:
 	.dc.l 0
@@ -616,4 +616,3 @@ my_kernel:
 real_p_kernel:
 	.dc.l 0
 
-	
