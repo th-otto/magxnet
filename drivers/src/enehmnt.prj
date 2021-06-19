@@ -1,0 +1,17 @@
+;
+; Project file for MagiCNet driver, Hades ET4000
+;
+..\bin\eneh.mif
+.S[-Iinc_mnet]
+.S[-DBUS=3]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+enemnet.s
+nemnet.s
+ne.s
+uti.s

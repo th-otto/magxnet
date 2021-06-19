@@ -1,0 +1,21 @@
+;
+; Project file for STinG driver, Hades Mach32
+;
+..\bin\enep2.stx
+.C[-Iinc_stng]
+.S[-DBUS=6]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+startup.s
+enestng.c
+nestng.s
+ne.s
+uti.s
+version.c
+
+pctoslib.lib

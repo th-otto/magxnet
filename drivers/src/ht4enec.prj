@@ -1,0 +1,11 @@
+..\bin\ht4enec.tos
+.S[-DBUS=1]
+.S[-DCPU020=0]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=256]
+=
+ht4ene.s

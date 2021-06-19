@@ -1,0 +1,11 @@
+..\bin\ht1eneas.tos
+.S[-DBUS=0]
+.S[-DACSI_SLOW_ACCESS=1]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=256]
+=
+ht1ene.s

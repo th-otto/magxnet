@@ -1,0 +1,49 @@
+;
+; Note:
+; because the Pure-C shell does not touch and/or delete
+; the object files when using recursive projects,
+; do *not* use this project from the shell,
+; or all binaries wil get the bus routines
+; from whichever object file was compiled first.
+; Select the appropriate bus dependant project file
+; instead (from the list below) and do "Make all".
+;
+; You *can* use this project file however when using
+; the pcmake command line utility
+; (available at https://github.com/th-otto/pcmake)
+;
+all.prj
+=
+; drivers
+eneafstg.prj
+eneafmnt.prj
+eneasstg.prj
+eneasmnt.prj
+enecstg.prj
+enecmnt.prj
+enec3stg.prj
+enec3mnt.prj
+enemstg.prj
+enemmnt.prj
+enehstg.prj
+enehmnt.prj
+enep2stg.prj
+enep2mnt.prj
+enexstg.prj
+enexmnt.prj
+
+; test programs
+ht1eneaf.prj
+ht2eneaf.prj
+ht3eneaf.prj
+ht1eneas.prj
+ht2eneas.prj
+ht3eneas.prj
+ht1enec.prj
+ht2enec.prj
+ht3enec.prj
+ht4enec.prj
+ht2enem.prj
+ht2eneh.prj
+ht2enep2.prj
+ht2enex.prj

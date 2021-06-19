@@ -1,0 +1,18 @@
+;
+; Project file for MagiCNet driver, fast ACSI
+;
+..\bin\eneaf.mif
+.S[-Iinc_mnet]
+.S[-DBUS=0]
+.S[-DACSI_SLOW_ACCESS=0]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+enemnet.s
+nemnet.s
+ne.s
+uti.s

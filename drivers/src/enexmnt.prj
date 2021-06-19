@@ -1,0 +1,17 @@
+;
+; Project file for MagiCNet driver, Falcon expansion port
+;
+..\bin\enex.mif
+.S[-Iinc_mnet]
+.S[-DBUS=7]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+enemnet.s
+nemnet.s
+ne.s
+uti.s

@@ -1,0 +1,21 @@
+;
+; Project file for STinG driver, Falcon expansion port
+;
+..\bin\enex.stx
+.C[-Iinc_stng]
+.S[-DBUS=7]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+startup.s
+enestng.c
+nestng.s
+ne.s
+uti.s
+version.c
+
+pctoslib.lib

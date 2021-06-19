@@ -1,0 +1,19 @@
+;
+; Project file for MagiCNet driver, cartridge port, 68000 version
+;
+..\bin\enec.mif
+.S[-Iinc_mnet]
+.S[-DBUS=1]
+.S[-DCPU020=0]
+.S[-DCPU060=0]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=0]
+=
+enemnet.s
+nemnet.s
+ne.s
+uti.s

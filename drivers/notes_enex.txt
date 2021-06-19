@@ -1,0 +1,6 @@
+Things worth investigation (but I'm lazy / not so motivated):
+- enex: why RxBUS and RyBUS are swapped? (perhaps just a cosmetic thing)
+- NE2RAM reads ((count+1)/2)*2 bytes however the remote count register is
+  set to count; Linux driver does set it to even value
+- why get use getBUS <src>,d0; move d0,<dest> instead of move <src>,<dst> ?
+- NEMNET.S doesn't align neither alloc() nor count before NE2RAM

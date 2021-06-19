@@ -1,0 +1,10 @@
+..\bin\ht2enem.tos
+.S[-DBUS=2]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=256]
+=
+ht2ene.s

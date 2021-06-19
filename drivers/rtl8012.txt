@@ -1,0 +1,1 @@
+rtl8012.mif ist der Treiber fr das ROM-Port Ethernet-Interface mit Genius-LAN-Adapter.

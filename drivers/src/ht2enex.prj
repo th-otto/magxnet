@@ -1,0 +1,10 @@
+..\bin\ht2enex.tos
+.S[-DBUS=7]
+.S[-S]
+.C[-P-]
+.C[-K-]
+.C[-M-]
+.C[-G-]
+.L[-S=256]
+=
+ht2ene.s
