@@ -18,7 +18,11 @@
 /************************************************************************/
 
 #define	NULL ((void*) 0L)
+#ifdef __PUREC__
 #include <tos.h>
+#else
+#include <mint/osbind.h>
+#endif
 
 #include "transprt.h"
 #include "port.h"
@@ -94,7 +98,7 @@ typedef  struct arp_entry {
 int			arpNentries = ARP_NUM;	/* not static because linker must know it */
 int			filler = 0;				/* force next 3 vars. to DATA segment ...*/
 static ARP_ENTRY*	arpRecnt = NULL;
-static ARP_ENTRY	arpEntries[ARP_NUM] = {0L};	/* .. to have them adjacent */
+static ARP_ENTRY	arpEntries[ARP_NUM] = {{0, {0}, 0}};	/* .. to have them adjacent */
 
 
 
@@ -156,19 +160,23 @@ static struct {
 	ARP			arp;
 	uint8		padbytes[60-sizeof(ETH_HDR1)-sizeof(ARP)];
 } arpEthPckt = {
-	0,0,0,0,0,0,
-	0,0,0,0,0,0,
-	TYPE_ARP,
-	ARP_HARD_ETHER,
-	TYPE_IP,
-	6,
-	4,
-	0,
-	0,0,0,0,0,0,
-	0L,
-	0,0,0,0,0,0,
-	0L
-	/* pad bytes get zero any way */
+	{
+		{ 0,0,0,0,0,0 },
+		{ 0,0,0,0,0,0 },
+		TYPE_ARP
+	}, {
+		ARP_HARD_ETHER,
+		TYPE_IP,
+		6,
+		4,
+		0,
+		{ 0,0,0,0,0,0 },
+		0L,
+		{ 0,0,0,0,0,0 },
+		0L
+	}, {
+		0
+	}
 };
 
 static uint16	doTxArp = FALSE;	/* signals when we must tx an ARP request or answer */
@@ -346,20 +354,22 @@ Bconout(2, 7);	/* bellen */
 
 	/* ethernet address is established we can send it */
 	{	/* block */
-		uint8 *work;
+		uint32 *work;
 		int16 len1, len2;
 
-		work = ipEthPckt.ed;
+		work = (uint32 *)ipEthPckt.ed;
 /* The following code assumes IP_HDR is 20 bytes! */
 		{ uint32 *s = (uint32*) & (my_port.send->hdr);
-			*((uint32*)work)++ = *s++;	*((uint32*)work)++ = *s++;
-			*((uint32*)work)++ = *s++;	*((uint32*)work)++ = *s++;
-			*((uint32*)work)++ = *s++; }
+			*work++ = *s++;
+			*work++ = *s++;
+			*work++ = *s++;
+			*work++ = *s++;
+			*work++ = *s++; }
 
 /* The following codes relies on option length being a multiple of 4 bytes */
 		{ uint32 *s = (uint32*) & (my_port.send->options); int i;
 			for (i= (my_port.send->opt_length)>>2; --i>=0; ) {
-				*((uint32*)work)++ = *s++;
+				*work++ = *s++;
 			}
 		}
 
@@ -567,7 +577,7 @@ static DRIVER my_driver = {
 
 /**** main ****/
 
-static int strcmp(const char* s, const char* t)
+static int my_strcmp(const char* s, const char* t)
 {
 	for ( ; *s == *t; s++, t++)
 		if (*s == '\0') return 0;
@@ -581,7 +591,7 @@ static long get_sting_cookie (void)
 	long  *p;
 
 	for (p = * (long **) 0x5a0L; *p ; p += 2)
-	if (*p == 'STiK')
+	if (*p == 0x5354694bL) /* 'STiK' */
 		return *++p;
 
 	return 0L;
@@ -612,7 +622,7 @@ static void install(BASPAG *BasPag)
 /* Note that this program does NOT use the standard startup code
  */
 
-void cdecl main (BASPAG *bp)
+void cdecl sting_main (BASPAG *bp)
 {
 	static char	fault[] = "ENE??.STX: STinG extension module. To be started by STinG!\r\n";
 	DRV_LIST *sting_drivers;
@@ -623,7 +633,7 @@ void cdecl main (BASPAG *bp)
 	/* CR in cmdline to '\0' */
 	bp->p_cmdlin[1+bp->p_cmdlin[0]] = '\0';
 
-	if (strcmp (bp->p_cmdlin+1, "STinG_Load") != 0) {
+	if (my_strcmp (bp->p_cmdlin+1, "STinG_Load") != 0) {
 		prntStr (fault);
 		goto errExit;
 	}
@@ -636,7 +646,7 @@ void cdecl main (BASPAG *bp)
 	if ( (sting_drivers = (DRV_LIST*) Supexec(get_sting_cookie)) == NULL )
 		goto errExit;
 
-	if (strcmp (sting_drivers->magic, MAGIC) != 0)
+	if (my_strcmp (sting_drivers->magic, STIK_DRVR_MAGIC) != 0)
 		goto errExit;
 
 	tpl = (TPL *) (*sting_drivers->get_dftab) (TRANSPORT_DRIVER);

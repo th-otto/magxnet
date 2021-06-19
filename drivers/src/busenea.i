@@ -23,46 +23,46 @@
 * manifest constants
 *
 
-TheACh		EQU	$60		/* ACSI channel of NE hardware (=3) */
-NilACh		EQU	0		/* inactive ACSI channel used to deselect the */
+TheACh		=	$60		/* ACSI channel of NE hardware (=3) */
+NilACh		=	0		/* inactive ACSI channel used to deselect the */
 					/* ACSI/ISA hardware */
-BUGGY_HW	EQU	1		/* if defined enables code to handle buggy hardware */
+BUGGY_HW	=	1		/* if defined enables code to handle buggy hardware */
 
-WORD_TRANSFER	EQU	0		/* if set enables 16-bit DMA */
+WORD_TRANSFER	=	0		/* if set enables 16-bit DMA */
 
 *
 * hardware addresses
 *
 
-gpip		EQU	$fffffa01	/* (b) 68901 input register (unused) */
+gpip		=	$fffffa01	/* (b) 68901 input register (unused) */
 
-diskctl		EQU	$ffff8604	/* (w) disk controller data access */
-dmamodus	EQU	$ffff8606	/* (w) DMA mode control */
-dmahigh		EQU	$ffff8609	/* (b) DMA base address high (unused) */
-dmamid		EQU	$ffff860b	/* (b) DMA base address medium (unused) */
-dmalow		EQU	$ffff860d	/* (b) DMA base address low (unused) */
+diskctl		=	$ffff8604	/* (w) disk controller data access */
+dmamodus	=	$ffff8606	/* (w) DMA mode control */
+dmahigh		=	$ffff8609	/* (b) DMA base address high (unused) */
+dmamid		=	$ffff860b	/* (b) DMA base address medium (unused) */
+dmalow		=	$ffff860d	/* (b) DMA base address low (unused) */
 
 
 *
 * addresses of system variables
 *
 
-flock		EQU	$43e		/* (w) semaphor to lock floppy usage of DMA */
+flock		=	$43e		/* (w) semaphor to lock floppy usage of DMA */
 
 
 *
 * macros
 *
 
-		MACRO lockBUS doNothing
+		.MACRO lockBUS doNothing
 		moveq	#-1,d0			/* preset error code */
 		tas	flock.w			/* check for race about ACSI bus and */
 		bne	doNothing		/* if somebody owns the bus we quit */
 		tas	flock+1.w		/* Holzauge: we do *both* bytes */
 		bne	doNothing
-		ENDM
+		.ENDM
 
-		MACRO lockBUSWait.size
+		.MACRO lockBUSWait.size
 		.LOCAL lt1
 		.LOCAL lwait
 		.LOCAL lc1
@@ -78,28 +78,36 @@ lwait:		bsr.size _appl_yield		/* wait */
 		bra.b	lt1
 
 lc1:						/* proceed */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUS
+		.MACRO unlockBUS
 		clr.w	flock.w			/* let other tasks access ACSI bus */
-		ENDM
+		.ENDM
 
-		MACRO unlockBUSWait
+		.MACRO unlockBUSWait
 * we should relinquish the bus (e.g. dma_end in MagiC)
 		clr.w	flock.w			/* let other tasks access ACSI bus */
-		ENDM
+		.ENDM
 
 
-RcBUS		EQU	a5
-RdBUS		EQU	a6
-Ra1l		EQU	d6
-RxBUS		EQU	d6			/* synonym for Ra1l in NE.S */
-Ra1h		EQU	d7
-RyBUS		EQU	d7			/* synonym for Ra1h in NE.S */
+	.IFNE GNUC
+RcBUS:	.reg a5
+RdBUS:	.reg a6
+Ra1l		=	d6
+RxBUS		=	d6			/* synonym for Ra1l in NE.S */
+Ra1h		=	d7
+RyBUS		=	d7			/* synonym for Ra1h in NE.S */
+	.ELSE
+RcBUS		=	a5
+RdBUS		=	a6
+Ra1l		=	d6
+RxBUS		=	d6			/* synonym for Ra1l in NE.S */
+Ra1h		=	d7
+RyBUS		=	d7			/* synonym for Ra1h in NE.S */
+	.ENDC
 
-
-		MACRO ldBUSRegs			/* for faster access to hardware */
+		.MACRO ldBUSRegs			/* for faster access to hardware */
 		lea	dmamodus.w,RcBUS
 		lea	diskctl.w,RdBUS
 * what has to be written to dmamodus before and after to write a byte with A1=low
@@ -112,60 +120,60 @@ RyBUS		EQU	d7			/* synonym for Ra1h in NE.S */
 *                         |0=DMA enable, 1=DMA disable
 *                         0=R_W=1 (read), 1=R_W=0 (write)
 * R_W is only effective in DMA mode. Otherwise state of R_W line reflects direction of move.w
-		ENDM
+		.ENDM
 
 
-		MACRO putBUS val,offset
-		move	Ra1l,(RcBUS)		/* A1 gets low */
-		move	#TheACh+offset,(RdBUS)	/* set register selection via ACSI channel */
-		move	Ra1h,(RcBUS)		/* A1 gets high again */
+		.MACRO putBUS val,offset
+		move.w	Ra1l,(RcBUS)		/* A1 gets low */
+		move.w	#TheACh+offset,(RdBUS)	/* set register selection via ACSI channel */
+		move.w	Ra1h,(RcBUS)		/* A1 gets high again */
 		.IFNE ACSI_SLOW_ACCESS
-		move	Ra1h,(RdBUS)		/* dummy write */
+		move.w	Ra1h,(RdBUS)		/* dummy write */
 		.ENDC
-		move	val,(RdBUS)		/* write to register */
-		ENDM
+		move.w	val,(RdBUS)		/* write to register */
+		.ENDM
 
 
-		MACRO putMore val,offset
+		.MACRO putMore val,offset
 		.IFNE ACSI_SLOW_ACCESS
-		move	Ra1h,(RdBUS)		/* dummy write */
+		move.w	Ra1h,(RdBUS)		/* dummy write */
 		.ENDC
-		move	val,(RdBUS)		/* write to register */
-		ENDM
+		move.w	val,(RdBUS)		/* write to register */
+		.ENDM
 
 
-		MACRO putBUSi val,offset
+		.MACRO putBUSi val,offset
 		putBUS	#val,offset
-		ENDM
+		.ENDM
 
 
-		MACRO getBUS offset,val
-		move	Ra1l,(RcBUS)		/* A1 gets low */
-		move	#TheACh+offset,(RdBUS)	/* set register selection via ACSI channel */
-		move	Ra1h,(RcBUS)		/* A1 gets high again */
+		.MACRO getBUS offset,val
+		move.w	Ra1l,(RcBUS)		/* A1 gets low */
+		move.w	#TheACh+offset,(RdBUS)	/* set register selection via ACSI channel */
+		move.w	Ra1h,(RcBUS)		/* A1 gets high again */
 		.IFNE ACSI_SLOW_ACCESS
-		tst	(RdBUS)			/* dummy read */
+		tst.w	(RdBUS)			/* dummy read */
 		.ENDC
-		move	(RdBUS),val		/* read from register */
-		ENDM
+		move.w	(RdBUS),val		/* read from register */
+		.ENDM
 
 
-		MACRO getMore offset,val	/* arg 1 is not used! */
+		.MACRO getMore offset,val	/* arg 1 is not used! */
 		.IFNE ACSI_SLOW_ACCESS
-		tst	(RdBUS)			/* dummy read */
+		tst.w	(RdBUS)			/* dummy read */
 		.ENDC
-		move	(RdBUS),val		/* read from register */
-		ENDM
+		move.w	(RdBUS),val		/* read from register */
+		.ENDM
 
 *
 * macro to deselect an interface by selecting ACSI device 0 
 *
-		MACRO deselBUS
-		move	Ra1l,(RcBUS)		/* A1 gets low */
-		move	#NilACh,(RdBUS)		/* select unused ACSI channel to deselect The device */
-		move	Ra1h,(RcBUS)		/* A1 gets hi again */
-		move	#$80,(RcBUS)		/* prepare ACSI bus for floppy */
-		ENDM
+		.MACRO deselBUS
+		move.w	Ra1l,(RcBUS)		/* A1 gets low */
+		move.w	#NilACh,(RdBUS)		/* select unused ACSI channel to deselect The device */
+		move.w	Ra1h,(RcBUS)		/* A1 gets hi again */
+		move.w	#$80,(RcBUS)		/* prepare ACSI bus for floppy */
+		.ENDM
 
 
 
@@ -179,7 +187,7 @@ RyBUS		EQU	d7			/* synonym for Ra1h in NE.S */
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 	
-		MACRO RAM2NE addr,count
+		.MACRO RAM2NE addr,count
 		.LOCAL Rt1
 		.LOCAL Rb1
 		.LOCAL Rt2
@@ -224,7 +232,7 @@ Rt2:		move.b	(addr)+,d0
 Rb2:		dbra	count,Rt2
 
 doNothing_ram2ne:
-		ENDM
+		.ENDM
 
 
 
@@ -238,7 +246,7 @@ doNothing_ram2ne:
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 
-		MACRO NE2RAM addr,count
+		.MACRO NE2RAM addr,count
 		.LOCAL Nt1
 		.LOCAL Nb1
 		.LOCAL Nt2
@@ -283,7 +291,7 @@ Nt2:		getMore	NE_DATAPORT,d0		/* get the remaining bytes */
 Nb2:		dbra	count,Nt2
 
 doNothing_ne2ram:
-		ENDM
+		.ENDM
 
 
 

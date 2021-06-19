@@ -359,6 +359,8 @@ typedef struct pnta
 #define CTL_ETHER_INQ_SUPPTYPE	(('E' << 8) | 'Q')   /* EtherNet          */
 #define CTL_ETHER_SET_TYPE		(('E' << 8) | 'T')   /* EtherNet          */
 #define CTL_ETHER_GET_TYPE		(('E' << 8) | 'U')   /* EtherNet          */
+#define CTL_ETHER_GET_STAT      (('E' << 8) | 'S')   /* Ethernet, statistics */
+#define CTL_ETHER_GET_ARP       (('E' << 8) | 'A')   /* Ethernet, ARP */
 
 #define CTL_MASQUE_SET_PORT		(('M' << 8) | 'P')   /* Masquerade        */
 #define CTL_MASQUE_GET_PORT		(('M' << 8) | 'Q')   /* Masquerade        */

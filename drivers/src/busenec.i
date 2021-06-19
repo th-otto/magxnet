@@ -25,29 +25,29 @@
 * manifest constants
 *
 
-BUGGY_HW	EQU	1		/* if defined enables code to handle buggy hardware */
+BUGGY_HW	=	1		/* if defined enables code to handle buggy hardware */
 
-WORD_TRANSFER	EQU	0		/* if set enables 16-bit DMA */
+WORD_TRANSFER	=	0		/* if set enables 16-bit DMA */
 
 *
 * hardware addresses
 *
 
-rom4		EQU	$00fa0000	/* ROM4 base address */
-rom3		EQU	$00fb0000	/* ROM3 base address */
+rom4		=	$00fa0000	/* ROM4 base address */
+rom3		=	$00fb0000	/* ROM3 base address */
 
 *
 * macros
 *
 
-		MACRO lockBUS.size doNothing
+		.MACRO lockBUS.size doNothing
 		moveq	#-1,d0			/* preset error code */
 		tas	DVS+lcl_irqlock		/* check for race about Cartrige Port and */
 		bne.size	doNothing	/* if somebody owns the bus we quit */
-		ENDM
+		.ENDM
 
 
-		MACRO lockBUSWait.size
+		.MACRO lockBUSWait.size
 		.LOCAL lt1
 		.LOCAL lc1
 * there should be a timeout based on _hz_200 (and then branch to .doNothing)
@@ -59,87 +59,87 @@ lt1:		tas	DVS+lcl_irqlock		/* check for race about Cartrige Port and */
 		bra.b	lt1
 
 lc1:						/* proceed */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUS
+		.MACRO unlockBUS
 		sf	DVS+lcl_irqlock		/* let other tasks access Cartridge Port */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUSWait
+		.MACRO unlockBUSWait
 		sf	DVS+lcl_irqlock		/* let other tasks access Cartridge Port */
-		ENDM
+		.ENDM
 
 
-RxBUS		EQU	d6
-RyBUS		EQU	d7
-RcBUS		EQU	a5
-RdBUS		EQU	a6
+RxBUS		=	d6
+RyBUS		=	d7
+RcBUS		=	a5
+RdBUS		=	a6
 
 
-		MACRO ldBUSRegs			/* for faster access to hardware */
+		.MACRO ldBUSRegs			/* for faster access to hardware */
 		lea	rom3,RcBUS
 		lea	rom4,RdBUS
-		ENDM
+		.ENDM
 
 
-		MACRO putBUS val,offset
+		.MACRO putBUS val,offset
 		move.w	#(offset)<<8,RyBUS	/* move ISA address to bits 8-15 */
-		IFNE CPU020
+		.IFNE CPU020
 		move.b	val,RyBUS		/* merge in data */
-		DC.W	$4A35,$7200		/* tst.b	0(RcBUS,RyBUS.w*2); machine code as Genst2 cannot do 68030 */
-		IFNE CPU060
+		.DC.W	$4A35,$7200		/* tst.b	0(RcBUS,RyBUS.w*2); machine code as Genst2 cannot do 68030 */
+		.IFNE CPU060
 		nop
-		ENDC
-		ELSE
+		.ENDC
+		.ELSE
 		move.w	RyBUS,RxBUS		/* get a copy */
 		move.b	val,RyBUS		/* merge in data */
 		add.w	RyBUS,RyBUS		/* shift up one bit to avoid UDS/LDS */
 		tst.b	0(RcBUS,RyBUS.w)	/* write by reading */
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
 
-		MACRO putMore val,offset
-		IFNE CPU020
+		.MACRO putMore val,offset
+		.IFNE CPU020
 		move.b	val,RyBUS		/* merge in data */
-		DC.W	$4A35,$7200		/* 0(RcBUS,RyBUS.w*2); machine code as Genst2 cannot do 68030 */
-		IFNE CPU060
+		.DC.W	$4A35,$7200		/* 0(RcBUS,RyBUS.w*2); machine code as Genst2 cannot do 68030 */
+		.IFNE CPU060
 		nop
-		ENDC
-		ELSE
+		.ENDC
+		.ELSE
 		move.w	RxBUS,RyBUS		/* move ISA address to bits 8-15 */
 		move.b	val,RyBUS		/* merge in data */
 		add.w	RyBUS,RyBUS		/* shift up one bit to avoid UDS/LDS */
 		tst.b	0(RcBUS,RyBUS.w)	/* write by reading */
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
 
-		MACRO putBUSi val,offset
+		.MACRO putBUSi val,offset
 		tst.b	((offset<<8)+(val))<<1(RcBUS)	/* write by reading */
-		IFNE CPU060
+		.IFNE CPU060
 		nop
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
 
-		MACRO getBUS offset,val
+		.MACRO getBUS offset,val
 		move.b	(offset)<<9(RdBUS),val	/* read from CP */
-		ENDM
+		.ENDM
 
 
-		MACRO getMore offset,val
+		.MACRO getMore offset,val
 		move.b	(offset)<<9(RdBUS),val	/* read from CP */
-		ENDM
+		.ENDM
 
 *
 * macro to deselect an interface
 *
-		MACRO deselBUS
+		.MACRO deselBUS
 * empty as the cartridge port does not need deselecting
-		ENDM
+		.ENDM
 
 
 
@@ -153,9 +153,9 @@ RdBUS		EQU	a6
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 	
-		IFEQ CPU060
+		.IFEQ CPU060
 
-		MACRO RAM2NE addr,count
+		.MACRO RAM2NE addr,count
 		.LOCAL Rt1
 		.LOCAL Rb1
 		.LOCAL Rt2
@@ -189,11 +189,11 @@ Rt2:		putMore	(addr)+,NE_DATAPORT	/* put the remaining bytes */
 Rb2:		dbra	count,Rt2
 
 doNothing_ram2ne:
-		ENDM
+		.ENDM
 
-		ELSE
+		.ELSE
 
-		MACRO RAM2NE addr,count
+		.MACRO RAM2NE addr,count
 		.LOCAL Rt1
 		.LOCAL Rb1
 		.LOCAL Rt2
@@ -211,9 +211,9 @@ Rt1:		putMore	(addr)+,NE_DATAPORT
 Rb1:		dbra	count,Rt1
 
 doNothing_ram2ne:
-		ENDM
+		.ENDM
 
-		ENDC
+		.ENDC
 
 
 ******** NE2RAM *****************************************************************
@@ -227,9 +227,9 @@ doNothing_ram2ne:
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 
-		IFEQ CPU060
+		.IFEQ CPU060
 
-		MACRO NE2RAM addr,count
+		.MACRO NE2RAM addr,count
 		.LOCAL Nt1
 		.LOCAL Nb1
 		.LOCAL Nt2
@@ -263,11 +263,11 @@ Nt2:		movep.w	NE_DATAPORT<<9(RdBUS),d0
 Nb2:		dbra	count,Nt2
 
 doNothing_ne2ram:
-		ENDM
+		.ENDM
 
-		ELSE
+		.ELSE
 
-		MACRO NE2RAM addr,count
+		.MACRO NE2RAM addr,count
 		.LOCAL Nt1
 		.LOCAL Nb1
 		.LOCAL Nt2
@@ -287,9 +287,9 @@ Nt2:	getBUS	NE_DATAPORT,(addr)+
 Nb2:		dbra	count,Nt2
 
 doNothing_ne2ram:
-		ENDM
+		.ENDM
 
-		ENDC
+		.ENDC
 
 
 *********************************************************************************

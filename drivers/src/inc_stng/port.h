@@ -39,8 +39,8 @@ typedef  struct drv_desc
 	int16 cdecl	(* cntrl) (PORT *, uint32, int16);	/* Control functions	*/
 	void  cdecl	(* send) (PORT *);					/* Send packets			*/
 	void  cdecl	(* receive) (PORT *);				/* Receive packets		*/
-	char				*name;		/* Name of driver						*/
-	char				*version;	/* Version of driver in "xx.yy" format	*/
+	const char			*name;		/* Name of driver						*/
+	const char			*version;	/* Version of driver in "xx.yy" format	*/
 	uint16				date;		/* Compile date in GEMDOS format		*/
 	char				*author;	/* Name of programmer					*/
 	struct	drv_desc	*next;		/* Next driver in driver chain			*/
@@ -64,9 +64,9 @@ typedef  struct drv_desc
 #define MOD_DRIVER
 /*--------------------------------------------------------------------------*/
 typedef  struct stx
-{	char *     module;      /* Specific string that can be searched for     */
-	char *     author;      /* Any string                                   */
-	char *     version;     /* Format `00.00' Version:Revision              */
+{	const char *     module;      /* Specific string that can be searched for     */
+	const char *     author;      /* Any string                                   */
+	const char *     version;     /* Format `00.00' Version:Revision              */
 	void       cdecl  (* set_dgram_ttl) (IP_DGRAM *);
 	int16      cdecl  (* check_dgram_ttl) (IP_DGRAM *);
 	int16      cdecl  (* load_routing_table) (void);

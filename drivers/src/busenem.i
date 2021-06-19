@@ -20,29 +20,29 @@
 * manifest constants
 *
 
-BUGGY_HW	EQU	1		/* if defined enables code to handle buggy hardware */
+BUGGY_HW	=	1		/* if defined enables code to handle buggy hardware */
 
-WORD_TRANSFER	EQU	0		/* if set enables 16-bit DMA */
+WORD_TRANSFER	=	0		/* if set enables 16-bit DMA */
 
 *
 * hardware addresses
 *
 
-ISA_BASE	EQU	$80000000	/* ISA base address for Milan */
-NE_IO_BASE	EQU	$300		/* if your card is somewhere else change it. */
+ISA_BASE	=	$80000000	/* ISA base address for Milan */
+NE_IO_BASE	=	$300		/* if your card is somewhere else change it. */
 
 *
 * macros
 *
 
-		MACRO lockBUS doNothing
+		.MACRO lockBUS doNothing
 		moveq	#-1,d0			/* preset error code */
 		tas	DVS+lcl_irqlock		/* check for race about Cartrige Port and */
 		bne	doNothing               /* if somebody owns the bus we quit */
-		ENDM
+		.ENDM
 
 
-		MACRO lockBUSWait.size
+		.MACRO lockBUSWait.size
 		.LOCAL lt1
 		.LOCAL lc1
 * there should be a timeout based on _hz_200 (and then branch to .doNothing)
@@ -54,60 +54,60 @@ lt1:		tas	DVS+lcl_irqlock		/* check for race about Cartrige Port and */
 		bra.b	lt1
 
 lc1:						/* proceed */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUS
+		.MACRO unlockBUS
 		sf	DVS+lcl_irqlock		/* let other tasks access this device */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUSWait
+		.MACRO unlockBUSWait
 		sf	DVS+lcl_irqlock		/* let other tasks access this device */
-		ENDM
+		.ENDM
 
 
-RxBUS		EQU	d6			/* unused here */
-RyBUS		EQU	d7			/* unused here */
-RcBUS		EQU	a5
-RdBUS		EQU	a6			/* used temporarily */
+RxBUS		=	d6			/* unused here */
+RyBUS		=	d7			/* unused here */
+RcBUS		=	a5
+RdBUS		=	a6			/* used temporarily */
 
 
-		MACRO ldBUSRegs			/* for faster access to hardware */
+		.MACRO ldBUSRegs			/* for faster access to hardware */
 		lea	ISA_BASE+NE_IO_BASE,RcBUS
-		ENDM
+		.ENDM
 
 
-		MACRO putBUS val,offset
+		.MACRO putBUS val,offset
 		move.b	val,(offset)^3(RcBUS)
-		ENDM
+		.ENDM
 
 
-		MACRO putMore val,offset
+		.MACRO putMore val,offset
 		move.b	val,(offset)^3(RcBUS)
-		ENDM
+		.ENDM
 
 
-		MACRO putBUSi val,offset
+		.MACRO putBUSi val,offset
 		putBUS	#val,offset
-		ENDM
+		.ENDM
 
 
-		MACRO getBUS offset,val
+		.MACRO getBUS offset,val
 		move.b	(offset)^3(RcBUS),val
-		ENDM
+		.ENDM
 
 
-		MACRO getMore offset,val
+		.MACRO getMore offset,val
 		getBUS offset,val
-		ENDM
+		.ENDM
 
 *
 * macro to deselect an interface
 *
-		MACRO deselBUS
+		.MACRO deselBUS
 * empty as the Milan ISA bus does not need deselecting
-		ENDM
+		.ENDM
 
 
 
@@ -121,7 +121,7 @@ RdBUS		EQU	a6			/* used temporarily */
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 	
-		MACRO RAM2NE addr,count
+		.MACRO RAM2NE addr,count
 		.LOCAL Rt1
 		.LOCAL Rb1
 		.LOCAL Rt2
@@ -156,7 +156,7 @@ Rb2:
 		dbra	count,Rt2
 
 doNothing_ram2ne:
-		ENDM
+		.ENDM
 
 
 
@@ -170,7 +170,7 @@ doNothing_ram2ne:
 * both registers get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 
-		MACRO NE2RAM addr,count
+		.MACRO NE2RAM addr,count
 		.LOCAL Nt1
 		.LOCAL Nb1
 		.LOCAL Nt2
@@ -209,7 +209,7 @@ Nb2:
 		dbra	count,Nt2
 
 doNothing_ne2ram:
-		ENDM
+		.ENDM
 
 
 

@@ -44,34 +44,34 @@ bpf_input:      .ds.l    1
 *
 
 
-                MACRO If_getfreeunit name
+                .MACRO If_getfreeunit name
                 pea     name
                 move.l  netinfo,a0
                 move.l  if_getfreeunit(a0),a0
                 jsr     (a0)
                 addq    #4,sp                   /* pop arg */
-                ENDM
+                .ENDM
 
 
-                MACRO If_register nif
+                .MACRO If_register nif
                 pea     nif                     /* nif */
                 move.l  netinfo,a0
                 move.l  if_register(a0),a0
                 jsr     (a0)
                 addq    #4,sp                   /* pop arg */
-                ENDM
+                .ENDM
 
 
-                MACRO If_dequeue buf
+                .MACRO If_dequeue buf
                 pea     buf                     /* buf */
                 move.l  netinfo,a0
                 move.l  if_dequeue(a0),a0
                 jsr     (a0)
                 addq    #4,sp                   /* pop arg */
-                ENDM
+                .ENDM
 
 
-                MACRO Buf_alloc length,pad,mode
+                .MACRO Buf_alloc length,pad,mode
                 move    mode,-(sp)      /* mode */
                 move.l  pad,-(sp)               /* padding front */
                 move.l  length,-(sp)            /* length */
@@ -79,20 +79,20 @@ bpf_input:      .ds.l    1
                 movea.l buf_alloc(a0),a0
                 jsr     (a0)
                 lea     10(sp),sp               /* pop args */
-                ENDM
+                .ENDM
 
 
-                MACRO Buf_deref buf,mode
+                .MACRO Buf_deref buf,mode
                 move    mode,-(sp)              /* mode */
                 pea     buf                     /* buf */
                 move.l  netinfo,a0
                 move.l  buf_deref(a0),a0
                 jsr     (a0)
                 addq    #6,sp                   /* pop args */
-                ENDM
+                .ENDM
 
 
-                MACRO Eth_build_hdr buf,nif,hwaddr,pktype
+                .MACRO Eth_build_hdr buf,nif,hwaddr,pktype
                 move    pktype,-(sp)            /* pktype */
                 pea     hwaddr                  /* hwaddr */
                 pea     nif                     /* nif */
@@ -101,29 +101,29 @@ bpf_input:      .ds.l    1
                 move.l  eth_build_hdr(a0),a0
                 jsr     (a0)
                 lea     14(sp),sp               /* pop args */
-                ENDM
+                .ENDM
 
 
-                MACRO Eth_remove_hdr
+                .MACRO Eth_remove_hdr
                 move.l  RrpBuf,-(sp)            /* buf */
                 move.l  netinfo,a0
                 movea.l eth_remove_hdr(a0),a0   /* returns packet type */
                 jsr     (a0)
                 addq.l  #4,sp                   /* pop arg */
-                ENDM
+                .ENDM
 
 
-                MACRO Bpf_input nif,buf
+                .MACRO Bpf_input nif,buf
                 pea     buf                     /* buf */
                 pea     nif                     /* nif */
                 move.l  netinfo,a0
                 move.l  bpf_input(a0),a0
                 jsr     (a0)
                 addq    #8,sp                   /* pop args */
-                ENDM
+                .ENDM
 
 
-                MACRO If_enqueue if_snd,buf,info
+                .MACRO If_enqueue if_snd,buf,info
                 move    info,-(sp)              /* info */
                 pea     buf                     /* buf */
                 pea     if_snd                  /* if_snd */
@@ -131,10 +131,10 @@ bpf_input:      .ds.l    1
                 move.l  if_enqueue(a0),a0
                 jsr     (a0)
                 lea     10(sp),sp               /* pop args */
-                ENDM
+                .ENDM
 
 
-                MACRO If_input nif,buf,delay,pktype
+                .MACRO If_input nif,buf,delay,pktype
                 move    pktype,-(sp)            /* packet type */
                 move.l  delay,-(sp)             /* delay */
                 pea     buf                     /* buf */
@@ -143,5 +143,5 @@ bpf_input:      .ds.l    1
                 movea.l if_input(a0),a0
                 jsr     (a0)
                 lea     14(sp),sp               /* pop args */
-                ENDM
+                .ENDM
 

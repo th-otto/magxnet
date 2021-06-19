@@ -15,13 +15,13 @@
 
 		.INCLUDE	"bus.i"
 
-		MACRO putBUSr val,offset
+		.MACRO putBUSr val,offset
 		move.w	#(offset)<<8,RyBUS	/* move ISA address to bits 8-15 */
 		move.w	RyBUS,RxBUS		/* get a copy */
 		move.b	val,RyBUS		/* merge in data */
 		add.w	RyBUS,RyBUS		/* shift up one bit to avoid UDS/LDS *** */
 		move.b	0(RcBUS,RyBUS.w),d0	/* write by reading */
-		ENDM
+		.ENDM
 
 		.TEXT
 

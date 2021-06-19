@@ -2,6 +2,7 @@
 ; Project file for StinG driver, slow ACSI
 ;
 ..\bin\eneas.stx
+.C[-I..\..\include]
 .C[-Iinc_stng]
 .S[-DBUS=0]
 .S[-DACSI_SLOW_ACCESS=1]

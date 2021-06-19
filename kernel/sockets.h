@@ -16,7 +16,7 @@
 # include <mint/ssystem.h>
 # include <mint/cookie.h>
 #endif
-#define __KERNEL__
+#define __KERNEL__ 1
 #include <mint/errno.h>
 
 /* BUG: throughout this code, EINVAL was used as synonym for ENOSYS */

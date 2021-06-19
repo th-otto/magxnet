@@ -33,8 +33,8 @@
 
 
 * references from ENEMNET.S
-		XREF	netinfo		/* pointer to structure of MNet functions */
-		XREF	if_ENE		/* structure for interface en0 */
+		.xref	netinfo		/* pointer to structure of MNet functions */
+		.xref	if_ENE		/* structure for interface en0 */
 
 *
 * includes

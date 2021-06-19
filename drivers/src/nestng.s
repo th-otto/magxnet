@@ -1,4 +1,4 @@
-*********************************************************************************
+
 *                                                                               *
 *       Low level part of STiNG port NEx000 driver for my ACSI-ISA interface    *
 *       and the Cartridge Port interface developed by Lyndon Amsdon and me.     *
@@ -34,17 +34,17 @@
 		.INCLUDE	"devswit.i"
 
 * entry points and references in this module
-		XDEF	rtrvPckt	/* (); get packet out of the card */
+		.globl	rtrvPckt	/* (); get packet out of the card */
 
 * references into ne.s
-		XREF	DVS		/* access to device structure in BSS in NE.S */
+		.xref	DVS		/* access to device structure in BSS in NE.S */
 
 * references into enestng.c
-		XREF	tpl		/* in ENESTNG.C, accessed from rtrvStngDgram */
-***		XREF	stx		/* " */
-		XREF	my_port		/* " */
+		.xref	tpl		/* in ENESTNG.C, accessed from rtrvStngDgram */
+***		.xref	stx		/* " */
+		.xref	my_port		/* " */
 * entry point defined in enestng.c
-		XREF	process_arp	/* (); in ENESTNG.C, called from rtrvPckt when an ARP packet was received */
+		.xref	process_arp	/* (); in ENESTNG.C, called from rtrvPckt when an ARP packet was received */
 
 *
 * system variables
@@ -78,15 +78,15 @@
 * use only a few functions full blown structure declaration is not
 * warranted
 *
-tpKRmalloc	EQU	$0c
-tpKRfree	EQU	$10
+tpKRmalloc	=	$0c
+tpKRfree	=	$10
 
-***sxSet_dgram_ttl	EQU	$0c	/* unused */
-***sxIP_discard	EQU	$2c		/* unused */
+***sxSet_dgram_ttl	=	$0c	/* unused */
+***sxIP_discard	=	$2c		/* unused */
 
-ptStat_rcv_data	EQU	$20
-ptReceive	EQU	$24
-ptStat_dropped	EQU	$28
+ptStat_rcv_data	=	$20
+ptReceive	=	$24
+ptStat_dropped	=	$28
 
 *
 *
@@ -153,8 +153,8 @@ sgIp_DgramLen:
 *	we do not/must not use d6,d7,a5,a6 (getMore)
 *********************************************************************************
 
-RrxPktLen	EQU	d2			/* must be defined already here */
-RrxPushed	EQU	4			/* bytes pushed on stack (d2,d3) */
+RrxPktLen	=	d2			/* must be defined already here */
+RrxPushed	=	4			/* bytes pushed on stack (d2,d3) */
 
 
 		.TEXT
@@ -174,17 +174,70 @@ rtrvStngDgram:
 		beq	err1_dgram			/* KRmalloc failed? */
 
 		movea.l	a2,a0
-	IFNE	WORD_TRANSFER
-		REPT	10			/* ipHdrLen/2 */
+	.IFNE	WORD_TRANSFER
+		/* ipHdrLen/2 */
 		getMoreW NE_DATAPORT,d0
 		move.w	d0,(a0)+		/* get IP header */
-		ENDM
-	ELSE
-		REPT	20			/* ipHdrLen */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP header */
+	.ELSE
 		getMore	NE_DATAPORT,d0
 		move.b	d0,(a0)+		/* get IP header */
-		ENDM
-	ENDC
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP header */
+	.ENDC
 
 * check consistency of IP header
 		move	(a7),d0			/* saved RrxPktLen */
@@ -220,17 +273,21 @@ rtrvStngDgram:
 		bra.b	b1_dgram
 
 t1_dgram:
-	IFNE	WORD_TRANSFER
-		REPT	2
+	.IFNE	WORD_TRANSFER
 		getMoreW NE_DATAPORT,d0
 		move.w	d0,(a0)+		/* get IP options */
-		ENDM
-	ELSE
-		REPT	4
+		getMoreW NE_DATAPORT,d0
+		move.w	d0,(a0)+		/* get IP options */
+	.ELSE
 		getMore	NE_DATAPORT,d0
 		move.b	d0,(a0)+		/* get IP options */
-		ENDM
-	ENDC
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP options */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP options */
+		getMore	NE_DATAPORT,d0
+		move.b	d0,(a0)+		/* get IP options */
+	.ENDC
 b1_dgram:
 		dbra	d1,t1_dgram
 
@@ -325,21 +382,21 @@ err4_dgram:
 
 
 ******** declarations for ethernet **********************************************
-N8390Hdr	EQU	4		/* the 8390 chip storesa 4 byte header preceeeding the packet */
-NCRC		EQU	4		/* 4 trailing CRC of a ethernet packet */
+N8390Hdr	=	4		/* the 8390 chip storesa 4 byte header preceeeding the packet */
+NCRC		=	4		/* 4 trailing CRC of a ethernet packet */
 
 		.OFFSET 0
 EthDst:		.ds.b	6		/* Ethernet destination address (unused) */
 EthSrc:		.ds.b	6		/* Ethernet source address (unused) */
 EthType:		.ds.w	1		/* Ethernet packet type */
 EthN:
-EthCTypeIP		EQU	$0800		/* packet type IP */
-EthCTypeARP		EQU	$0806		/* packet type ARP */
-EthCtypeRARP		EQU	$8035		/* packet type reverse ARP (unused) */
-EthCTypeIPARPHi		EQU	$08		/* Hi byte for both IP and ARP */
-EthCTypeIPLo		EQU	$00		/* Lo byte IP */
-EthCTypeARPLo		EQU	$06		/* Lo byte ARP */
-NArpPkt		EQU	64-EthN		/* length of Arp packet without ethernet header */
+EthCTypeIP		=	$0800		/* packet type IP */
+EthCTypeARP		=	$0806		/* packet type ARP */
+EthCtypeRARP		=	$8035		/* packet type reverse ARP (unused) */
+EthCTypeIPARPHi		=	$08		/* Hi byte for both IP and ARP */
+EthCTypeIPLo		=	$00		/* Lo byte IP */
+EthCTypeARPLo		=	$06		/* Lo byte ARP */
+NArpPkt		=	64-EthN		/* length of Arp packet without ethernet header */
 					/* but with padding and ethernet CRC */
 
 		.TEXT
@@ -379,16 +436,16 @@ NArpPkt		EQU	64-EthN		/* length of Arp packet without ethernet header */
 *	registers d2-d5,RxBUS,RyBUS,RcBUS,RdBUS are not changed
 *
 
-	IFNE	BUGGY_HW
-RrxJnk8990	EQU	d1
-	ENDC
-RrxReadPg	EQU	d4
+	.IFNE	BUGGY_HW
+RrxJnk8990	=	d1
+	.ENDC
+RrxReadPg	=	d4
 
 rtrvPckt:
-	IFGE	RXDEBPRT-999
+	.IFGE	RXDEBPRT-999
 		PrW	RrxPktLen
 		PrA	" RrxPktLen",13,10
-	ENDC
+	.ENDC
 * we do not need the two leading ethernet MAC addresses (12 bytes) and the trailing 4 CRC bytes
 * thus we adjust the # of bytes to read
 		move	RrxPktLen,d0
@@ -402,20 +459,20 @@ rtrvPckt:
 * thus we start remote DMA read command starting at the 2 ethernet type bytes
 		putBUSi	E8390_RREAD+E8390_START,E8390_CMD
 
-	IFNE	BUGGY_HW
+	.IFNE	BUGGY_HW
 * note that the data is shifted by one byte in case of a junk header, we need to do one more read
 		tst.b	RrxJnk8990
 		beq.b	c1_pckt
 		getBUS	NE_DATAPORT,d0			/* dummy read */
 c1_pckt:
-	ENDC
-	IFNE	WORD_TRANSFER
+	.ENDC
+	.IFNE	WORD_TRANSFER
 		getBUSW	NE_DATAPORT,d0			/* get type */
 		cmp.w	#EthCTypeIP,d0			/* IP packet? */
 		beq		IP_dgram
 		cmp.w	#EthCTypeARP,d0			/* ARP packet? */
 		beq		ARP_dgram
-	ELSE
+	.ELSE
 		getBUS	NE_DATAPORT,d0			/* get type hi byte */
 		cmp.b	#EthCTypeIPARPHi,d0
 		bne		err_pckt
@@ -424,15 +481,15 @@ c1_pckt:
 		beq		IP_dgram
 		cmp.b	#EthCTypeARPLo,d0		/* ARP packet? */
 		beq		ARP_dgram				/* if not it is an error */
-	ENDC
+	.ENDC
 
 
 err_pckt:
 		moveq.l	#-10,d0				/* fall thru */
 
 err1_pckt:
-	IFGE	RXDEBPRT-1
-	IFEQ	WORD_TRANSFER
+	.IFGE	RXDEBPRT-1
+	.IFEQ	WORD_TRANSFER
 		PrA	"rc "
 		PrL	d0
 		PrA	" "
@@ -445,8 +502,8 @@ err1_pckt:
 		getBUS	NE_DATAPORT,d1
 		PrB	d1
 		PrA	"",13,10
-	ENDC
-	ENDC
+	.ENDC
+	.ENDC
 		putBUSi	E8390_NODMA+E8390_START,E8390_CMD	/* abort remote DMA */
 		getBUS	NE_DATAPORT,d1			/* only this makes for a proper abort !!! */
 		putBUSi	(1<<ENISR_RDC),EN0_ISR		/* reset remote DMA ready bit */

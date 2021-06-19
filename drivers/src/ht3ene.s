@@ -20,7 +20,7 @@
 		.xref	ei_start_xmit			/* (); */
 		.xref	ei_interrupt			/* (void); */
 
-		XDEF	rtrvPckt
+		.globl	rtrvPckt
 
 		
 		.include	"uti.i"

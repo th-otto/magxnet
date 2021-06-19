@@ -11,11 +11,11 @@
 *
 * entry points and references in this module
 *
-                XDEF    prntStr         ; (); debugging
-                XDEF    prntLong        ; (); "
-                XDEF    prntWord        ; (); "
-                XDEF    prntByte        ; (); "
-                XDEF    prntSR          ; (); "
+                .globl    prntStr         ; (); debugging
+                .globl    prntLong        ; (); "
+                .globl    prntWord        ; (); "
+                .globl    prntByte        ; (); "
+                .globl    prntSR          ; (); "
 
 
 		.TEXT
@@ -68,10 +68,15 @@ prntByte:
 
 prntNibbles:
 		moveq	#0,d0			; clear word
-		REPT	4			; get nibble in d0
+		/* get nibble in d0 */
 		lsl.l	#1,d6			; in extend bit
 		roxl.b	#1,d0			; from extend bit
-		ENDM
+		lsl.l	#1,d6			; in extend bit
+		roxl.b	#1,d0			; from extend bit
+		lsl.l	#1,d6			; in extend bit
+		roxl.b	#1,d0			; from extend bit
+		lsl.l	#1,d6			; in extend bit
+		roxl.b	#1,d0			; from extend bit
 		move.b	.HexTab(pc,d0.w),d0	; get hex character
 		move	d0,-(sp)		; arg: the char
 		move.l	#$00030002,-(sp)	; 2 args: VT52-console (2), Bconout (3)

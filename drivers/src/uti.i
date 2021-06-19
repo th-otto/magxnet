@@ -12,70 +12,70 @@
 *
 * external references
 *
-		XREF	prntStr		/* CDECL (); debugging */
-		XREF	prntLong	/* CDECL (); " */
-		XREF	prntWord	/* CDECL (); " */
-		XREF	prntByte	/* CDECL (); " */
-		XREF	prntSR		/* CDECL (); " */
+		.xref	prntStr		/* CDECL (); debugging */
+		.xref	prntLong	/* CDECL (); " */
+		.xref	prntWord	/* CDECL (); " */
+		.xref	prntByte	/* CDECL (); " */
+		.xref	prntSR		/* CDECL (); " */
 
 *
 * macros
 *
 
-		MACRO	Alloc size		/* allocate a number of bytes on stack */
-		IFLE	size-8
+		.MACRO	Alloc size		/* allocate a number of bytes on stack */
+		.IFLE	size-8
 		subq.l	#size,sp
-		ELSE
+		.ELSE
 		lea	-size(sp),sp
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
-		MACRO	deAlloc size		/* pop a number of bytes from stack */
-		IFLE	size-8
+		.MACRO	deAlloc size		/* pop a number of bytes from stack */
+		.IFLE	size-8
 		addq.l	#size,sp
-		ELSE
+		.ELSE
 		lea	size(sp),sp
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
 
 **** debugging macros ***********************************************************
 
 * sounds the bell
 
-		MACRO myPling
+		.MACRO myPling
 		move	#$0700,-(sp)		/* string BELL */
 		pea	(sp)			/* arg: address to this string */
 		bsr	prntStr
 		addq.l	#6,sp			/* pop arg and string */
-		ENDM
+		.ENDM
 
 * polls if a key was pressed
 *	d0 =  0 no key pressed
 *	d0 = -1 key pressed
 *	
-		MACRO PollKey
+		.MACRO PollKey
 		movem.l	d1-d2/a0-a2,-(sp)
 		move.l	#$00010002,-(sp)	/* bconstat (1) con (2) */
 		trap	#13
 		addq.l	#4,sp
 		movem.l	(sp)+,d1-d2/a0-a2
-		ENDM
+		.ENDM
 
 * waits for a key pressed
 *	bits 0-7 ACSII
 *	bits 16-23 scan code
 *	bits 24-31 value of Kbshift()
-		MACRO WaitKey
+		.MACRO WaitKey
 		movem.l	d1-d2/a0-a2,-(sp)
 		move.l	#$00020002,-(sp)	/* bconin (2) con (2) */
 		trap	#13
 		addq.l	#4,sp
 		movem.l	(sp)+,d1-d2/a0-a2
-		ENDM
+		.ENDM
 
 
-		MACRO PrA msg,cr,lf
+		.MACRO PrA msg,cr,lf
 		.LOCAL mess
 		.LOCAL cont
 		pea	mess(pc)
@@ -89,35 +89,35 @@ mess:
 		DC.B    0
 		EVEN
 cont:
-		ENDM
+		.ENDM
 
 
-		MACRO PrS msg
+		.MACRO PrS msg
 		pea	msg
 		bsr	prntStr
 		addq.l	#4,sp
-		ENDM
+		.ENDM
 
 
-		MACRO PrL val
+		.MACRO PrL val
 		move.l	val,-(sp)
 		bsr	prntLong
 		addq.l	#4,sp
-		ENDM
+		.ENDM
 
 
-		MACRO PrW val
+		.MACRO PrW val
 		move.w	val,-(sp)
 		bsr	prntWord
 		addq.l	#2,sp
-		ENDM
+		.ENDM
 
 
-		MACRO PrB val
+		.MACRO PrB val
 		move.b	val,-(sp)	/* the 68K pushes an extra align byte */
 		bsr	prntByte
 		addq.l	#2,sp		/* the 68K pushes an extra align byte */
-		ENDM
+		.ENDM
 
 
 *********************************************************************************

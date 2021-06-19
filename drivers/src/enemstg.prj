@@ -2,6 +2,7 @@
 ; Project file for STinG driver, Milan
 ;
 ..\bin\enem.stx
+.C[-I..\..\include]
 .C[-Iinc_stng]
 .S[-DBUS=2]
 .S[-S]

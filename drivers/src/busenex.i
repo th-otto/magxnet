@@ -21,29 +21,29 @@
 * manifest constants
 *
 
-BUGGY_HW	EQU	0		/* if set enables code to handle buggy hardware */
+BUGGY_HW	=	0		/* if set enables code to handle buggy hardware */
 
-WORD_TRANSFER	EQU	1		/* if set enables 16-bit DMA */
+WORD_TRANSFER	=	1		/* if set enables 16-bit DMA */
 
 *
 * hardware addresses
 *
 
-rom4		EQU	$00f10600	/* EXP base address */
-rom3		EQU	$00f10600	/* EXP base address */
+rom4		=	$00f10600	/* EXP base address */
+rom3		=	$00f10600	/* EXP base address */
 
 *
 * macros
 *
 
-		MACRO lockBUS doNothing
+		.MACRO lockBUS doNothing
 		moveq	#-1,d0			/* preset error code */
 		tas	DVS+lcl_irqlock		/* check for race about EXP Port and */
 		bne	doNothing		/* if somebody owns the bus we quit */
-		ENDM
+		.ENDM
 
 
-		MACRO lockBUSWait.size
+		.MACRO lockBUSWait.size
 		.LOCAL lt1
 		.LOCAL lc1
 * there should be a timeout based on _hz_200 (and then branch to .doNothing)
@@ -55,80 +55,80 @@ lt1:		tas	DVS+lcl_irqlock		/* check for race about EXP Port and */
 		bra.b	lt1
 
 lc1:						/* proceed */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUS
+		.MACRO unlockBUS
 		sf	DVS+lcl_irqlock		/* let other tasks access EXP Port */
-		ENDM
+		.ENDM
 
 
-		MACRO unlockBUSWait
+		.MACRO unlockBUSWait
 		sf	DVS+lcl_irqlock		/* let other tasks access Cartridge Port */
-		ENDM
+		.ENDM
 
 
-RxBUS		EQU	d7
-RyBUS		EQU	d6
-RcBUS		EQU	a5
-RdBUS		EQU	a6
+RxBUS		=	d7
+RyBUS		=	d6
+RcBUS		=	a5
+RdBUS		=	a6
 
 
-		MACRO ldBUSRegs			/* for faster access to hardware */
+		.MACRO ldBUSRegs			/* for faster access to hardware */
 		lea	rom3,RcBUS
 		lea	rom4,RdBUS
-		ENDM
+		.ENDM
 
 
-		MACRO putBUS val,offset
+		.MACRO putBUS val,offset
 		move.b	val,(offset)<<1(RcBUS)
-		ENDM
+		.ENDM
 
 
-		MACRO putMore val,offset
+		.MACRO putMore val,offset
 		putBUS val,offset
-		ENDM
+		.ENDM
 
-		MACRO putBUSW val,offset
+		.MACRO putBUSW val,offset
                 move.w	val,(offset)<<1(RcBUS)
-		ENDM
+		.ENDM
 
 
-		MACRO putMoreW val,offset
+		.MACRO putMoreW val,offset
                 putBUSW val,offset
-		ENDM
+		.ENDM
 
 
-		MACRO putBUSi val,offset
+		.MACRO putBUSi val,offset
 		putBUS	#val,offset
-		ENDM
+		.ENDM
 
 
-		MACRO getBUS offset,val
+		.MACRO getBUS offset,val
 		move.b	(offset)<<1(RdBUS),val
-		ENDM
+		.ENDM
 
 
-		MACRO getMore offset,val
+		.MACRO getMore offset,val
 		getBUS	offset,val
-		ENDM
+		.ENDM
 
 
-		MACRO getBUSW offset,val
+		.MACRO getBUSW offset,val
                 move.w	(offset)<<1(RdBUS),val
-		ENDM
+		.ENDM
 
 
-		MACRO getMoreW offset,val
+		.MACRO getMoreW offset,val
                 getBUSW	offset,val
-		ENDM
+		.ENDM
 
 *
 * macro to deselect an interface
 *
-		MACRO deselBUS
+		.MACRO deselBUS
 * empty as the EXP port does not need deselecting
-		ENDM
+		.ENDM
 
 
 
@@ -142,7 +142,7 @@ RdBUS		EQU	a6
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeate explicitly
 
-		MACRO RAM2NE addr,count
+		.MACRO RAM2NE addr,count
 		.LOCAL Rt1
 		.LOCAL Rb1
 		.LOCAL doNothing_ram2ne
@@ -169,7 +169,7 @@ Rb1:		dbra	count,Rt1
 	ENDC
 
 doNothing_ram2ne:
-		ENDM
+		.ENDM
 
 
 
@@ -184,7 +184,7 @@ doNothing_ram2ne:
 * both registers plus d0 get destroyed.
 * Assembler inst. REPT does not work inside a macro, we repeat explicitly
 
-		MACRO NE2RAM addr,count
+		.MACRO NE2RAM addr,count
 		.LOCAL Nt1
 		.LOCAL Nb1
 		.LOCAL doNothing_ne2ram
@@ -204,7 +204,7 @@ Nt1:
 Nb1:		dbra	count,Nt1
 
 doNothing_ne2ram:
-		ENDM
+		.ENDM
 
 
 

@@ -93,31 +93,31 @@
 
 
 * entry points and references in this module
-		XDEF	ei_probe1	; (); look for NEx000 hardware (super mode)
-		XDEF	ei_open		; (); switch hardware on (super mode)
-		XDEF	ei_close	; (); switch hardware off (super mode)
-		XDEF	ei_start_xmit	; (); tx an ethernet packet (super mode)
-		XDEF	ei_interrupt	; (); rx ethernet packets and housekeeping (super mode)
-		XDEF	get_stats	; (); access to struct enet_statistics  (super mode)
+		.globl	ei_probe1	; (); look for NEx000 hardware (super mode)
+		.globl	ei_open		; (); switch hardware on (super mode)
+		.globl	ei_close	; (); switch hardware off (super mode)
+		.globl	ei_start_xmit	; (); tx an ethernet packet (super mode)
+		.globl	ei_interrupt	; (); rx ethernet packets and housekeeping (super mode)
+		.globl	get_stats	; (); access to struct enet_statistics  (super mode)
 
-		XDEF	DVS		; access to the device structure
+		.globl	DVS		; access to the device structure
 
 * external references
-		XREF	rtrvPckt	; (); call STinG or MagicNet or MINTNet specific code
+		.xref	rtrvPckt	; (); call STinG or MagicNet or MINTNet specific code
 					    ; to retrieve a packet from the card into RAM
 
 *
 * manifest constants
 *
-TRMAGIC		EQU	"TRNE"		; my XBRA ident (unused)
+TRMAGIC		=	0x54524e45 /* "TRNE", my XBRA ident (unused) */
 
 *
 * addresses of system variables
 *
 
-_hz_200		EQU	$4ba		; (l) 200Hz system tick
+_hz_200		=	$4ba		; (l) 200Hz system tick
 
-HZ		EQU	200		; system timer ticks per second
+HZ		=	200		; system timer ticks per second
 
 
 		.INCLUDE	"uti.i"
@@ -140,10 +140,10 @@ _appl_yield:
 *********************************************************************************
 ******** taken from <linux/if.h> ************************************************
 
-IFF_BROADCAST	EQU	$0002
-IFF_PROMISC	EQU	$0100
-IFF_ALLMULTI	EQU	$0200
-IFF_MULTICAST	EQU	$1000
+IFF_BROADCAST	=	$0002
+IFF_PROMISC	=	$0100
+IFF_ALLMULTI	=	$0200
+IFF_MULTICAST	=	$1000
 
 
 *********************************************************************************
@@ -269,7 +269,7 @@ ei_close:
 *********************************************************************************
 
 * The maximum time waited (in jiffies) before assuming a Tx failed. (1000ms)
-TX_TIMEOUT	EQU	((1000*HZ)/1000)
+TX_TIMEOUT	=	((1000*HZ)/1000)
 
 Rsx		REG	d3/RxBUS/RyBUS/a2/RcBUS/RdBUS
 
@@ -378,8 +378,8 @@ xmit_busy:
 *********************************************************************************
 
 * local variables in registers
-RitInts		EQU	d5		; copy of interrupt register; to be conserved by lower levels!
-RitDVS		EQU	a4		; pointer to global vars.
+RitInts		=	d5		; copy of interrupt register; to be conserved by lower levels!
+RitDVS		=	a4		; pointer to global vars.
 
 Rit		REG	RitInts/RxBUS/RyBUS/RitDVS/RcBUS/RdBUS	; saved registers on entry
 
@@ -541,7 +541,7 @@ doNothing_interrupt:
 *********************************************************************************
 
 * local variables in registers
-RteTxsr		EQU	d1		; temporary
+RteTxsr		=	d1		; temporary
 
 ei_tx_err:
 		getBUS	EN0_TSR,RteTxsr
@@ -640,7 +640,7 @@ m6_tx_err:		DC.B	"window ",0
 *********************************************************************************
 
 * local variables in registers
-RtiStts		EQU	d1		; temporary
+RtiStts		=	d1		; temporary
 
 
 ei_tx_intr:
@@ -715,16 +715,16 @@ m1_tx_intr:		DC.B	"TX Err in tx_intr?",13,10,0
 * Realtek RTL8019AS chip
 *********************************************************************************
 
-N8390Hdr	EQU	4		; the chip saves a 4 bytes header preceeding the packet
+N8390Hdr	=	4		; the chip saves a 4 bytes header preceeding the packet
 
 * local variables in registers
-RrxReadPg	EQU	d4			; page where the newly arrived packet shall be read from
-RrxNextFrm	EQU	d3			; the next packet to be read
-RrxPktLen	EQU	d2			; lenght of the newly arrived packet
-RrxJnk8990	EQU	d1			; Header is junk flag (8990, 9090 symptom)
+RrxReadPg	=	d4			; page where the newly arrived packet shall be read from
+RrxNextFrm	=	d3			; the next packet to be read
+RrxPktLen	=	d2			; lenght of the newly arrived packet
+RrxJnk8990	=	d1			; Header is junk flag (8990, 9090 symptom)
 
-RrxHiLvl1	EQU	a2			; we save these here to avoid rtrvPkct needs to save
-RrxHiLvl2	EQU	a3			; them at each call (assumes >1 packet to slurp)
+RrxHiLvl1	=	a2			; we save these here to avoid rtrvPkct needs to save
+RrxHiLvl2	=	a3			; them at each call (assumes >1 packet to slurp)
 
 * local variables in memory
 		.OFFSET 0
@@ -872,12 +872,12 @@ exit_receive:
 		rts
 
 
-		MACRO debPrint msg,cr,lf
-		IFGE	RXDEBPRT-2
+		.MACRO debPrint msg,cr,lf
+		.IFGE	RXDEBPRT-2
 		PrA	msg,cr,lf
 		bsr	eirDumpState
-		ENDC
-		ENDM
+		.ENDC
+		.ENDM
 
 
 * when we get here we likely have the 8390 header writing problem
@@ -1060,7 +1060,7 @@ c2_rx_overrun:
 *********************************************************************************
 
 
-RgsDVS		EQU	a4
+RgsDVS		=	a4
 
 Rgs		REG	RxBUS/RyBUS/RgsDVS/RcBUS/RdBUS
 
@@ -1276,9 +1276,9 @@ exit_delay:
 *********************************************************************************
 
 * local variables in registers
-RprDVS		EQU	a4		; pointer to global vars.
+RprDVS		=	a4		; pointer to global vars.
 
-NBSA_prom	EQU	32
+NBSA_prom	=	32
 
 * local variables in memory
 		.OFFSET 0
