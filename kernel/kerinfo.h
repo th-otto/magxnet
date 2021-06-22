@@ -334,5 +334,33 @@ struct kerinfo
 
 extern long init_kerinfo(void);
 
-# endif /* _mint_kerinfo_h */
+# ifndef KERNEL
+# define KERNEL	kernel
+# endif
 
+extern struct kerinfo *KERNEL;
+
+# define MINT_MAJOR		(KERNEL->maj_version)
+# define MINT_MINOR		(KERNEL->min_version)
+# define MINT_KVERSION		(KERNEL->version)
+# undef DEFAULT_MODE
+# define DEFAULT_MODE		(KERNEL->default_perm)
+# define DEFAULT_DMODE		(0755)
+
+#if __KERNEL__ == 2
+
+/* subset of definitions from libkern/kernel_xfs_xdd.h */
+
+# define addroottimeout		(*KERNEL->addroottimeout)
+# define ksprintf           (*KERNEL->ksprintf)
+#ifdef NOTYET
+/* currently not set by sockets.dev */
+# define loops_per_sec_ptr	( KERNEL->loops_per_sec)
+#else
+extern unsigned long *loops_per_sec_ptr;
+#endif
+
+#endif
+
+
+# endif /* _mint_kerinfo_h */

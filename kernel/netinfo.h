@@ -27,7 +27,7 @@ struct netinfo
 	short	cdecl (*_in_chksum) (void *, short);
 	short	cdecl (*_if_getfreeunit) (char *);
 	
-	BUF *	cdecl (*_eth_build_hdr) (BUF *, struct netif *, const char *, short);
+	BUF *	cdecl (*_eth_build_hdr) (BUF *buf, struct netif *nif, const char *addr, short type);
 	short	cdecl (*_eth_remove_hdr) (BUF *);
 	
 	const char *fname;

@@ -16,7 +16,16 @@
 # include <mint/ssystem.h>
 # include <mint/cookie.h>
 #endif
-#define __KERNEL__ 1
+
+/* definitions from mint/kernel.h */
+# if defined(__KERNEL_MODULE__)
+# define __KERNEL__	3
+# elif defined(__KERNEL_XFS__) || defined(__KERNEL_XDD__)
+# define __KERNEL__	2
+# else
+# define __KERNEL__	1
+# endif
+
 #include <mint/errno.h>
 
 /* BUG: throughout this code, EINVAL was used as synonym for ENOSYS */
