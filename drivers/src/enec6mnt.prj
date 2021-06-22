@@ -1,5 +1,5 @@
 ;
-; Project file for MagiCNet driver, cartridge port, 68030 version
+; Project file for MagiCNet driver, cartridge port, 68060 version
 ;
 ..\bin\enec6.mif
 .S[-Iinc_mnet]
@@ -7,6 +7,7 @@
 .S[-DCPU020=1]
 .S[-DCPU060=1]
 .S[-S]
+.C[-A-]
 .C[-P-]
 .C[-K-]
 .C[-M-]

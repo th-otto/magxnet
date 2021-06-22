@@ -1,10 +1,12 @@
 ;
-; Project file for STinG driver, Milan
+; Project file for STinG driver, cartridge port, 68060 version
 ;
-..\bin\enem.stx
+..\bin\enec6.stx
 .C[-I..\..\include]
 .C[-Iinc_stng]
-.S[-DBUS=2]
+.S[-DBUS=1]
+.S[-DCPU020=1]
+.S[-DCPU060=1]
 .S[-S]
 .C[-A-]
 .C[-P-]

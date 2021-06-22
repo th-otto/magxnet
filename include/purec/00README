@@ -4,8 +4,8 @@ taken (with some modifications) from mintlib.
 
 If you have similar files already in your standard include directory,
 make sure they are identical. Or alternatively, change the project
-files to add your standard include path *last*, then remove it  from
-that path from your shell options. This is imortant because otherwise
+files to add your standard include path *last*, then remove
+that path from your shell options. This is important because otherwise
 Pure-C picks the files in that standard path first, not our fixed
 versions.
 

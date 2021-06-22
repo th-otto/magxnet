@@ -1,6 +1,7 @@
 ..\bin\ht2enem.tos
 .S[-DBUS=2]
 .S[-S]
+.C[-A-]
 .C[-P-]
 .C[-K-]
 .C[-M-]

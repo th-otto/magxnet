@@ -6,6 +6,7 @@
 .S[-DBUS=0]
 .S[-DACSI_SLOW_ACCESS=0]
 .S[-S]
+.C[-A-]
 .C[-P-]
 .C[-K-]
 .C[-M-]

@@ -283,7 +283,7 @@ Nt1:
 		getBUS	NE_DATAPORT,(addr)+
 		bra.w   Nb2
 
-Nt2:	getBUS	NE_DATAPORT,(addr)+
+Nt2:	getMore	NE_DATAPORT,(addr)+
 Nb2:		dbra	count,Nt2
 
 doNothing_ne2ram:

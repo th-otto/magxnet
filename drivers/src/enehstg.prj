@@ -6,6 +6,7 @@
 .C[-Iinc_stng]
 .S[-DBUS=3]
 .S[-S]
+.C[-A-]
 .C[-P-]
 .C[-K-]
 .C[-M-]
