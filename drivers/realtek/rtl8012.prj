@@ -6,7 +6,7 @@
 .C[-I..\..\kernel]
 .C[-I..\..\include\purec]
 .C[-I..\..\include]
-.S[-Iinc_mnet]
+.S[-I..\src\inc_mnet]
 .S[-S]
 .S[-DGNUC=0]
 .C[-A-]

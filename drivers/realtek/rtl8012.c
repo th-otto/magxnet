@@ -128,7 +128,7 @@ unsigned char RxBuffer[16];
 
 #define c_conws(str) printstr(str)
 
-static void printstr(const char *str)
+void printstr(const char *str)
 {
 	while (*str)
 	{
@@ -171,21 +171,23 @@ static const char *MSG_BOOT = "MagiCNet - MiNTNet RTL8012 pocket driver\r\n";
 #define MSG_FAILURE	\
 	"RTL8012: timeout, check network cable!\r\n"
 
+#if 0
 INLINE uchar RdNib(ushort rreg);
 INLINE void WrNib(uchar wreg, uchar wdata);
 INLINE void WrByte(uchar wreg, uchar wdata);
 INLINE uchar RdBytEP(void);
+#endif
 
 static long rtl8012_reset(struct netif *nif);
-static void rtl8012_install_int(void);
+void rtl8012_install_int(void) GNU_ASM_NAME("rtl8012_install_int");
 void rtl8012_stop(void) GNU_ASM_NAME("rtl8012_stop");
 int send_block(uchar *buf, struct netif *nif, ushort len);
 void rtl8012_active(void) GNU_ASM_NAME("rtl8012_active");
-long rtl8012_probe(struct netif *nif);
+static long rtl8012_probe(struct netif *nif);
 int rtl8012_doreset(int flag) GNU_ASM_NAME("rtl8012_doreset");
-static void GetNodeID(uchar *buf);
+void GetNodeID(uchar *buf) GNU_ASM_NAME("GetNodeID");
 void rtl8012_sethw(const unsigned char *address);
-void rtl8012_recv_packet(struct netif *nif);
+static void rtl8012_recv_packet(struct netif *nif);
 int buf_empty(void);
 ushort get_paclen(void);
 void read_block(uchar *buf, ushort len);
@@ -276,11 +278,27 @@ static BUF *eth_build_hdr(BUF *buf, struct netif *nif, long _addr, short type)
 	short *ps;
 	addr = (char *)_addr;
 	(void)&addr;
+#ifdef __GNUC__
+	{
+		long *pp = (long *)ep->saddr;
+		long *pl = (long *)nif->hwlocal.adr.bytes;
+		*pp = *pl;
+	}
+#else
 	*((long *)ep->saddr) = *((long *)nif->hwlocal.adr.bytes);
+#endif
 	ps = (short *)(ep->saddr + 4);
 	*ps = *((short *)(nif->hwlocal.adr.bytes + 4));
 
+#ifdef __GNUC__
+	{
+		long *pp = (long *)ep->daddr;
+		long *pl = ((long *)_addr);
+		*pp = *pl;
+	}
+#else
 	*((long *)ep->daddr) = *((long *)_addr);
+#endif
 	ps = (short *)(ep->daddr + 4);
 	*ps = *((short *)((char *)_addr + 4));
 	}
