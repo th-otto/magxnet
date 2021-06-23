@@ -8,31 +8,39 @@ struct magxnet_cookie {
 	long (*Fopen)(const char *filename);
 	short (*Fclose)(short fd);
 	void *o32;
-	struct sockdev *dev_table;
+	struct slbuf *dev_table;
 	void *o40;
 	long o44;
 	void *masq;
 };
 
-
-struct sockdev {
+#ifndef __slbuf_defined
+#define __slbuf_defined 1
+struct slbuf {
 	unsigned char flags;
-	char o1[127];
+# define SL_INUSE	0x01		/* slbuf in use */
+# define SL_SENDING	0x02		/* send in progress */
+# define SL_CLOSING	0x04		/* close in progress */
+
+	char		dev[127];	/* device name */
 	short fd;
-	char o130[4];
-	short inbuf_size;
-	char *inbuf_ptr;
-	short input_tail;
-	short input_head;
-	short outbuf_size;
-	char *outbuf_ptr;
-	short output_tail;
-	short output_head;
-	void (*write_dev)(struct sockdev *);
-	void (*read_dev)(struct sockdev *);
-	long input_avail;
-	long output_avail;
+	struct netif	*nif;	/* interface this belongs to */
+	short		isize;		/* input ring buffer size */
+	char		*ibuf;		/* pointer to input buf */
+	short		ihead;		/* input buffer head */
+	short		itail;		/* output buffer tail */
+
+	short		osize;		/* ditto for output */
+	char		*obuf;		/* ditto for output */
+	short		ohead;		/* ditto for output */
+	short		otail;		/* ditto for output */
+
+	short		(*send)(struct slbuf *);	/* send more */
+	short		(*recv)(struct slbuf *);	/* recv more */
+	long		nread;		/* bytes avail for reading */
+	long		nwrite;		/* bytes avail for writing */
 };
+#endif
 
 #ifdef __KERNEL__
 extern struct magxnet_cookie cookie;

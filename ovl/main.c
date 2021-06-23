@@ -15,18 +15,20 @@
 #else
 # include <gemx.h>
 #endif
+struct netif { int dummy; };
 #include "sockdev.h"
 
 #define C_SCKM 0x53434B4DL     /* MagXNet (SOCKET.DEV) */
 #define FIONREAD	(('F'<< 8) | 1)
 #define FIONWRITE	(('F'<< 8) | 2)
 
+#define NSLBUFS		4
 
 static struct magxnet_cookie *sockets_dev;
 static long cookie;
 static short apid;
-static struct sockdev *dev_table;
-extern struct sockdev *currdev;
+static struct slbuf *dev_table;
+extern struct slbuf *currdev;
 
 static char const not_installed[] = " MagiCNet device driver NOT installed!\r\n";
 
@@ -182,13 +184,21 @@ int main(void)
 static long write_dev(void)
 {
 #if defined(__PUREC__)
-	currdev->write_dev(currdev);
+	/* BUG: called with Pure-C calling convention */
+	currdev->send(currdev);
 #elif defined(__GNUC__)
 	{
+		/*
+		 * take care to call it in a way that works both for cdecl
+		 * and Pure-C calling conventions, since there seem
+		 * to be drivers around that were compiled by it.
+		 */
 		register void *a0 __asm__("a0") = currdev;
-		register void *a1 __asm__("a1") = currdev->write_dev;
+		register void *a1 __asm__("a1") = currdev->send;
 		__asm__ __volatile__(
-			"jsr (%1)\n"
+			"\tmove.l %0,-(%%sp)\n"
+			"\tjsr (%1)\n"
+			"\taddq.w #4,%%sp\n"
 		:
 		: "r"(a0), "r"(a1)
 		: "cc", "d2", "memory");
@@ -203,13 +213,21 @@ static long write_dev(void)
 static long read_dev(void)
 {
 #if defined(__PUREC__)
-	currdev->read_dev(currdev);
+	/* BUG: called with Pure-C calling convention */
+	currdev->recv(currdev);
 #elif defined(__GNUC__)
 	{
+		/*
+		 * take care to call it in a way that works both for cdecl
+		 * and Pure-C calling conventions, since there seem
+		 * to be drivers around that were compiled by it.
+		 */
 		register void *a0 __asm__("a0") = currdev;
-		register void *a1 __asm__("a1") = currdev->read_dev;
+		register void *a1 __asm__("a1") = currdev->recv;
 		__asm__ __volatile__(
-			"jsr (%1)\n"
+			"\tmove.l %0,-(%%sp)\n"
+			"\tjsr (%1)\n"
+			"\taddq.w #4,%%sp\n"
 		:
 		: "r"(a0), "r"(a1)
 		: "cc", "d2", "memory");
@@ -221,140 +239,144 @@ static long read_dev(void)
 }
 
 
+/*
+ * worker function.
+ * almost identical to the inner loop of _sld() in serial.c
+ */
 static void do_work(void)
 {
-	struct sockdev *devptr;
+	struct slbuf *devptr;
 	int loop;
-	struct sockdev *dev;
-	long navail;
+	struct slbuf *sl;
+	long nr;
 	short offset;
-	long nbytes;
-	long bufsize;
+	long r;
+	long space;
 	
-	for (devptr = dev_table, loop = 0; loop < 4; loop++, devptr++)
+	for (devptr = dev_table, loop = 0; loop < NSLBUFS; loop++, devptr++)
 	{
-		dev = devptr;
-		if ((dev->flags & 0x05) != 0x01)
+		sl = devptr;
+		if ((sl->flags & (SL_INUSE|SL_CLOSING)) != SL_INUSE)
 			continue;
-		navail = 0;
-		Fcntl(dev->fd, (long)&navail, FIONREAD);
-		if (navail != 0 && navail <= dev->input_avail)
+		nr = 0;
+		Fcntl(sl->fd, (long)&nr, FIONREAD);
+		if (nr != 0 && nr <= sl->nread)
 		{
-			offset = dev->input_tail;
-			nbytes = 1;
+			offset = sl->ihead;
+			r = 1;
 			/*
-			 * read from tail to end of buffer
+			 * read from head to end of buffer
 			 */
-			if (offset >= dev->input_head)
+			if (offset >= sl->itail)
 			{
-				bufsize = dev->inbuf_size - offset;
-				if (dev->input_head == 0)
-					bufsize -= nbytes;
-				if (bufsize > 0)
+				space = sl->isize - offset;
+				if (sl->itail == 0)
+					space -= r;
+				if (space > 0)
 				{
-					nbytes = Fread(dev->fd, bufsize, dev->inbuf_ptr + offset);
-					if (nbytes > 0)
+					r = Fread(sl->fd, space, sl->ibuf + offset);
+					if (r > 0)
 					{
-						offset = (offset + nbytes) & (dev->inbuf_size - 1);
-						navail -= nbytes;
+						offset = (offset + r) & (sl->isize - 1);
+						nr -= r;
 					}
 				}
 			}
 			
 			/*
-			 * read from start of buffer to 1 byte before head
+			 * read from start of buffer to 1 byte before tail
 			 * BUG: we may have already read all available bytes above
 			 */
-			if (nbytes > 0 && (offset + 1) < dev->input_head)
+			if (r > 0 && (offset + 1) < sl->itail)
 			{
-				bufsize = dev->input_head - offset - 1;
-				if (bufsize > 0)
+				space = sl->itail - offset - 1;
+				if (space > 0)
 				{
-					nbytes = Fread(dev->fd, bufsize, dev->inbuf_ptr + offset);
-					if (nbytes > 0)
+					r = Fread(sl->fd, space, sl->ibuf + offset);
+					if (r > 0)
 					{
-						offset = (offset + nbytes) & (dev->inbuf_size - 1);
-						navail -= nbytes;
+						offset = (offset + r) & (sl->isize - 1);
+						nr -= r;
 					}
 				}
 			}
-			if (nbytes < 0)
+			if (r < 0)
 				(void) Cconws("sld: Fread failed\r\n");
-			dev->input_tail = offset;
+			sl->ihead = offset;
 		}
 
-		dev->input_avail = navail < 0 ? 0 : navail;
-		if (dev->input_tail != dev->input_head)
+		sl->nread = nr < 0 ? 0 : nr;
+		if (sl->ihead != sl->itail)
 		{
-			currdev = dev;
+			currdev = sl;
 			Supexec(read_dev);
 		}
 
-		if (dev->flags & 0x02)
+		if (sl->flags & SL_SENDING)
 		{
-			navail = 0;
-			Fcntl(dev->fd, (long)&navail, FIONWRITE);
-			if ((navail != 0 && navail <= dev->output_avail) ||
-				navail >= 100 ||
-				((long)(void *)navail >= (long)(void *)((dev->output_tail - dev->output_head) & (dev->outbuf_size - 1)))) /* WTF? why cast? */
+			nr = 0;
+			Fcntl(sl->fd, (long)&nr, FIONWRITE);
+			if ((nr != 0 && nr <= sl->nwrite) ||
+				nr >= 100 ||
+				((long)(void *)nr >= (long)(void *)((sl->ohead - sl->otail) & (sl->osize - 1)))) /* WTF? why cast? */
 			{
-				offset = dev->output_head;
-				nbytes = 1;
+				offset = sl->otail;
+				r = 1;
 				/*
-				 * write from head to end of buffer
+				 * write from tail to end of buffer
 				 */
-				if (offset > dev->output_tail)
+				if (offset > sl->ohead)
 				{
-					bufsize = dev->outbuf_size - offset;
-					if (bufsize > 0)
+					space = sl->osize - offset;
+					if (space > 0)
 					{
-						nbytes = Fwrite(dev->fd, bufsize, dev->outbuf_ptr + offset);
-						if (nbytes > 0)
+						r = Fwrite(sl->fd, space, sl->obuf + offset);
+						if (r > 0)
 						{
-							offset = (offset + nbytes) & (dev->outbuf_size - 1);
-							navail -= nbytes;
+							offset = (offset + r) & (sl->osize - 1);
+							nr -= r;
 						}
 					}
 				}
 
 				/*
-				 * write from start of buffer to tail
+				 * write from start of buffer to head
 				 * BUG: we may have already written all available bytes above
 				 */
-				if (nbytes > 0 && offset < dev->output_tail)
+				if (r > 0 && offset < sl->ohead)
 				{
-					bufsize = dev->output_tail - offset;
-					if (bufsize > 0)
+					space = sl->ohead - offset;
+					if (space > 0)
 					{
-						nbytes = Fwrite(dev->fd, bufsize, dev->outbuf_ptr + offset);
-						if (nbytes > 0)
+						r = Fwrite(sl->fd, space, sl->obuf + offset);
+						if (r > 0)
 						{
-							offset = (offset + nbytes) & (dev->outbuf_size - 1);
-							navail -= nbytes;
+							offset = (offset + r) & (sl->osize - 1);
+							nr -= r;
 						}
 					}
 				}
 
-				if (nbytes < 0)
+				if (r < 0)
 					(void) Cconws("sld: Fwrite failed\r\n");
-				dev->output_head = offset;
+				sl->otail = offset;
 				
-				if ((((dev->outbuf_size - 1) - ((dev->output_tail - offset) & (dev->outbuf_size - 1))) << 2) >= dev->outbuf_size)
+				if ((((sl->osize - 1) - ((sl->ohead - offset) & (sl->osize - 1))) << 2) >= sl->osize)
 				{
 					short d2; /* XXX */
-					d2 = dev->output_tail;
+					d2 = sl->ohead;
 					if (offset == d2)
-						dev->flags &= ~0x02;
-					currdev = dev;
+						sl->flags &= ~SL_SENDING;
+					currdev = sl;
 					Supexec(write_dev);
-					if (dev->output_tail != dev->output_head)
-						dev->flags |= 0x02;
+					if (sl->ohead != sl->otail)
+						sl->flags |= SL_SENDING;
 				}
 			}
-			dev->output_avail = navail < 0 ? 0 : navail;
+			sl->nwrite = nr < 0 ? 0 : nr;
 		}
 	}
 }
 
 /* XXX temporary to get identical results */
-struct sockdev *currdev;
+struct slbuf *currdev;
