@@ -1,0 +1,29 @@
+;
+; Project file for MagiCNet driver, slip
+;
+..\bin\slip.mif
+.C[-DNO_DELAY] ; on 68000 we don't need to delay
+.C[-I..\..\kernel]
+.C[-I..\..\include\purec]
+.C[-I..\..\include]
+.S[-Iinc_mnet]
+.S[-S]
+.S[-DGNUC=0]
+.C[-A-]
+.C[-P-]
+.C[-K]
+.C[-M-]
+.C[-G-]
+.L[-S=8192]
+=
+mstartup.s
+main.c
+slip.c
+serial.c
+pppdev.s [-I..\..\kernel]
+ppp.c
+slcompr.c
+
+pcstdli2.lib
+;pctoslib.lib
+gemdos.s
