@@ -366,7 +366,7 @@ long sockets_dev_init(void)
 		return FALSE;
 	if (sockets_dev_cookie)
 		sockets_dev = (struct magxnet_cookie *)sockets_dev_cookie;
-	sockets_dev->dev_table = allslbufs;
+	sockets_dev->allslbufs = allslbufs;
 
 #ifdef __PUREC__
 	/* FIXME: some relict of function above? */

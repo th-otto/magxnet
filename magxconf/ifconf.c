@@ -66,10 +66,10 @@ int open_socket(int flag)
 		{
 			sockets_dev = (struct magxnet_cookie *)cookie;
 		}
-		if (sockets_dev->o44 != 0)
+		if (sockets_dev->initialized != 0)
 			return -1;
 		Supexec(sockets_dev->init_timer);
-		sockets_dev->o44 = 1;
+		sockets_dev->initialized = 1;
 	}
 	sock_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock_fd < 0)

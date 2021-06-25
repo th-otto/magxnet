@@ -24,10 +24,36 @@ struct netif { int dummy; };
 
 #define NSLBUFS		4
 
+struct slbuf {
+	unsigned char flags;
+# define SL_INUSE	0x01		/* slbuf in use */
+# define SL_SENDING	0x02		/* send in progress */
+# define SL_CLOSING	0x04		/* close in progress */
+
+	char		dev[127];	/* device name */
+	short fd;
+	struct netif	*nif;	/* interface this belongs to */
+	short		isize;		/* input ring buffer size */
+	char		*ibuf;		/* pointer to input buf */
+	short		ihead;		/* input buffer head */
+	short		itail;		/* output buffer tail */
+
+	short		osize;		/* ditto for output */
+	char		*obuf;		/* ditto for output */
+	short		ohead;		/* ditto for output */
+	short		otail;		/* ditto for output */
+
+	short		(*send)(struct slbuf *);	/* send more */
+	short		(*recv)(struct slbuf *);	/* recv more */
+	long		nread;		/* bytes avail for reading */
+	long		nwrite;		/* bytes avail for writing */
+};
+
+
 static struct magxnet_cookie *sockets_dev;
 static long cookie;
 static short apid;
-static struct slbuf *dev_table;
+static struct slbuf *allslbufs;
 extern struct slbuf *currdev;
 
 static char const not_installed[] = " MagiCNet device driver NOT installed!\r\n";
@@ -172,8 +198,8 @@ int main(void)
 		sockets_dev = (struct magxnet_cookie *)cookie;
 		sockets_dev->Fopen = my_Fopen;
 		sockets_dev->Fclose = my_Fclose;
-		dev_table = sockets_dev->dev_table;
-		if (dev_table)
+		allslbufs = sockets_dev->allslbufs;
+		if (allslbufs)
 			mainloop();
 	}
 	mt_appl_exit(NULL);
@@ -253,7 +279,7 @@ static void do_work(void)
 	long r;
 	long space;
 	
-	for (devptr = dev_table, loop = 0; loop < NSLBUFS; loop++, devptr++)
+	for (devptr = allslbufs, loop = 0; loop < NSLBUFS; loop++, devptr++)
 	{
 		sl = devptr;
 		if ((sl->flags & (SL_INUSE|SL_CLOSING)) != SL_INUSE)
